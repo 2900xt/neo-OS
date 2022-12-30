@@ -30,5 +30,5 @@ neo-OS.hdd: kernel
 
 .PHONY: clean
 clean:
-	rm -rf iso_root neo-OS.iso neo-OS.hdd
+	rm -rf iso_root
 	$(MAKE) -C kernel clean

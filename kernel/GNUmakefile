@@ -12,14 +12,14 @@ define DEFAULT_VAR =
     endif
 endef
 
-CC = gcc
+CC = g++
 LD = ld
 
 # User controllable CFLAGS.
-CFLAGS ?= -g -O2 -pipe -Wall -Wextra
+CPPFLAGS ?= -g -O2 -pipe -I lib
 
 # User controllable preprocessor flags. We set none by default.
-CPPFLAGS ?=
+CFLAGS ?=
 
 # User controllable nasm flags.
 NASMFLAGS ?= -F dwarf -g
@@ -28,8 +28,8 @@ NASMFLAGS ?= -F dwarf -g
 LDFLAGS ?=
 
 # Internal C flags that should not be changed by the user.
-override CFLAGS +=       \
-    -std=c11             \
+override CPPFLAGS +=       \
+    -std=c++17           \
     -ffreestanding       \
     -fno-stack-protector \
     -fno-stack-check     \
@@ -46,8 +46,6 @@ override CFLAGS +=       \
     -mno-red-zone        \
     -mcmodel=kernel      \
     -MMD                 \
-    -I ..                \
-    -I lib
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS +=         \
@@ -67,11 +65,11 @@ override NASMFLAGS += \
     -f elf64
 
 # Use find to glob all *.c, *.S, and *.asm files in the directory and extract the object names.
-override CFILES := $(shell find ./src -type f -name '*.c')
+override CFILES := $(shell find ./src -type f -name '*.cpp')
 override ASFILES := $(shell find ./src -type f -name '*.S')
 override NASMFILES := $(shell find ./src -type f -name '*.asm')
-override OBJ := $(CFILES:.c=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=.o)
-override HEADER_DEPS := $(CFILES:.c=.d) $(ASFILES:.S=.d)
+override OBJ := $(CFILES:.cpp=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=.o)
+override HEADER_DEPS := $(CFILES:.cpp=.d) $(ASFILES:.S=.d)
 
 # Default target.
 .PHONY: all
@@ -85,12 +83,12 @@ $(KERNEL): $(OBJ)
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.c files.
-%.o: %.c limine.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+%.o: %.cpp limine.h
+	$(CC) $(CPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
 %.o: %.S limine.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 %.o: %.asm
