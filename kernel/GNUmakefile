@@ -1,6 +1,6 @@
 # This is the name that our final kernel executable will have.
 # Change as needed.
-override KERNEL := kernel.elf
+override KERNEL := bin/kernel.elf
 
 # Convenience macro to reliably declare overridable command variables.
 define DEFAULT_VAR =
@@ -12,13 +12,8 @@ define DEFAULT_VAR =
     endif
 endef
 
-# It is highly recommended to use a custom built cross toolchain to build a kernel.
-# We are only using "cc" as a placeholder here. It may work by using
-# the host system's toolchain, but this is not guaranteed.
-$(eval $(call DEFAULT_VAR,CC,cc))
-
-# Same thing for "ld" (the linker).
-$(eval $(call DEFAULT_VAR,LD,ld))
+CC = gcc
+LD = ld
 
 # User controllable CFLAGS.
 CFLAGS ?= -g -O2 -pipe -Wall -Wextra
@@ -51,7 +46,8 @@ override CFLAGS +=       \
     -mno-red-zone        \
     -mcmodel=kernel      \
     -MMD                 \
-    -I.
+    -I ..                \
+    -I lib
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS +=         \
@@ -71,18 +67,15 @@ override NASMFLAGS += \
     -f elf64
 
 # Use find to glob all *.c, *.S, and *.asm files in the directory and extract the object names.
-override CFILES := $(shell find . -type f -name '*.c')
-override ASFILES := $(shell find . -type f -name '*.S')
-override NASMFILES := $(shell find . -type f -name '*.asm')
+override CFILES := $(shell find ./src -type f -name '*.c')
+override ASFILES := $(shell find ./src -type f -name '*.S')
+override NASMFILES := $(shell find ./src -type f -name '*.asm')
 override OBJ := $(CFILES:.c=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=.o)
 override HEADER_DEPS := $(CFILES:.c=.d) $(ASFILES:.S=.d)
 
 # Default target.
 .PHONY: all
-all: $(KERNEL)
-
-limine.h:
-	curl https://raw.githubusercontent.com/limine-bootloader/limine/trunk/limine.h -o $@
+all: $(KERNEL) clean
 
 # Link rules for the final kernel executable.
 $(KERNEL): $(OBJ)
@@ -106,8 +99,5 @@ $(KERNEL): $(OBJ)
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf $(KERNEL) $(OBJ) $(HEADER_DEPS)
+	rm -rf $(OBJ) $(HEADER_DEPS)
 
-.PHONY: distclean
-distclean: clean
-	rm -f limine.h
