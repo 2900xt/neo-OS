@@ -5,5 +5,6 @@
 uint64_t getHDDM(void);
 void heapInit(uint64_t offset, uint64_t size, uint64_t blksize);
 void* kmalloc(uint64_t size);
+void kfree(void* ptr);
 
 #endif // !MEM_H

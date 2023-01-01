@@ -41,9 +41,9 @@ void heapInit(uint64_t offset, uint64_t size, uint64_t blksize){
     heapBlkcount = size / blksize - 1;
     heapBlksize = blksize;
 
-//Heap offset = Higher half address + offset + bitmap size
+//Heap offset = Higher half address + offset + bitmap size(blkcount)
 
-    heapOffset = (heapBlkcount / 2) + offset + HHDM;
+    heapOffset = heapBlkcount + offset + HHDM;
 
 //Bitmap is gonna be located at the start of the heap, with the bitmap being the size of the heap block count
 
@@ -54,6 +54,9 @@ void heapInit(uint64_t offset, uint64_t size, uint64_t blksize){
 }
 
 //Bitmap will be 4 bits per value
+
+
+
 
 void* kmalloc(uint64_t size)
 {
@@ -75,11 +78,8 @@ void* kmalloc(uint64_t size)
     uint8_t  currentEntry = 0;
     uint64_t memoryAddr = 0;
     while(currentIndex < heapBlkcount){
-        if(currentIndex  % 2 == 0){
-            currentEntry = memoryBitmap[currentIndex / 2] & 0xF;
-        } else {
-            currentEntry = memoryBitmap[currentIndex / 2] >> 4;
-        }
+
+        currentEntry = memoryBitmap[currentIndex];
 
         switch (currentEntry)
         {
@@ -92,6 +92,7 @@ void* kmalloc(uint64_t size)
             if(freeBlocksFound == size) goto blockFound;
             break;
         case USED:
+            freeBlocksFound = 0;
         default:
             break;
         }
@@ -110,24 +111,17 @@ blockFound:
 
     int borderIndex = currentIndex;
 
-    currentIndex -= freeBlocksFound - 1;
+    currentIndex -= freeBlocksFound - 2;
 
     while(currentIndex < borderIndex)
     {
-        if(currentIndex % 2 == 0){
-            memoryBitmap[currentIndex / 2] = USED & 0xF;
-        } else {
-            memoryBitmap[currentIndex / 2] = USED << 4;
-        }
+        memoryBitmap[currentIndex] = USED;
         currentIndex++;
     }
-
-    if(currentIndex % 2 == 0){
-        memoryBitmap[currentIndex / 2] = BORDER & 0xF;
-    } else {
-        memoryBitmap[currentIndex / 2] = BORDER << 4;
-    }
-
+    
+    memoryBitmap[currentIndex] = BORDER;
+    
+    currentIndex -= freeBlocksFound - 2;
 
 //Return the actual address on the heap
     
@@ -136,5 +130,41 @@ blockFound:
     memoryAddr += currentIndex * heapBlksize;
 
     return (void*)memoryAddr;
+
+}
+
+void kfree(void* ptr){
+
+//Get the index into the bitmap
+
+    uint64_t bitmapIndex = (uint64_t)ptr - heapOffset;
+    if((bitmapIndex % heapBlksize != 0 ) || (((uint64_t)ptr > heapOffset + heapBlkcount * heapBlksize) && ((uint64_t)ptr < heapOffset))){
+        neoOS_STD::printf("Invalid Pointer: %x\n", ptr);
+        return;
+    }
+
+    bitmapIndex /= heapBlksize;
+    bitmapIndex--;
+    uint8_t currentBlock;
+
+    currentBlock = memoryBitmap[bitmapIndex];
+
+    if(currentBlock != BORDER){
+        neoOS_STD::printf("Expected a border block! %x: %d\n", ptr, currentBlock);
+        return;
+    }
+
+//Free the memory untill the next border
+
+    currentBlock = memoryBitmap[++bitmapIndex];
+
+    while(currentBlock == USED){
+
+        memoryBitmap[bitmapIndex] = FREE;
+
+        currentBlock = memoryBitmap[++bitmapIndex];
+    }
+    
+    memoryBitmap[bitmapIndex] = FREE;
 
 }
