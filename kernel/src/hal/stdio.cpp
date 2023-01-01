@@ -17,20 +17,15 @@ size_t strlen(char* src){
 
 const char g_HexChars[] = "0123456789ABCDEF";
 static char itoaOutput[32];
-char* itoa(int64_t val, uint8_t radix){
+char* itoa(uint64_t val, uint8_t radix){
 
     char buffer[32];
 
     for(int i = 0; i < 32; i++){
-        buffer[i] = 0;
+        itoaOutput[i] = 0;
     }
 
-    int pos = val < 0;
-    if(pos){
-        val *= -1;
-        buffer[0] = '-';
-    }
-
+    int pos = 0;
     do{
         uint64_t remainder = val % radix;
         val /= radix;
@@ -90,21 +85,21 @@ void printf(const char* fmt, ...){
             case 'd':
             case 'D':
                 argFound = true;
-                num = va_arg(args, int);
+                num = va_arg(args, uint64_t);
                 str = itoa(num, 10);
                 puts(str);
                 break;
             case 'x':
             case 'X':
                 argFound = true;
-                num = va_arg(args, int);
+                num = va_arg(args, uint64_t);
                 str = itoa(num, 16);
                 puts(str);
                 break;
             case 'b':
             case 'B':
                 argFound = true;
-                num = va_arg(args, int);
+                num = va_arg(args, uint64_t);
                 str = itoa(num, 2);
                 puts(str);
                 break;

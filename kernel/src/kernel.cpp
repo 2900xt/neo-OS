@@ -27,9 +27,10 @@ extern "C" void _start(void) {
     
     neoOS_STD::write = terminal_request.response->write;
     neoOS_STD::console = terminal_request.response->terminals[0];
-    
+
     fillIDT();
-    readMemoryMap();
+
+    heapInit(0x100000, 0x100000, 0x100);
 
     neoOS_STD::done();
 }
