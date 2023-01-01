@@ -1,6 +1,7 @@
 #include <limine/limine.h>
 #include <stdout.h>
 #include <arch/amd64/io.h>
+#include <mem.h>
 
 static volatile limine::limine_terminal_request terminal_request {LIMINE_TERMINAL_REQUEST, 0};
 
@@ -26,12 +27,9 @@ extern "C" void _start(void) {
     
     neoOS_STD::write = terminal_request.response->write;
     neoOS_STD::console = terminal_request.response->terminals[0];
-
+    
     fillIDT();
-
-    asm("int $40");
-
-    neoOS_STD::printf("Hello World!");
+    readMemoryMap();
 
     neoOS_STD::done();
 }

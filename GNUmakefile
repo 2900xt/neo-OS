@@ -3,7 +3,7 @@ all: neo-OS.hdd clean
 
 .PHONY: run
 run: neo-OS.hdd
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -hda neo-OS.hdd
+	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -hda neo-OS.hdd -d cpu_reset -D log.txt
 
 .PHONY: kernel
 kernel:
@@ -16,7 +16,7 @@ neo-OS.hdd: kernel
 	parted -s neo-OS.hdd mkpart ESP fat32 2048s 100%
 	parted -s neo-OS.hdd set 1 esp on
 	limine/limine-deploy neo-OS.hdd
-	sudo losetup -Pf --show neo-OS.hdd >loopback_dev
+	sudo losetup -Pf --show neo-OS.hdd > loopback_dev
 	sudo mkfs.fat -F 32 `cat loopback_dev`p1
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount

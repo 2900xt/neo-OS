@@ -2,24 +2,11 @@
 # Change as needed.
 override KERNEL := bin/kernel.elf
 
-# Convenience macro to reliably declare overridable command variables.
-define DEFAULT_VAR =
-    ifeq ($(origin $1),default)
-        override $(1) := $(2)
-    endif
-    ifeq ($(origin $1),undefined)
-        override $(1) := $(2)
-    endif
-endef
-
-CC = g++
-LD = ld
+override CROSS := /usr/local/x86_64elfgcc/bin/x86_64-elf-g++
+override LD := /usr/local/x86_64elfgcc/bin/x86_64-elf-ld
 
 # User controllable CFLAGS.
-CPPFLAGS ?= -g -O2 -pipe -I lib
-
-# User controllable preprocessor flags. We set none by default.
-CFLAGS ?=
+CROSSFLAGS ?= -g -I lib -Wall -mgeneral-regs-only -Ttext 0xffffffff80000000
 
 # User controllable nasm flags.
 NASMFLAGS ?= -F dwarf -g
@@ -28,7 +15,7 @@ NASMFLAGS ?= -F dwarf -g
 LDFLAGS ?=
 
 # Internal C flags that should not be changed by the user.
-override CPPFLAGS +=       \
+override CROSSFLAGS +=   \
     -std=c++17           \
     -ffreestanding       \
     -fno-stack-protector \
@@ -49,11 +36,8 @@ override CPPFLAGS +=       \
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS +=         \
-    -nostdlib               \
-    -static                 \
-    -m elf_x86_64           \
     -z max-page-size=0x1000 \
-    -T linker.ld
+    -T linker.ld            \
 
 # Check if the linker supports -no-pie and enable it if it does
 ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
@@ -73,7 +57,7 @@ override HEADER_DEPS := $(CFILES:.cpp=.d) $(ASFILES:.S=.d)
 
 # Default target.
 .PHONY: all
-all: $(KERNEL) clean
+all: $(KERNEL)
 
 # Link rules for the final kernel executable.
 $(KERNEL): $(OBJ)
@@ -82,13 +66,13 @@ $(KERNEL): $(OBJ)
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
-# Compilation rules for *.c files.
-%.o: %.cpp limine.h
-	$(CC) $(CPPFLAGS) -c $< -o $@
+# Compilation rules for *.cpp files.
+%.o: %.cpp
+	$(CROSS) $(CROSSFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
-%.o: %.S limine.h
-	$(CC) $(CPPFLAGS) -c $< -o $@
+%.o: %.S
+	$(CROSS) $(CROSSFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 %.o: %.asm

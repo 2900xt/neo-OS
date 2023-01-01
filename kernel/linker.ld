@@ -12,6 +12,7 @@ PHDRS
     text    PT_LOAD    FLAGS((1 << 0) | (1 << 2)) ; /* Execute + Read */
     rodata  PT_LOAD    FLAGS((1 << 2)) ;            /* Read only */
     data    PT_LOAD    FLAGS((1 << 1) | (1 << 2)) ; /* Write + Read */
+    all      PT_LOAD    FLAGS((1 << 0) | (1 << 1) | (1 << 2)) ;
 }
 
 SECTIONS
@@ -26,8 +27,21 @@ SECTIONS
         *(.text .text.*)
     } :text
 
+    . += CONSTANT(MAXPAGESIZE);
+
+    .idt BLOCK(0x1000) : {
+        IDT = . ;
+        . = . + 0x1000;
+    } :all
+
+    .gdt BLOCK(0x1000) : {
+        GDR = . ;
+        . = . + 0x1000;
+    } :all
+
     /* Move to the next memory page for .rodata */
     . += CONSTANT(MAXPAGESIZE);
+
 
     .rodata : {
         *(.rodata .rodata.*)

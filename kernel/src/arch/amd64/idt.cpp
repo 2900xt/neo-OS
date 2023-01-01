@@ -1,13 +1,8 @@
 #include <stdout.h>
 #include <arch/amd64/io.h>
 
-enum IDT_FLAGS
-{
-    PRESENT         = (1 << 7),
-    USER_ACCESSIBLE = (3 << 5),
-    INTERRUPT       = 0xE,
-    EXCEPTION       = 0xF,
-};
+#define INTERRUPT 0x8E
+#define EXCEPTION 0x8F
 
 struct IDTEntryAMD64
 {
@@ -53,16 +48,16 @@ const char* exceptions[] = {
     "Security Exception"
 };
 
-struct interruptFrame
+typedef struct
 {
     uint64_t IP;
     uint64_t CS;
     uint64_t flags;
     uint64_t SP;
     uint64_t BP;
-};
+} interruptFrame;
 
-static inline void lidt(void* base, uint16_t size = 128 * 256 - 1)
+static inline void lidt(void* base, uint16_t size)
 {
     struct {
         uint16_t length;
@@ -72,17 +67,27 @@ static inline void lidt(void* base, uint16_t size = 128 * 256 - 1)
     asm ( "lidt %0" : : "m"(IDTR) );  // let the compiler choose an addressing mode
 }
 
-void setIDTEntry(uint8_t vector, uint64_t isr, uint8_t flags){
+void setIDTEntry(uint8_t vector, void* isr, uint8_t flags){
+
+    if(flags == INTERRUPT){
+        vector += 32;
+    }
+
     IDT[vector].flags                     = flags;
-    IDT[vector].zero                      = 0;
-    IDT[vector].selector                  = 0x8;
-    IDT[vector].interruptStackTable       = 0;
-    IDT[vector].offsetLow                 = (uint16_t)((uint64_t)(isr & 0xFFFF));
-    IDT[vector].offsetMid                 = (uint16_t)((uint64_t)(isr & 0xFFFF0000) >> 16);
-    IDT[vector].offsetHigh                = (uint32_t)((uint64_t)(isr & 0xFFFFFFFF00000000) >> 32);
+    IDT[vector].zero                      = 0x0;
+    IDT[vector].selector                  = 40;
+    IDT[vector].interruptStackTable       = 0x0;
+    IDT[vector].offsetLow                 = (uint16_t)(((uint64_t)isr & 0x000000000000FFFF));
+    IDT[vector].offsetMid                 = (uint16_t)(((uint64_t)isr & 0x00000000FFFF0000) >> 16);
+    IDT[vector].offsetHigh                = (uint32_t)(((uint64_t)isr & 0xFFFFFFFF00000000) >> 32);
 }
 
+
+
+const char* exceptionNoError = "%s\n";
 //Interrupts
+
+extern "C"{
 
 __attribute__ ((interrupt))  void isr0  (interruptFrame* frame)   {isrs[0] = true;  sendEOI(0); }
 __attribute__ ((interrupt))  void isr1  (interruptFrame* frame)   {isrs[1] = true;  sendEOI(1); }
@@ -103,93 +108,93 @@ __attribute__ ((interrupt))  void isr15 (interruptFrame* frame)   {isrs[15] = tr
 
 //Exceptions without error codes
 
-const char* exceptionNoError = "%s->\nIP: %x\nCS: %x\nFLAGS: %x\nSP: %x\n\n\nDone!";
-
-__attribute__ ((interrupt)) void exc0  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[0],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc1  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[1],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc2  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[2],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc3  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[3],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc4  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[4],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc5  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[5],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc6  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[6],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc7  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[7],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc9  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[9],  frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc16 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[16], frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc18 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[18], frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc19 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[19], frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc20 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[20], frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc28 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[28], frame->IP, frame->CS, frame->flags, frame->SP);  neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc0  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[0]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc1  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[1]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc2  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[2]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc3  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[3]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc4  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[4]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc5  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[5]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc6  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[6]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc7  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[7]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc9  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[9]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc16 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[16]);  neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc18 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[18]);  neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc19 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[19]);  neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc20 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[20]);  neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc28 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, exceptions[28]);  neoOS_STD::done();}
 
 //Exceptions with error codes
 
-const char* exceptionError = "%s->\nCode: %x\n\nIP: %x\nCS: %x\nFLAGS: %x\nSP: %x\n\n\nDone!";
+__attribute__ ((interrupt)) void exc8  (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[8]);    neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc10 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[10]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc11 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[11]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc12 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[12]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc13 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[13]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc14 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[14]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc17 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[17]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc21 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[21]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc29 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[29]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc30 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[20]);   neoOS_STD::done();}
+    
+}
 
-__attribute__ ((interrupt)) void exc8  (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[8],  error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc10 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[10], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc11 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[11], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc12 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[12], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc13 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[13], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc14 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[14], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc17 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[17], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc21 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[21], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc29 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[29], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc30 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, exceptions[20], error, frame->IP, frame->CS, frame->flags, frame->SP);   neoOS_STD::done();}
-        
 void fillIDT(void){
 
     remapPIC(32, 40);
 
     //Interrupts
 
-    setIDTEntry(32 + 0,  (uint64_t)isr0,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 1,  (uint64_t)isr1,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 2,  (uint64_t)isr2,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 3,  (uint64_t)isr3,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 4,  (uint64_t)isr4,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 5,  (uint64_t)isr5,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 6,  (uint64_t)isr6,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 7,  (uint64_t)isr7,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 8,  (uint64_t)isr8,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 9,  (uint64_t)isr9,  PRESENT | INTERRUPT);
-    setIDTEntry(32 + 10, (uint64_t)isr10, PRESENT | INTERRUPT);
-    setIDTEntry(32 + 11, (uint64_t)isr11, PRESENT | INTERRUPT);
-    setIDTEntry(32 + 12, (uint64_t)isr12, PRESENT | INTERRUPT);
-    setIDTEntry(32 + 13, (uint64_t)isr13, PRESENT | INTERRUPT);
-    setIDTEntry(32 + 14, (uint64_t)isr14, PRESENT | INTERRUPT);
-    setIDTEntry(32 + 15, (uint64_t)isr15, PRESENT | INTERRUPT);
+    setIDTEntry(0,  (void*)isr0,  INTERRUPT);
+    setIDTEntry(1,  (void*)isr1,  INTERRUPT);
+    setIDTEntry(2,  (void*)isr2,  INTERRUPT);
+    setIDTEntry(3,  (void*)isr3,  INTERRUPT);
+    setIDTEntry(4,  (void*)isr4,  INTERRUPT);
+    setIDTEntry(5,  (void*)isr5,  INTERRUPT);
+    setIDTEntry(6,  (void*)isr6,  INTERRUPT);
+    setIDTEntry(7,  (void*)isr7,  INTERRUPT);
+    setIDTEntry(8,  (void*)isr8,  INTERRUPT);
+    setIDTEntry(9,  (void*)isr9,  INTERRUPT);
+    setIDTEntry(10, (void*)isr10, INTERRUPT);
+    setIDTEntry(11, (void*)isr11, INTERRUPT);
+    setIDTEntry(12, (void*)isr12, INTERRUPT);
+    setIDTEntry(13, (void*)isr13, INTERRUPT);
+    setIDTEntry(14, (void*)isr14, INTERRUPT);
+    setIDTEntry(15, (void*)isr15, INTERRUPT);
 
     //Exceptions
 
+    setIDTEntry(0,  (void*)exc0,  EXCEPTION);
+    setIDTEntry(1,  (void*)exc1,  EXCEPTION);
+    setIDTEntry(2,  (void*)exc2,  EXCEPTION);
+    setIDTEntry(3,  (void*)exc3,  EXCEPTION);
+    setIDTEntry(4,  (void*)exc4,  EXCEPTION);
+    setIDTEntry(5,  (void*)exc5,  EXCEPTION);
+    setIDTEntry(6,  (void*)exc6,  EXCEPTION);
+    setIDTEntry(7,  (void*)exc7,  EXCEPTION);
+    setIDTEntry(8,  (void*)exc8,  EXCEPTION);
+    setIDTEntry(9,  (void*)exc9,  EXCEPTION);
+    setIDTEntry(10, (void*)exc10, EXCEPTION);
+    setIDTEntry(11, (void*)exc11, EXCEPTION);
+    setIDTEntry(12, (void*)exc12, EXCEPTION);
+    setIDTEntry(13, (void*)exc13, EXCEPTION);
+    setIDTEntry(14, (void*)exc14, EXCEPTION);
+    setIDTEntry(16, (void*)exc16, EXCEPTION);
+    setIDTEntry(17, (void*)exc17, EXCEPTION);
+    setIDTEntry(18, (void*)exc18, EXCEPTION);
+    setIDTEntry(19, (void*)exc19, EXCEPTION);
+    setIDTEntry(20, (void*)exc20, EXCEPTION);
+    setIDTEntry(21, (void*)exc21, EXCEPTION);
+    setIDTEntry(28, (void*)exc28, EXCEPTION);
+    setIDTEntry(29, (void*)exc29, EXCEPTION);
+    setIDTEntry(30, (void*)exc30, EXCEPTION);
 
-    setIDTEntry(0,  (uint64_t)exc0,  PRESENT | EXCEPTION);
-    setIDTEntry(1,  (uint64_t)exc1,  PRESENT | EXCEPTION);
-    setIDTEntry(2,  (uint64_t)exc2,  PRESENT | EXCEPTION);
-    setIDTEntry(3,  (uint64_t)exc3,  PRESENT | EXCEPTION);
-    setIDTEntry(4,  (uint64_t)exc4,  PRESENT | EXCEPTION);
-    setIDTEntry(5,  (uint64_t)exc5,  PRESENT | EXCEPTION);
-    setIDTEntry(6,  (uint64_t)exc6,  PRESENT | EXCEPTION);
-    setIDTEntry(7,  (uint64_t)exc7,  PRESENT | EXCEPTION);
-    setIDTEntry(8,  (uint64_t)exc8,  PRESENT | EXCEPTION);
-    setIDTEntry(9,  (uint64_t)exc9,  PRESENT | EXCEPTION);
-    setIDTEntry(10, (uint64_t)exc10, PRESENT | EXCEPTION);
-    setIDTEntry(11, (uint64_t)exc11, PRESENT | EXCEPTION);
-    setIDTEntry(12, (uint64_t)exc12, PRESENT | EXCEPTION);
-    setIDTEntry(13, (uint64_t)exc13, PRESENT | EXCEPTION);
-    setIDTEntry(14, (uint64_t)exc14, PRESENT | EXCEPTION);
-    setIDTEntry(16, (uint64_t)exc16, PRESENT | EXCEPTION);
-    setIDTEntry(17, (uint64_t)exc17, PRESENT | EXCEPTION);
-    setIDTEntry(18, (uint64_t)exc18, PRESENT | EXCEPTION);
-    setIDTEntry(19, (uint64_t)exc19, PRESENT | EXCEPTION);
-    setIDTEntry(20, (uint64_t)exc20, PRESENT | EXCEPTION);
-    setIDTEntry(21, (uint64_t)exc21, PRESENT | EXCEPTION);
-    setIDTEntry(28, (uint64_t)exc28, PRESENT | EXCEPTION);
-    setIDTEntry(29, (uint64_t)exc29, PRESENT | EXCEPTION);
-    setIDTEntry(30, (uint64_t)exc30, PRESENT | EXCEPTION);
+    for(int i = 48; i < 256; i++){
+        setIDTEntry(i, (void*)exc1, EXCEPTION);
+    }
 
-    lidt(IDT);
+    lidt(IDT, sizeof(IDT) - 1);
 
     asm("sti");
-
 }
 
 

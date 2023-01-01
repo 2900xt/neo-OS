@@ -19,4 +19,5 @@ void sendEOI(unsigned char irq);
 void remapPIC(int offset1, int offset2);
 void fillIDT(void);
 
+
 #endif // !AMD64_IO_H

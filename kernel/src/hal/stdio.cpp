@@ -2,7 +2,7 @@
 #include <stdout.h>
 
 
-namespace neoOS_STD {
+namespace neoOS_STD{
 
 limine::limine_terminal* console;
 limine::limine_terminal_write write;
@@ -21,7 +21,7 @@ char* itoa(int64_t val, uint8_t radix){
 
     char buffer[32];
 
-    for(const auto i: buffer){
+    for(int i = 0; i < 32; i++){
         buffer[i] = 0;
     }
 
@@ -64,7 +64,7 @@ void printf(const char* fmt, ...){
     bool argFound = false;
 
     char* str;
-    int num;
+    uint64_t num;
 
     while(fmt[currentCharacter] != '\0'){
     
