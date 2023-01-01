@@ -55,7 +55,7 @@ void heapInit(uint64_t offset, uint64_t size, uint64_t blksize){
 
 //Bitmap will be 4 bits per value
 
-void kmalloc(uint64_t size)
+void* kmalloc(uint64_t size)
 {
 
 //Convert Bytes into heap blocks
@@ -67,11 +67,13 @@ void kmalloc(uint64_t size)
     }
     size /= heapBlksize;
 
+
 //Scan through the memory blocks until we find a free one that is greater than or equal to the size
 
     uint64_t currentIndex = 0;
     uint64_t freeBlocksFound = 0;
     uint8_t  currentEntry = 0;
+    uint64_t memoryAddr = 0;
     while(currentIndex < heapBlkcount){
         if(currentIndex  % 2 == 0){
             currentEntry = memoryBitmap[currentIndex / 2] & 0xF;
@@ -82,7 +84,8 @@ void kmalloc(uint64_t size)
         switch (currentEntry)
         {
         case BORDER:
-            freeBlocksFound = 0;
+            freeBlocksFound = 1;
+            if(freeBlocksFound == size) goto blockFound;
             break;
         case FREE:
             freeBlocksFound++;
@@ -102,10 +105,14 @@ void kmalloc(uint64_t size)
 
 blockFound:
 
+
 //Declare the memory blocks as used
 
-    currentIndex -= freeBlocksFound;
-    while(currentIndex != currentIndex + freeBlocksFound)
+    int borderIndex = currentIndex;
+
+    currentIndex -= freeBlocksFound - 1;
+
+    while(currentIndex < borderIndex)
     {
         if(currentIndex % 2 == 0){
             memoryBitmap[currentIndex / 2] = USED & 0xF;
@@ -121,10 +128,13 @@ blockFound:
         memoryBitmap[currentIndex / 2] = BORDER << 4;
     }
 
+
 //Return the actual address on the heap
-
     
+    memoryAddr = heapOffset;
 
-    return 
+    memoryAddr += currentIndex * heapBlksize;
+
+    return (void*)memoryAddr;
 
 }
