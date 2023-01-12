@@ -2,7 +2,7 @@
 #include <stdout.h>
 
 
-namespace neoOS_STD{
+namespace neoSTL{
 
 limine::limine_terminal* console;
 limine::limine_terminal_write write;
@@ -16,10 +16,10 @@ size_t strlen(char* src){
 }
 
 const char g_HexChars[] = "0123456789ABCDEF";
-static char itoaOutput[32];
+static char itoaOutput[64];
 char* itoa(uint64_t val, uint8_t radix){
 
-    char buffer[32];
+    char buffer[64];
 
     for(int i = 0; i < 32; i++){
         itoaOutput[i] = 0;

@@ -5,7 +5,7 @@
 #ifndef STDOUT_H
 #define STDOUT_H
 
-namespace neoOS_STD
+namespace neoSTL
 {
     extern limine::limine_terminal* console;
     extern limine::limine_terminal_write write;

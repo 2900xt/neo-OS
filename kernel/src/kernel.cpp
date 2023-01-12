@@ -6,7 +6,7 @@
 static volatile limine::limine_terminal_request terminal_request {LIMINE_TERMINAL_REQUEST, 0};
 
 
-void neoOS_STD::done(void) {
+void neoSTL::done(void) {
     for (;;) {
         asm("hlt");
     }
@@ -20,17 +20,19 @@ extern "C" void _start(void) {
 
     if (terminal_request.response == NULL
     || terminal_request.response->terminal_count == 0) {
-        neoOS_STD::done();
+        neoSTL::done();
     }
 
     //Set global variables
     
-    neoOS_STD::write = terminal_request.response->write;
-    neoOS_STD::console = terminal_request.response->terminals[0];
+    neoSTL::write = terminal_request.response->write;
+    neoSTL::console = terminal_request.response->terminals[0];
 
     fillIDT();
 
-    heapInit(0x100000, 0x100000, 0x100);
+    neoSTL::heapInit(0x100000, 0x100000, 0x100);
 
-    neoOS_STD::done();
+    uint64_t physicalAddr = getPhysicalAddress(getHHDM());
+    neoSTL::printf("PA:\t0x%x\n", physicalAddr);
+    neoSTL::done();
 }

@@ -36,7 +36,7 @@ neo-OS.hdd: kernel
 	sync
 	sudo umount img_mount
 	sudo losetup -d `cat loopback_dev`
-	rm -rf loopback_dev img_mount
+	sudo rm -rf loopback_dev img_mount
 
 .PHONY: clean
 clean:

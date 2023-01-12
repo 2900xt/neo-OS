@@ -3,7 +3,7 @@
 
 static volatile limine::limine_hhdm_request hhdm_request = {LIMINE_HHDM_REQUEST, 0};
 
-uint64_t getHDDM(void){
+uint64_t getHHDM(void){
     return hhdm_request.response->offset;
 }
 
@@ -23,15 +23,63 @@ enum MEMORY_TYPES
 };
 
 
+//Misc memory functionss
+
+namespace neoSTL{
+
+void memset_64(void* _addr, uint64_t num, uint64_t value){
+
+    //Round up!
+
+    if(num % 8 != 0){
+        uint8_t remainder = num % 8;
+        num -= remainder;
+        num += 8;
+    }
+
+    num /= 8;
+
+    uint64_t* addr = (uint64_t*)_addr;
+
+    for(int i = 0; i < num; i++){
+        addr[i] = value;
+    }
+}
+
+void memset_8(void* _addr, uint64_t num, uint8_t value){
+    uint8_t* addr = (uint8_t*)_addr;
+
+    for(int i = 0; i < num; i++){
+        addr[i] = value;
+    }
+}
+
+void memcpy(void* _destination, void* _src, uint64_t num){
+
+    if(num % 8 != 0){
+        uint8_t remainder = num % 8;
+        num -= remainder;
+        num += 8;
+    }
+
+    uint8_t* destPtr = (uint8_t*)_destination;
+    uint8_t* srcPtr = (uint8_t*)_src;
+
+    for(int i = 0; i < num; i++){
+        destPtr[i] = srcPtr[i];
+    }
+
+}
+
 void heapInit(uint64_t offset, uint64_t size, uint64_t blksize){
-    uint64_t HHDM = getHDDM();
+    uint64_t HHDM = getHHDM();
     limine::limine_memmap_entry* currentEntry;
     limine::limine_memmap_entry* largestFreeRegion = nullptr;
 
     for(int i = 0; i < memmap_request.response->entry_count; i++){
         currentEntry = memmap_request.response->entries[i];
         if(currentEntry->type == 0){
-            neoOS_STD::printf("Free Memory Entry %d: \t Offset = 0x%x \t Size = 0x%x\n", avalibleMemoryRegionsCount, currentEntry->base, currentEntry->length);
+            neoSTL::printf("Free Memory Entry %d: \t Offset = 0x%x \t Size = 0x%x\n", avalibleMemoryRegionsCount, currentEntry->base, currentEntry->length);
             avalibleMemoryRegions[avalibleMemoryRegionsCount++] = currentEntry;
             if(largestFreeRegion == nullptr || currentEntry->length > largestFreeRegion->length){
                 largestFreeRegion = currentEntry;
@@ -50,12 +98,8 @@ void heapInit(uint64_t offset, uint64_t size, uint64_t blksize){
     memoryBitmap = (uint8_t*)heapOffset;
     memoryBitmap[0] = BORDER;
     
-    neoOS_STD::printf("\nStarting kernel heap at: 0x%x\tWith length: 0x%x\n", heapOffset, heapBlksize * heapBlkcount);
+    neoSTL::printf("\nStarting kernel heap at: 0x%x\tWith length: 0x%x\n", heapOffset, heapBlksize * heapBlkcount);
 }
-
-//Bitmap will be 4 bits per value
-
-
 
 
 void* kmalloc(uint64_t size)
@@ -124,7 +168,7 @@ blockFound:
     currentIndex -= freeBlocksFound - 2;
 
 //Return the actual address on the heap
-    
+
     memoryAddr = heapOffset;
 
     memoryAddr += currentIndex * heapBlksize;
@@ -133,13 +177,25 @@ blockFound:
 
 }
 
+void* kcalloc(uint64_t count, uint64_t size){
+    uint64_t totalSize = count * size;
+    void* retPtr = kmalloc(totalSize);
+    if(size % 64 == 0){
+        memset_64(retPtr, totalSize, 0);
+    } else {
+        memset_8(retPtr, totalSize, 0);
+    }
+
+    return retPtr;
+}
+
 void kfree(void* ptr){
 
 //Get the index into the bitmap
 
     uint64_t bitmapIndex = (uint64_t)ptr - heapOffset;
     if((bitmapIndex % heapBlksize != 0 ) || (((uint64_t)ptr > heapOffset + heapBlkcount * heapBlksize) && ((uint64_t)ptr < heapOffset))){
-        neoOS_STD::printf("Invalid Pointer: %x\n", ptr);
+        neoSTL::printf("Invalid Pointer: %x\n", ptr);
         return;
     }
 
@@ -150,7 +206,7 @@ void kfree(void* ptr){
     currentBlock = memoryBitmap[bitmapIndex];
 
     if(currentBlock != BORDER){
-        neoOS_STD::printf("Expected a border block! %x: %d\n", ptr, currentBlock);
+        neoSTL::printf("Expected a border block! %x: %d\n", ptr, currentBlock);
         return;
     }
 
@@ -158,13 +214,8 @@ void kfree(void* ptr){
 
     currentBlock = memoryBitmap[++bitmapIndex];
 
-    while(currentBlock == USED){
-
-        memoryBitmap[bitmapIndex] = FREE;
-
-        currentBlock = memoryBitmap[++bitmapIndex];
-    }
-    
     memoryBitmap[bitmapIndex] = FREE;
 
 }
+
+};

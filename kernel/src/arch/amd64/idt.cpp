@@ -109,33 +109,33 @@ __attribute__ ((interrupt))  void isr15 (interruptFrame* frame)   {isrs[15] = tr
 
 //Exceptions without error codes
 
-__attribute__ ((interrupt)) void exc0  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[0]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc1  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[1]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc2  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[2]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc3  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[3]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc4  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[4]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc5  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[5]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc6  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[6]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc7  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[7]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc9  (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[9]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc16 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[16]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc18 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[18]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc19 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[19]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc20 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);  neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc28 (interruptFrame* frame)      {neoOS_STD::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[28]);  neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc0  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[0]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc1  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[1]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc2  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[2]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc3  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[3]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc4  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[4]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc5  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[5]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc6  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[6]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc7  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[7]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc9  (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[9]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc16 (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[16]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc18 (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[18]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc19 (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[19]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc20 (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);  neoSTL::done();}
+__attribute__ ((interrupt)) void exc28 (interruptFrame* frame)      {neoSTL::printf(exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[28]);  neoSTL::done();}
 
 //Exceptions with error codes
 
-__attribute__ ((interrupt)) void exc8  (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[8]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc10 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[10]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc11 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[11]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc12 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[12]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc13 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[13]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc14 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[14]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc17 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[17]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc21 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[21]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc29 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[29]);   neoOS_STD::done();}
-__attribute__ ((interrupt)) void exc30 (interruptFrame* frame, uint64_t error)      {neoOS_STD::printf(exceptionNoError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);   neoOS_STD::done();}
+__attribute__ ((interrupt)) void exc8  (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[8]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc10 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[10]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc11 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[11]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc12 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[12]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc13 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[13]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc14 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[14]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc17 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[17]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc21 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[21]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc29 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[29]);   neoSTL::done();}
+__attribute__ ((interrupt)) void exc30 (interruptFrame* frame, uint64_t error)      {neoSTL::printf(exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);   neoSTL::done();}
     
 }
 
