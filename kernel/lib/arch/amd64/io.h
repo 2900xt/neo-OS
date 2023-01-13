@@ -15,7 +15,6 @@ static inline uint8_t inb(uint16_t port){
 
 
 uint64_t readCR3(void);
-uint64_t getPhysicalAddress(uint64_t virtualAddr);
 
 void sendEOI(unsigned char irq);
 void remapPIC(int offset1, int offset2);

@@ -71,7 +71,8 @@ void memcpy(void* _destination, void* _src, uint64_t num){
 
 }
 
-void heapInit(uint64_t offset, uint64_t size, uint64_t blksize){
+void heapInit(uint64_t offset, uint64_t size, uint64_t blksize)         //Starts heap at specified address + HHDM
+{
     uint64_t HHDM = getHHDM();
     limine::limine_memmap_entry* currentEntry;
     limine::limine_memmap_entry* largestFreeRegion = nullptr;

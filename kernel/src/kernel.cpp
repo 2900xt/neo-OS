@@ -32,7 +32,12 @@ extern "C" void _start(void) {
 
     neoSTL::heapInit(0x100000, 0x100000, 0x100);
 
-    uint64_t physicalAddr = getPhysicalAddress(getHHDM());
+    uint64_t* ptr = (uint64_t*)0x1;
+    neoSTL::map_page(0x1, 0x1);
+    neoSTL::unmap_page(0x1);
+    uint64_t physicalAddr = neoSTL::getPhysicalAddress((uint64_t)ptr);
+    //*ptr = 1;
+
     neoSTL::printf("PA:\t0x%x\n", physicalAddr);
     neoSTL::done();
 }
