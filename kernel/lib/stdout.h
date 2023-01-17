@@ -16,6 +16,10 @@ namespace neoSTL
     void putc(char);
     void printf(const char*, ...);
     void done(void);
+    bool strcmp(const char* a, const char* b, int count);
+
+    uint64_t max(uint64_t a, uint64_t b);
+    uint64_t min(uint64_t a, uint64_t b);
 }
 
 

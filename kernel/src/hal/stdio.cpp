@@ -51,6 +51,16 @@ void putc(char c){
     write(console, _c, 1);
 }
 
+bool strcmp(const char* a, const char* b, int count)
+{
+
+    for(int i = 0; i < count; i++){
+        if(a[i] != b[i]) return false;
+    }
+
+    return true;
+}
+
 void printf(const char* fmt, ...){
     va_list args;
     va_start(args, fmt);
@@ -118,4 +128,6 @@ void printf(const char* fmt, ...){
     va_end(args);
 
 }
+
+
 }

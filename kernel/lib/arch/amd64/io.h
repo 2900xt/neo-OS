@@ -19,6 +19,9 @@ uint64_t readCR3(void);
 void sendEOI(unsigned char irq);
 void remapPIC(int offset1, int offset2);
 void fillIDT(void);
+extern "C" void enableSSE(void);
+
+void IRQ_clear_mask(unsigned char IRQline);
 
 
 #endif // !AMD64_IO_H
