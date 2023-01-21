@@ -31,8 +31,6 @@ uint64_t readCR3(void)
     return cr3;
 }
 
-namespace neoSTL{
-
 bool getPageEntry(uint64_t virtualAddr, page_t** pageEntry)
 {
 
@@ -71,12 +69,12 @@ uint64_t getPhysicalAddress(uint64_t virtualAddr)
     uint64_t pageOffset = (virtualAddr >> PT_BITS_OFFSET) & 0b111111111, physOffset = virtualAddr & 0xFFF;
 
     if(!getPageEntry(virtualAddr, &page)){
-        neoSTL::printf("Page table(s) is not present in memory!\n");
+        klogf(LOG_WARNING, "Page table(s) is not present in memory!\n");
         return NULL;
     }
 
     if(~page[pageOffset] & PRESENT){
-        neoSTL::printf("Page is not present in memory!\n");
+        klogf(LOG_WARNING, "Page is not present in memory!\n");
         return NULL;
     }
 
@@ -104,7 +102,7 @@ void map_page(uint64_t virtualAddr, uint64_t physicalAddress)
     //Make the PDPT if not present
     if(PM4LT[PM4LTOffset] == 0)
     {
-        PDPT = (page_t*)neoSTL::kmalloc(32768);
+        PDPT = (page_t*)kmalloc(32768);
         PM4LT[PM4LTOffset] = (page_t)PDPT | PRESENT | WRITABLE;
     } else {        //If we find already existing PDPT
         PDPT = (page_t*)(PM4LT[PM4LTOffset] & ~0xFFF);
@@ -112,7 +110,7 @@ void map_page(uint64_t virtualAddr, uint64_t physicalAddress)
 
     if(PDPT[PDPTOffset] == 0)
     {
-        PD = (page_t*)neoSTL::kmalloc(32768);
+        PD = (page_t*)kmalloc(32768);
         PDPT[PDPTOffset] = (page_t)PD | PRESENT | WRITABLE;
     } else {
         PD = (page_t*)(PDPT[PDPTOffset] & ~0xFFF);
@@ -120,7 +118,7 @@ void map_page(uint64_t virtualAddr, uint64_t physicalAddress)
 
     if(PD[PDOffset] == 0)
     {
-        PT = (page_t*)neoSTL::kmalloc(32768);
+        PT = (page_t*)kmalloc(32768);
         PD[PDOffset] = (page_t)PT | PRESENT | WRITABLE;
     } else {
         PT = (page_t*)(PD[PDOffset] & ~0xFFF);
@@ -141,4 +139,3 @@ void unmap_page(uint64_t virtualAddr)
     pageTable[offset] = 0;
 }
 
-};

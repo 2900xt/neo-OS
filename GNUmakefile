@@ -3,7 +3,7 @@ all: neo-OS.hdd clean
 
 .PHONY: run
 run: neo-OS.hdd clean
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -hda neo-OS.hdd -d cpu_reset -D log.txt
+	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -hda neo-OS.hdd -smp cpus=4
 
 .PHONY: kernel
 kernel:
@@ -31,7 +31,7 @@ neo-OS.hdd: kernel
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount
 	sudo mkdir -p img_mount/EFI/BOOT
-	sudo cp -v kernel/bin/kernel.elf limine.cfg limine/limine.sys img_mount/
+	sudo cp -v kernel/bin/kernel.elf limine.cfg limine/limine.sys wallpaper.bmp img_mount/
 	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
 	sync
 	sudo umount img_mount

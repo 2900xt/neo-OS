@@ -25,8 +25,6 @@ enum MEMORY_TYPES
 
 //Misc memory functionss
 
-namespace neoSTL{
-
 void memset_64(void* _addr, uint64_t num, uint64_t value){
 
     //Round up!
@@ -80,7 +78,7 @@ void heapInit(uint64_t offset, uint64_t size, uint64_t blksize)         //Starts
     for(int i = 0; i < memmap_request.response->entry_count; i++){
         currentEntry = memmap_request.response->entries[i];
         if(currentEntry->type == 0){
-            neoSTL::printf("Free Memory Entry %d: \t Offset = 0x%x \t Size = 0x%x\n", avalibleMemoryRegionsCount, currentEntry->base, currentEntry->length);
+            klogf(LOG_DEBUG, "Free Memory Entry %d: \t Offset = 0x%x \t Size = 0x%x\n", avalibleMemoryRegionsCount, currentEntry->base, currentEntry->length);
             avalibleMemoryRegions[avalibleMemoryRegionsCount++] = currentEntry;
             if(largestFreeRegion == nullptr || currentEntry->length > largestFreeRegion->length){
                 largestFreeRegion = currentEntry;
@@ -99,7 +97,7 @@ void heapInit(uint64_t offset, uint64_t size, uint64_t blksize)         //Starts
     memoryBitmap = (uint8_t*)heapOffset;
     memoryBitmap[0] = BORDER;
     
-    neoSTL::printf("\nStarting kernel heap at: 0x%x\tWith length: 0x%x\n", heapOffset, heapBlksize * heapBlkcount);
+    klogf(LOG_IMPORTANT ,"\nStarting kernel heap at: 0x%x\tWith length: 0x%x\n", heapOffset, heapBlksize * heapBlkcount);
 }
 
 
@@ -196,7 +194,7 @@ void kfree(void* ptr){
 
     uint64_t bitmapIndex = (uint64_t)ptr - heapOffset;
     if((bitmapIndex % heapBlksize != 0 ) || (((uint64_t)ptr > heapOffset + heapBlkcount * heapBlksize) && ((uint64_t)ptr < heapOffset))){
-        neoSTL::printf("Invalid Pointer: %x\n", ptr);
+        klogf(LOG_ERROR, "Invalid Heap Pointer: %x\n", ptr);
         return;
     }
 
@@ -207,7 +205,6 @@ void kfree(void* ptr){
     currentBlock = memoryBitmap[bitmapIndex];
 
     if(currentBlock != BORDER){
-        neoSTL::printf("Expected a border block! %x: %d\n", ptr, currentBlock);
         return;
     }
 
@@ -218,5 +215,3 @@ void kfree(void* ptr){
     memoryBitmap[bitmapIndex] = FREE;
 
 }
-
-};

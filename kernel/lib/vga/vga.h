@@ -24,7 +24,11 @@ public:
 extern limine::limine_framebuffer *fbuf_info;
 
 void drawMouse(uint64_t x, uint64_t y);
+void setBackgroundColor(Color c);
+Color* getBackgroundColor(void);
 
 void fbuf_init(void);
+
+void fillRect(int x, int y, Color c, uint32_t w, uint32_t h);
 
 #endif

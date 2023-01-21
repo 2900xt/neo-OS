@@ -16,8 +16,7 @@ RSDPDescriptor* getRSDP(void)
 
     rsdp = (RSDPDescriptor*)rsdp_request.response->address;
 
-
-    neoSTL::printf("RSDP at -> 0x%x\n", rsdp);
+    klogf(LOG_DEBUG, "RSDP at -> 0x%x\n", rsdp);
 
     return rsdp;
 }
@@ -26,13 +25,13 @@ RSDPDescriptor* getRSDP(void)
 
 void* findACPITable(char* signature)
 {
-    size_t len                = neoSTL::strlen(signature);
+    size_t len                = strlen(signature);
     ACPI_XSDT* xsdt           = getRSDP()->XSDTAddress;
     int entryCount            = (xsdt->hdr.length - sizeof(xsdt->hdr)) / 8;
 
     for(int i = 0; i < entryCount; i++){
         ACPI_SDT_HEADER* h = (ACPI_SDT_HEADER*)xsdt->ptr[i];
-        if(neoSTL::strcmp(h->signature, signature, len)){         
+        if(strcmp(h->signature, signature, len)){         
            return (void*)h; 
         }
     }

@@ -2,8 +2,6 @@
 #include <stdout.h>
 
 
-namespace neoSTL{
-
 limine::limine_terminal* console;
 limine::limine_terminal_write write;
 
@@ -61,7 +59,9 @@ bool strcmp(const char* a, const char* b, int count)
     return true;
 }
 
-void printf(const char* fmt, ...){
+double bootTimeMS = 0;
+
+void klogf(int level, const char* fmt, ...){
     va_list args;
     va_start(args, fmt);
 
@@ -70,6 +70,28 @@ void printf(const char* fmt, ...){
 
     char* str;
     uint64_t num;
+
+    switch (level)
+    {
+        case LOG_DEBUG:
+            puts("[DEBUG]\t");
+            break;
+        case LOG_ERROR:
+            puts("[ERROR]\t");
+            break;
+        case LOG_CRITICAL:
+            puts("[CRITICAL]\t");
+            break;
+        case LOG_IMPORTANT:
+            puts("[IMPORTANT]\t");
+            break;
+        case LOG_WARNING:
+            puts("[WARNING]\t");
+            break;
+        default:
+            return;
+    }
+
 
     while(fmt[currentCharacter] != '\0'){
     
@@ -126,8 +148,5 @@ void printf(const char* fmt, ...){
     }
 
     va_end(args);
-
-}
-
 
 }
