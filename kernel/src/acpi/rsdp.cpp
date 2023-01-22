@@ -26,7 +26,7 @@ RSDPDescriptor* getRSDP(void)
 void* findACPITable(char* signature)
 {
     size_t len                = strlen(signature);
-    ACPI_XSDT* xsdt           = getRSDP()->XSDTAddress;
+	ACPI_XSDT *const xsdt = getRSDP()->XSDTAddress;
     int entryCount            = (xsdt->hdr.length - sizeof(xsdt->hdr)) / 8;
 
     for(int i = 0; i < entryCount; i++){
