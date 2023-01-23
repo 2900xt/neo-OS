@@ -100,7 +100,7 @@ struct LAPIC_NMI
 }__attribute__ ((packed));
 
 RSDPDescriptor* getRSDP(void);
-void* findACPITable(char* signature);
+void* findACPITable(char *const signature);
 
 
 void initAPIC(uint8_t APICid);

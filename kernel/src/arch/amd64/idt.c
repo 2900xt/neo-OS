@@ -1,8 +1,8 @@
 #include <stdout.h>
 #include <arch/amd64/io.h>
 
-#define INTERRUPT 0x8E
-#define EXCEPTION 0x8F
+constexpr auto INTERRUPT = 0x8E;
+constexpr auto EXCEPTION = 0x8F;
 
 struct IDTEntryAMD64
 {
@@ -17,9 +17,8 @@ struct IDTEntryAMD64
 
 
 IDTEntryAMD64 IDT[256];
-bool isrs[16];
 
-const char* exceptions[] = {
+const char* const exceptions[] = {
     "Divide-by-zero Error",
     "Debug",
     "Non-maskable Interrupt",
@@ -27,7 +26,7 @@ const char* exceptions[] = {
     "Overflow",
     "Bound Range Exceeded",
     "Invalid Opcode",
-    "Device not Avalible",
+    "Device not Available",
     "Double Fault",
     "Coprocessor Segment Overrun",
     "Invalid TSS",
@@ -48,14 +47,14 @@ const char* exceptions[] = {
     "Security Exception"
 };
 
-typedef struct
+struct interruptFrame
 {
     uint64_t IP;
     uint64_t CS;
     uint64_t flags;
     uint64_t SP;
     uint64_t BP;
-} interruptFrame;
+}__attribute__ ((packed));
 
 static inline void lidt(void* base, uint16_t size)
 {
@@ -119,11 +118,12 @@ __attribute__ ((interrupt)) void exc21 (interruptFrame* frame, uint64_t error)  
 __attribute__ ((interrupt)) void exc29 (interruptFrame* frame, uint64_t error)      {klogf(LOG_CRITICAL, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[29]);   bsp_done();}
 __attribute__ ((interrupt)) void exc30 (interruptFrame* frame, uint64_t error)      {klogf(LOG_CRITICAL, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);   bsp_done();}
 
-//Keyboard handler
+
+int64_t countdown = 0;
 
 __attribute__ ((interrupt)) void timer_handler (interruptFrame* frame)
 {
-    klogf(0, "irq\n");
+    countdown--;
     apicSendEOI();
     return; //iretq
 }
@@ -133,6 +133,12 @@ __attribute__ ((interrupt)) void spurious_isr (interruptFrame* frame)
     return; //iretq
 }
 
+}
+
+void sleep(int64_t millis)
+{
+    countdown = millis;
+    while(countdown > 0);
 }
 
 void fillIDT(void){

@@ -9,8 +9,6 @@
 #include <arch/amd64/smp.h>
 
 
-#define IO_WAIT() outb(0x80, 0)
-
 static volatile limine::limine_terminal_request terminal_request = {LIMINE_TERMINAL_REQUEST, 0};
 
 static volatile limine::limine_smp_request smp_request = {LIMINE_SMP_REQUEST, 0};
@@ -73,10 +71,7 @@ extern "C" void _start(void)
     for(int i = 1; i < smp_request.response->cpu_count; i++)
     {
         cpu_jump_to(i, (void*)mt_begin);
-        for(int j = 0; j < 100000; j++)
-        {
-            IO_WAIT();
-        }
+        sleep(100);
     }
 
     bsp_done();

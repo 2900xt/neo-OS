@@ -105,5 +105,8 @@ void remapPIC(int offset1, int offset2);
 void fillIDT(void);
 extern "C" void enableSSE(void);
 void apicSendEOI(void);
+void sleep(int64_t millis);
+
+#define IO_WAIT() outb(0x80, 0)
 
 #endif // !AMD64_IO_H

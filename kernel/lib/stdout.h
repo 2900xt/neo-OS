@@ -1,9 +1,10 @@
+#ifndef STDOUT_H
+#define STDOUT_H
+
 #include <types.h>
 #include <stdarg.h>
 #include <limine/limine.h>
 
-#ifndef STDOUT_H
-#define STDOUT_H
 
 enum klog_levels
 {

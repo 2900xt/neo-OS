@@ -2,11 +2,11 @@
 #include <stdout.h>
 #include <mem.h>
 
-volatile struct limine::limine_rsdp_request rsdp_request = {LIMINE_RSDP_REQUEST, 0};
+volatile struct limine::limine_rsdp_request const rsdp_request = { LIMINE_RSDP_REQUEST, 0 };
 
 RSDPDescriptor* rsdp;
 
-void* fadt;
+void const* fadt;
 
 RSDPDescriptor* getRSDP(void)
 {
@@ -23,18 +23,18 @@ RSDPDescriptor* getRSDP(void)
 
 
 
-void* findACPITable(char* signature)
+void* findACPITable(char *const signature)
 {
-    size_t len                = strlen(signature);
+	size_t const len = strlen(signature);
 	ACPI_XSDT *const xsdt = getRSDP()->XSDTAddress;
-    int entryCount            = (xsdt->hdr.length - sizeof(xsdt->hdr)) / 8;
+    const int entryCount = (xsdt->hdr.length - sizeof(xsdt->hdr)) / 8;
 
     for(int i = 0; i < entryCount; i++){
-        ACPI_SDT_HEADER* h = (ACPI_SDT_HEADER*)xsdt->ptr[i];
+      ACPI_SDT_HEADER *const h = (ACPI_SDT_HEADER*) xsdt->ptr[i];
         if(strcmp(h->signature, signature, len)){         
            return (void*)h; 
         }
     }
 
-    return NULL;
+    return nullptr;
 }

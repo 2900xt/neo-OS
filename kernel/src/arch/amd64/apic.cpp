@@ -12,12 +12,12 @@ uint32_t*       lapic;
 bool            apicEnabled = false;
 
 
-uint32_t apicReadRegister(uint16_t reg)
+uint32_t apicReadRegister(uint16_t const reg)
 {
     return *(uint32_t*)((uint64_t)lapic + reg);
 }
 
-void apicWriteRegister(uint16_t reg, uint32_t val)
+void apicWriteRegister(uint16_t const reg, uint32_t const val)
 {
     *(uint32_t*)((uint64_t)lapic + reg) = val;
 }
@@ -27,14 +27,14 @@ void apicSendEOI(void)
     apicWriteRegister(END_OF_INTERRUPT_REG, 0);
 }
 
-void setLVTEntry(uint16_t entry, uint8_t vector, uint16_t flags)
+void setLVTEntry(uint16_t const entry, uint8_t const vector, uint16_t const flags)
 {
-    uint32_t data = vector | (flags << 8);
+    const uint32_t data = vector | (flags << 8);
     apicWriteRegister(entry, data);
 }
 
 
-void evaluateMADTEntry(ACPI_MADT_ENTRY_HDR* tableEntry)
+void evaluateMADTEntry(ACPI_MADT_ENTRY_HDR* const tableEntry)
 {
     switch (tableEntry->entryType)
     {
@@ -60,8 +60,9 @@ void evaluateMADTEntry(ACPI_MADT_ENTRY_HDR* tableEntry)
 
             break;
         case 5:
-            klogf(0,"Sorry, 64-bit APIC unsuported!\n");
+            klogf(0,"Sorry, 64-bit APIC unsupported!\n");
             bsp_done();
+            break;
         default:
             break;
     }
@@ -112,37 +113,67 @@ void enableAPIC(void)
 }
 
 
-void initAPIC(uint8_t apicID)
+void initAPIC(const uint8_t apicID)
 {
-    //Enable APIC
-
     if(!apicEnabled) {
         enableAPIC();
     }
 
     //Check if apicID matches
 
-    uint8_t id = apicReadRegister(LAPIC_ID_REG) >> 24;
+    const uint8_t id = apicReadRegister(LAPIC_ID_REG) >> 24;
     if(id != apicID)
     {
         klogf(0, "APIC ID not matching: given: %d\t sys:%d\n", apicID, id);
         return;
     }
-    
 
     //Set up APIC to a normal state
 
     apicWriteRegister(DESTINATION_FORMAT_REG, 0xFFFFFFFF);
-    apicWriteRegister(LOGICAL_DESTINATION_REG, (apicReadRegister(LOGICAL_DESTINATION_REG) & 0x00FFFFFF) | 1);
-    apicWriteRegister(TIMER_LVT_ENTRY, INTERRUPT_MASK);
+    apicWriteRegister(LOGICAL_DESTINATION_REG, (apicReadRegister(LOGICAL_DESTINATION_REG) & 0x00FFFFFF) | 0x1);
+    apicWriteRegister(TIMER_LVT_ENTRY, INTERRUPT_MASK << 8);
+    apicWriteRegister(PERFORMACE_CTR_LVT_ENTRY, MESSAGE_NMI << 8);
+    apicWriteRegister(LOCAL_INT0_LVT_ENTRY, INTERRUPT_MASK << 8);
+    apicWriteRegister(LOCAL_INT1_LVT_ENTRY, INTERRUPT_MASK << 8);
+    apicWriteRegister(TASK_PRIORITY_REG, 0x0);
 
-    //Enable lapic interrupts
-
-    apicWriteRegister(SPURIOUS_INTERRUPT_REG, apicReadRegister(SPURIOUS_INTERRUPT_REG) | 0x1FF);
+    if(apicID != 0) return;
 
     //Set up lapic timer
 
+    apicWriteRegister(SPURIOUS_INTERRUPT_REG, 39 | 0x100);      //ISR #7
+    apicWriteRegister(TIMER_LVT_ENTRY, 32);                     //ISR #0
+    apicWriteRegister(TIMER_DIVIDE_CONFIG_REG, 0x3);            //Divide by 16
 
+    //Use the PIT to get the amount of ticks for a second
 
+    outb(0x61, (inb(0x61) & 0x0FD) | 0x1);
+    outb(0x43, 0b10110010);
+    outb(0x42, 0x9B);
+    IO_WAIT();
+    outb(0x42, 0x2e);
+    outb(0x61, (inb(0x61) & 0x0FE) | 0x1);
+
+    apicWriteRegister(TIMER_INITIAL_COUNT_REG, -1);
+
+    while((inb(0x61) & 0x20));
+
+    uint32_t cpuFreq = apicReadRegister(TIMER_INITIAL_COUNT_REG) - apicReadRegister(TIMER_CURRENT_COUNT_REG);
+
+    apicWriteRegister(TIMER_LVT_ENTRY, INTERRUPT_MASK << 8);
+
+    //Calculate CPU frequency
+
+    cpuFreq *= 16 * 100;
+
+    klogf(LOG_DEBUG, "CPU freq: %d mhz\n", (uint64_t)cpuFreq / 1000000);
+
+    cpuFreq /= 16;
+    cpuFreq /= 1000;
+
+    apicWriteRegister(TIMER_INITIAL_COUNT_REG, cpuFreq);
+    apicWriteRegister(TIMER_LVT_ENTRY, 32 | 0x20000);
+    apicWriteRegister(TIMER_DIVIDE_CONFIG_REG, 0x3);
 }
 
