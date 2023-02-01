@@ -83,7 +83,6 @@ void fillPolygon(int xPoints[], int yPoints[], int n, Color c)
 
     while(currentScanline != maxY);
 
-
     kfree(edges);
 }
 

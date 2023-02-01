@@ -33,7 +33,7 @@ void cpu_jump_to(uint8_t pid, void *addr)
         currentCPU++;
     }
 
-    klogf(LOG_ERROR, "Unable to find CPU #%d!\n", currentCPU);
+    klogf(LOG_ERROR, "Unable to find CPU #%d!\n", pid);
 }
 
 void bsp_done(void)
