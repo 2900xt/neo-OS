@@ -1,0 +1,14 @@
+#include <stdlib/SafePointer>
+#include <stdout.h>
+
+class String : protected SafePointer<char>
+{
+public:
+	String(const char* data) : SafePointer<char>(data, strlen(data)) {}
+	String(const String& obj) : SafePointer<char>(obj.ptr, obj.size) {}
+
+	const char* c_str(void)
+	{
+		return this->unsafe_ptr();
+	}
+};

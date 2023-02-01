@@ -1,0 +1,97 @@
+#pragma once
+#include <types.h>
+#include <mem.h>
+
+template <typename T>
+class SafePointer
+{
+protected:
+	T* ptr;
+	uint64_t size;
+public:
+
+	void setSize(uint64_t size)
+	{
+		ptr = (T*)realloc(ptr, size + 1);
+	}
+
+	uint64_t getSize(void)
+	{
+		return size;
+	}
+
+	const T* unsafe_ptr(void)
+	{
+		return (const T*)ptr;
+	}
+
+	//Index operator
+
+	T operator[](uint64_t index)
+	{
+		if (index > size) throw - 1;
+
+		return ptr[index];
+	}
+
+	//Assignment
+
+	void setAt(uint64_t index, T val)
+	{
+		if (index > size) throw - 1;
+
+		ptr[index] = val;
+	}
+
+	
+
+	void set(uint64_t index, const T* data, uint64_t length)
+	{
+		if ((index + length) > size) throw - 1;
+
+		for (int i{ 0 }; i < length; i++)
+		{
+			this->setAt(index + i, data[i]);
+		}
+	}
+
+	void clear(T val)
+	{
+		for (int i = 0; i < size; i++)
+		{
+			this->setAt(i, val);
+		}
+	}
+
+	void operator=(const SafePointer& obj)
+	{
+		this->ptr = (T*)obj.ptr;
+		this->size = obj.size;
+	}
+
+	SafePointer(const SafePointer& obj)
+	{
+		this->ptr = (T*)calloc(1, obj.size);
+		this->size = obj.size;
+		this->set(0, obj.ptr, size);
+	}
+
+	SafePointer(uint64_t size)
+	{
+		this->ptr = (T*)calloc(1, size + 1);
+		this->size = size;
+	}
+
+	SafePointer(const T* data, uint64_t size)
+	{
+		this->ptr = (T*)calloc(1, size + 1);
+		this->size = size;
+		this->set(0, data, size);
+	}
+
+	~SafePointer(void)
+	{
+		kfree(ptr);
+	}
+
+};

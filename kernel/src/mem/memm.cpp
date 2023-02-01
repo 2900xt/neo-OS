@@ -215,3 +215,25 @@ void kfree(void* ptr){
     memoryBitmap[bitmapIndex] = FREE;
 
 }
+
+void* krealloc(void* ptr, uint64_t size)
+{
+    //Get the index into the bitmap
+
+    uint64_t bitmapIndex = (uint64_t)ptr - heapOffset;
+    if((bitmapIndex % heapBlksize != 0 ) || (((uint64_t)ptr > heapOffset + heapBlkcount * heapBlksize) && ((uint64_t)ptr < heapOffset))){
+        klogf(LOG_ERROR, "Invalid Heap Pointer: %x\n", ptr);
+        return nullptr;
+    }
+
+    bitmapIndex /= heapBlksize;
+    bitmapIndex--;
+    uint8_t currentBlock;
+
+    currentBlock = memoryBitmap[bitmapIndex];
+
+    if(currentBlock != BORDER){
+        return nullptr;
+    }
+
+}
