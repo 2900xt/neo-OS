@@ -7,34 +7,22 @@
 #include <math.h>
 #include <vga/gfx.h>
 #include <arch/amd64/smp.h>
+#include <proc.h>
+#include <drivers/pci.h>
 
+const void* _Unwind_Resume;
 
 static volatile limine::limine_terminal_request terminal_request = {LIMINE_TERMINAL_REQUEST, 0};
 
-static volatile limine::limine_smp_request smp_request = {LIMINE_SMP_REQUEST, 0};
+volatile limine::limine_smp_request smp_request = {LIMINE_SMP_REQUEST, 0};
+
+process_t* init_proc;
 
 void smp_init(void)
 {
     klogf(LOG_IMPORTANT, "%d cores detected!\n", smp_request.response->cpu_count);
 }
 
-void cpu_jump_to(uint8_t pid, void *addr)
-{
-    int currentCPU = 0;
-    limine::limine_smp_info *cpu;
-    while (currentCPU <= smp_request.response->cpu_count)
-    {
-        cpu = smp_request.response->cpus[currentCPU];
-        if (cpu->processor_id == pid)
-        {
-            cpu->goto_address = (limine::limine_goto_address)addr;
-            return;
-        }
-        currentCPU++;
-    }
-
-    klogf(LOG_ERROR, "Unable to find CPU #%d!\n", pid);
-}
 
 void bsp_done(void)
 {
@@ -64,9 +52,19 @@ extern "C" void _start(void)
 
     heapInit(0x100000, 0x100000, 0x100);
 
+    init_proc = (process_t*)kmalloc(sizeof(process_t));
+
+    init_proc->isKilled = false;
+    init_proc->files    = nullptr;
+    init_proc->pid      = 0;
+    init_proc->parent   = nullptr;
+
     initAPIC(smp_request.response->bsp_lapic_id);
 
     smp_init();
+
+    void* mcfg = findACPITable("MCFG");
+    klogf(LOG_IMPORTANT, "MCFG: 0x%x\n", mcfg);
 
     for(int i = 1; i < smp_request.response->cpu_count; i++)
     {
@@ -76,3 +74,5 @@ extern "C" void _start(void)
 
     bsp_done();
 }
+
+

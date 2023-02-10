@@ -1,5 +1,6 @@
 #include <mem.h>
 #include <stdout.h>
+#include <types.h>
 
 static volatile limine::limine_hhdm_request hhdm_request = {LIMINE_HHDM_REQUEST, 0};
 
@@ -189,51 +190,60 @@ void* kcalloc(uint64_t count, uint64_t size){
 }
 
 void kfree(void* ptr){
+    
 
 //Get the index into the bitmap
 
     uint64_t bitmapIndex = (uint64_t)ptr - heapOffset;
     if((bitmapIndex % heapBlksize != 0 ) || (((uint64_t)ptr > heapOffset + heapBlkcount * heapBlksize) && ((uint64_t)ptr < heapOffset))){
-        klogf(LOG_ERROR, "Invalid Heap Pointer: %x\n", ptr);
-        return;
+        goto ERROR;
     }
 
     bitmapIndex /= heapBlksize;
     bitmapIndex--;
-    uint8_t currentBlock;
 
-    currentBlock = memoryBitmap[bitmapIndex];
-
-    if(currentBlock != BORDER){
-        return;
+    if(memoryBitmap[bitmapIndex] != BORDER){
+        goto ERROR;
     }
 
 //Free the memory untill the next border
 
-    currentBlock = memoryBitmap[++bitmapIndex];
+    bitmapIndex++;
 
-    memoryBitmap[bitmapIndex] = FREE;
+    while(memoryBitmap[bitmapIndex] != BORDER && memoryBitmap[bitmapIndex] == USED) {
+        memoryBitmap[bitmapIndex] = FREE;
+        bitmapIndex++;
+    }
+
+//Free the border if there is no used memory on the other side
+
+    if(memoryBitmap[bitmapIndex] == BORDER && memoryBitmap[bitmapIndex+1] ==FREE){
+        memoryBitmap[bitmapIndex] = FREE;
+    }
+
+    return;
+
+ERROR:
+
+    klogf(LOG_ERROR, "Invalid Heap Pointer: %x\n", ptr);
 
 }
 
-void* krealloc(void* ptr, uint64_t size)
+void* krealloc(void* old_ptr, uint64_t size)
 {
-    //Get the index into the bitmap
+    //round up size to heapblksize
 
-    uint64_t bitmapIndex = (uint64_t)ptr - heapOffset;
-    if((bitmapIndex % heapBlksize != 0 ) || (((uint64_t)ptr > heapOffset + heapBlkcount * heapBlksize) && ((uint64_t)ptr < heapOffset))){
-        klogf(LOG_ERROR, "Invalid Heap Pointer: %x\n", ptr);
-        return nullptr;
+    uint16_t remainder = size % heapBlksize;
+    size -= remainder;
+    if(remainder){
+        size += heapBlksize;
     }
 
-    bitmapIndex /= heapBlksize;
-    bitmapIndex--;
-    uint8_t currentBlock;
+    //return new pointer
 
-    currentBlock = memoryBitmap[bitmapIndex];
+    void* new_ptr = kcalloc(1, size);
 
-    if(currentBlock != BORDER){
-        return nullptr;
-    }
+    kfree(old_ptr);
 
+    return new_ptr;
 }

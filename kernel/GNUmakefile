@@ -46,8 +46,8 @@ override NASMFLAGS += \
 override CPPFILES := $(shell find ./src -type f -name '*.cpp')
 override CFILES  := $(shell find ./src -type f -name '*.c')
 override ASFILES := $(shell find ./src -type f -name '*.S')
-override NASMFILES := $(shell find ./src -type f -name '*.asm')
-override OBJ := $(CPPFILES:.cpp=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=.o) $(CFILES:.c=.o)
+override NASMFILES := $(shell find ./src -type f -name '*.asm') 
+override OBJ :=  $(CPPFILES:.cpp=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=.o) $(CFILES:.c=.o) 
 override HEADER_DEPS := $(CPPFILES:.cpp=.d) $(ASFILES:.S=.d) $(CFILES:.c=.d)
 
 # Default target.

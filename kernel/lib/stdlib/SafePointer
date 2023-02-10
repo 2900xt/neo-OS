@@ -8,11 +8,19 @@ class SafePointer
 protected:
 	T* ptr;
 	uint64_t size;
+	
 public:
 
-	void setSize(uint64_t size)
+	void setSize(uint64_t new_size)
 	{
-		ptr = (T*)realloc(ptr, size + 1);
+		T* old_ptr = ptr;
+		uint64_t copied_size = (new_size < size ? new_size : size);
+
+		ptr = (T*)kcalloc(1, new_size + 1);
+
+		memcpy(old_ptr, ptr, copied_size);
+
+		this->size = new_size;
 	}
 
 	uint64_t getSize(void)
@@ -29,7 +37,7 @@ public:
 
 	T operator[](uint64_t index)
 	{
-		if (index > size) throw - 1;
+		if (index > size) return (T)0;
 
 		return ptr[index];
 	}
@@ -38,16 +46,14 @@ public:
 
 	void setAt(uint64_t index, T val)
 	{
-		if (index > size) throw - 1;
+		if (index > size) return;
 
 		ptr[index] = val;
 	}
 
-	
-
 	void set(uint64_t index, const T* data, uint64_t length)
 	{
-		if ((index + length) > size) throw - 1;
+		if ((index + length) > size) return;
 
 		for (int i{ 0 }; i < length; i++)
 		{
@@ -71,20 +77,20 @@ public:
 
 	SafePointer(const SafePointer& obj)
 	{
-		this->ptr = (T*)calloc(1, obj.size);
+		this->ptr = (T*)kcalloc(1, obj.size);
 		this->size = obj.size;
 		this->set(0, obj.ptr, size);
 	}
 
 	SafePointer(uint64_t size)
 	{
-		this->ptr = (T*)calloc(1, size + 1);
+		this->ptr = (T*)kcalloc(1, size + 1);
 		this->size = size;
 	}
 
 	SafePointer(const T* data, uint64_t size)
 	{
-		this->ptr = (T*)calloc(1, size + 1);
+		this->ptr = (T*)kcalloc(1, size + 1);
 		this->size = size;
 		this->set(0, data, size);
 	}

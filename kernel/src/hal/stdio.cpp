@@ -5,7 +5,7 @@
 limine::limine_terminal* console;
 limine::limine_terminal_write write;
 
-size_t strlen(char* src){
+size_t strlen(const char* src){
     size_t length = 0;
     while(*src++ != '\0'){
         length++;

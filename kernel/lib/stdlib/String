@@ -1,7 +1,7 @@
 #include <stdlib/SafePointer>
 #include <stdout.h>
 
-class String : protected SafePointer<char>
+class String : public SafePointer<char>
 {
 public:
 	String(const char* data) : SafePointer<char>(data, strlen(data)) {}
@@ -10,5 +10,10 @@ public:
 	const char* c_str(void)
 	{
 		return this->unsafe_ptr();
+	}
+
+	char* begin(void)
+	{
+		return (char*)this->unsafe_ptr();
 	}
 };

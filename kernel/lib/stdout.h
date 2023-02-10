@@ -17,7 +17,7 @@ enum klog_levels
 
 extern limine::limine_terminal* console;
 extern limine::limine_terminal_write write;
-size_t      strlen(char*);
+size_t      strlen(const char*);
 char*       itoa(int64_t, uint8_t);
 void        puts(char*);
 void        putc(char);
