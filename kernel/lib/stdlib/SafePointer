@@ -23,6 +23,12 @@ public:
 		this->size = new_size;
 	}
 
+	void init(uint64_t _size)
+	{
+		ptr = (T*)kcalloc(1, _size + 1);
+		this->size = _size;
+	}
+
 	uint64_t getSize(void)
 	{
 		return size;

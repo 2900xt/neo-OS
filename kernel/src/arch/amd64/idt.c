@@ -87,7 +87,7 @@ const char* exceptionNoError = "IP: \t0x%x\nCS: \t0x%x\nFLAGS: \t0x%x\nSP: \t0x%
 const char* exceptionError   = "ERROR: 0b%b\nIP: \t0x%x\nCS: \t0x%x\nFLAGS: \t0x%x\nSP: \t0x%x\n->\t%s\n";
 //Interrupts
 
-extern "C"{
+extern "C" {
 //Exceptions without error codes
 
 __attribute__ ((interrupt)) void exc0  (interruptFrame* frame)      {klogf(LOG_CRITICAL, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[0]);  bsp_done();}
@@ -119,10 +119,12 @@ __attribute__ ((interrupt)) void exc29 (interruptFrame* frame, uint64_t error)  
 __attribute__ ((interrupt)) void exc30 (interruptFrame* frame, uint64_t error)      {klogf(LOG_CRITICAL, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);   bsp_done();}
 
 
+extern "C" void inc_boot_time();
 int64_t countdown = 0;
 
 __attribute__ ((interrupt)) void timer_handler (interruptFrame* frame)
 {
+    inc_boot_time();
     countdown--;
     apicSendEOI();
     return; //iretq

@@ -29,12 +29,16 @@ void bsp_done(void)
     for (;;);
 }
 
+extern double s_since_boot;
+
 // Entry point ->
 
 extern "C" void _start(void)
 {
 
     enableSSE();
+
+    s_since_boot = 0.0;
 
     // Check if we got a console
 
@@ -52,19 +56,11 @@ extern "C" void _start(void)
 
     heapInit(0x100000, 0x100000, 0x100);
 
-    init_proc = (process_t*)kmalloc(sizeof(process_t));
-
-    init_proc->isKilled = false;
-    init_proc->files    = nullptr;
-    init_proc->pid      = 0;
-    init_proc->parent   = nullptr;
-
     initAPIC(smp_request.response->bsp_lapic_id);
 
     smp_init();
 
-    void* mcfg = findACPITable("MCFG");
-    klogf(LOG_IMPORTANT, "MCFG: 0x%x\n", mcfg);
+    enumerate_pci((ACPI_MCFG_HDR*)findACPITable("MCFG"));
 
     for(int i = 1; i < smp_request.response->cpu_count; i++)
     {

@@ -18,7 +18,7 @@ enum klog_levels
 extern limine::limine_terminal* console;
 extern limine::limine_terminal_write write;
 size_t      strlen(const char*);
-char*       itoa(int64_t, uint8_t);
+char* itoa(uint64_t val, uint8_t radix);
 void        puts(char*);
 void        putc(char);
 void        klogf(int level, const char*, ...);
@@ -26,5 +26,6 @@ void        bsp_done(void);
 bool        strcmp(const char* a, const char* b, int count);
 uint64_t    max(uint64_t a, uint64_t b);
 uint64_t    min(uint64_t a, uint64_t b);
+double      get_boot_time();
 
 #endif // !STDOUT_H
