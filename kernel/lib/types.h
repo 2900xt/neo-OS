@@ -12,7 +12,11 @@ typedef char                    int8_t;
 typedef uint64_t                size_t;
 
 #ifndef NULL
-#define NULL 0
+#ifndef __cplusplus
+    #define NULL (void*)0
+#else 
+    #define NULL 0
+#endif
 #endif
 
 
