@@ -1,5 +1,5 @@
 #include <types.h>
-#include <arch/amd64/io.h>
+#include <x64/io.h>
 
 constexpr auto INTERRUPT = 0x8E;
 constexpr auto EXCEPTION = 0x8F;

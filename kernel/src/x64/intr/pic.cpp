@@ -1,4 +1,4 @@
-#include <arch/amd64/io.h>
+#include <x64/io.h>
 
 //legacy PIC code
 

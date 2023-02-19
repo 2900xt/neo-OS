@@ -1,7 +1,6 @@
 #include <drivers/acpi/sdt.h>
-#include <stdout.h>
-#include <mem.h>
-#include <arch/amd64/io.h>
+#include <x64/io.h>
+#include <stdlib/stdlib.h>
 
 ACPI_MADT*      madt;
 LAPIC_ENTRY*    local_apics[32];
@@ -76,7 +75,7 @@ void enableAPIC(void)
     if(!(edx & APIC_SUPPORTED))
     {
         klogf(LOG_CRITICAL, "APIC not supported on this system! (CPUID_ERROR)\n");
-        bsp_done();
+        for(;;);
     }
 
     //enable the APIC
@@ -89,7 +88,7 @@ void enableAPIC(void)
     if(!(rdmsr(0x1B) & APIC_ENABLE))
     {
         klogf(LOG_CRITICAL, "APIC not suported on this system! (MSR_NOT_PRESENT)\n");
-        bsp_done();
+        for(;;);
     }
 
     //parse the MADT for the apic addreses and entries
