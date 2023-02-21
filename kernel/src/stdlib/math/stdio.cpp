@@ -60,7 +60,12 @@ bool strcmp(const char* a, const char* b, int count)
     return true;
 }
 
-double bootTimeMS = 0;
+
+void assert_fail(const char *assertion, const char *file, unsigned int line)
+{
+    klogf(LOG_CRITICAL, "Assertion Failed -> %s: in file %s, line %d\n", assertion , file, line);
+    for(;;);
+}
 
 void klogf(int level, const char* fmt, ...){
     va_list args;

@@ -79,3 +79,4 @@ enum class PCI_CLASS_CODES : uint8_t
 
 void enumerate_pci(ACPI_MCFG_HDR* mcfg);
 pci_device_t* get_pci_dev(uint16_t vendor, uint16_t device);
+pci_device_t* get_pci_dev(uint8_t class_code, uint8_t subclass, uint8_t prog_if);

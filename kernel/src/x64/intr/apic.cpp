@@ -1,4 +1,5 @@
 #include <drivers/acpi/sdt.h>
+#include <x64/intr/apic.h>
 #include <x64/io.h>
 #include <stdlib/stdlib.h>
 
@@ -56,10 +57,6 @@ void evaluateMADTEntry(ACPI_MADT_ENTRY_HDR* const tableEntry)
             ioapic->ioapic_id
             );
 
-            break;
-        case 5:
-            klogf(0,"Sorry, 64-bit APIC unsupported!\n");
-            bsp_done();
             break;
         default:
             break;

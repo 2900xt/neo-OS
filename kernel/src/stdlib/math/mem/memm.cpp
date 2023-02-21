@@ -1,6 +1,4 @@
-#include <mem.h>
-#include <stdout.h>
-#include <types.h>
+#include <stdlib/stdlib.h>
 
 static volatile limine::limine_hhdm_request hhdm_request = {LIMINE_HHDM_REQUEST, 0};
 

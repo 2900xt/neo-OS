@@ -1,5 +1,10 @@
 #include <types.h>
+#include <stdlib/stdlib.h>
 #include <x64/io.h>
+#include <x64/intr/idt.h>
+#include <x64/intr/apic.h>
+
+#define bsp_done() for(;;)
 
 constexpr auto INTERRUPT = 0x8E;
 constexpr auto EXCEPTION = 0x8F;

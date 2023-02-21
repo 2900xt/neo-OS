@@ -1,11 +1,14 @@
+#include "drivers/ahci/ahci.h"
 #include <limine/limine.h>
-#include <stdlib/stdout.h>
-#include <mem.h>
-#include <acpi/tables.h>
+#include <stdlib/stdlib.h>
+#include <drivers/acpi/sdt.h>
 #include <vga/vga.h>
-#include <math.h>
-#include <arch/amd64/smp.h>
-#include <drivers/pci.h>
+#include <x64/intr/idt.h>
+#include <x64/io.h>
+#include <x64/intr/apic.h>
+#include <drivers/acpi/mcfg.h>
+#include <drivers/pci/pci.h>
+#include <hal/smp.h>
 
 const void* _Unwind_Resume;
 
@@ -53,6 +56,8 @@ extern "C" void _start(void)
     smp_init();
 
     enumerate_pci((ACPI_MCFG_HDR*)findACPITable("MCFG"));
+
+    AHCI::ahci_init();
 
     for(int i = 1; i < smp_request.response->cpu_count; i++)
     {

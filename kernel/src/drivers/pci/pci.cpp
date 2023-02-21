@@ -88,6 +88,18 @@ pci_device_t* get_pci_dev(uint16_t vendor, uint16_t device)
     return nullptr;
 }
 
+pci_device_t* get_pci_dev(uint8_t class_code, uint8_t subclass, uint8_t prog_if)
+{
+    for(int i = 0; i < pci_devices_index; i++)
+    {
+        if((pci_devices[i]->hdr.class_code == class_code) && (pci_devices[i]->hdr.subclass == subclass) && (pci_devices[i]->hdr.prog_ifb == prog_if))
+        {
+            return pci_devices[i];
+        }
+    }
+    return NULL;
+}
+
 void enumerate_function(uint64_t device_addr, uint64_t function)
 {
     uint64_t offset = function << 12;
