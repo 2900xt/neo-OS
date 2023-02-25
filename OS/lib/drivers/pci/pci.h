@@ -2,7 +2,19 @@
 #include <types.h>
 #include <drivers/acpi/mcfg.h>
 
-struct pci_dev_common_hdr
+namespace PCI 
+{
+
+struct DEVICE_CONFIG
+{
+    uint64_t baseAddress;
+    uint16_t PCISegGroup;
+    uint8_t startBus;
+    uint8_t endBus;
+    uint32_t reserved;
+}__attribute__((packed));
+
+struct dev_common_hdr
 {
     uint16_t vendor_id;        //Identifies the manufacturer of the device
     uint16_t device_id;        //identifies the particular device
@@ -18,9 +30,9 @@ struct pci_dev_common_hdr
     uint8_t BIST;              //Represents that status and allows control of a devices BIST (built-in self test).
 };
 
-struct pci_device_t
+struct device_t
 {
-    pci_dev_common_hdr hdr;
+    dev_common_hdr hdr;
     uint32_t BARS[6];
     uint32_t cis_ptr;
     uint16_t subsystem_vendor_id;
@@ -33,7 +45,7 @@ struct pci_device_t
     uint8_t  interrupt_line;
 };
 
-struct pci_base_mem_t           //Memory Space BAR Layout 
+struct base_mem_t           //Memory Space BAR Layout 
 {
     uint32_t zero : 1;          //set to zero if memory-space BAR
     uint32_t type : 2;
@@ -42,7 +54,7 @@ struct pci_base_mem_t           //Memory Space BAR Layout
 }__attribute__((packed));
 
 
-struct pci_bar_io_t             //I/O Space BAR Layout 
+struct bar_io_t             //I/O Space BAR Layout 
 {
     uint32_t one : 1;           //set to one if I/O-space BAR
     uint32_t reserved : 1;
@@ -50,7 +62,7 @@ struct pci_bar_io_t             //I/O Space BAR Layout
 }__attribute__((packed));
 
 
-enum class PCI_CLASS_CODES : uint8_t
+enum class CLASS_CODES : uint8_t
 {
     UNCLASSIFIED                    = 0x0,
     MASS_STORAGE_CONTROLLER         = 0x1,
@@ -77,6 +89,8 @@ enum class PCI_CLASS_CODES : uint8_t
 };
 
 
-void enumerate_pci(ACPI_MCFG_HDR* mcfg);
-pci_device_t* get_pci_dev(uint16_t vendor, uint16_t device);
-pci_device_t* get_pci_dev(uint8_t class_code, uint8_t subclass, uint8_t prog_if);
+void enumerate_pci(void);
+device_t* get_pci_dev(uint16_t vendor, uint16_t device);
+device_t* get_pci_dev(uint8_t class_code, uint8_t subclass, uint8_t prog_if);
+
+}

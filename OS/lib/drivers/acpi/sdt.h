@@ -1,10 +1,11 @@
+#pragma once
 #include <limine/limine.h>
 #include <types.h>
 
-#ifndef ACPI_TABLES_H
-#define ACPI_TABLES_H
+namespace ACPI 
+{
 
-struct ACPI_SDT_HEADER
+struct SDT_HEADER
 {
     char            signature[4];
     uint32_t        length;
@@ -17,10 +18,10 @@ struct ACPI_SDT_HEADER
     uint32_t        CreatorRevision;
 }__attribute__((packed));
 
-struct ACPI_XSDT
+struct XSDT
 {
-    ACPI_SDT_HEADER     hdr;
-    uint64_t            ptr[];
+    SDT_HEADER     hdr;
+    uint64_t       ptr[];
 }__attribute__((packed));
 
 struct RSDPDescriptor
@@ -37,12 +38,12 @@ struct RSDPDescriptor
     //ACPI 2.0+
 
     uint32_t    length;
-    ACPI_XSDT*  XSDTAddress;
+    XSDT*       XSDTAddress;
     uint8_t     extendedChecksum;
     uint8_t     reserved[3];
 } __attribute__ ((packed));
 
 RSDPDescriptor* getRSDP(void);
-void* findACPITable(char *const signature);
+void* findACPITable(const char* signature);
 
-#endif
+}

@@ -1,73 +1,37 @@
 #include <types.h>
 #include <limine/limine.h>
-#include <stdlib/stdio.h>
+#include <stdlib/stdlib.h>
 
+static volatile limine::limine_terminal_request terminal_request = {LIMINE_TERMINAL_REQUEST, 0};
+
+namespace std 
+{
 
 limine::limine_terminal* console;
 limine::limine_terminal_write write;
 
-size_t strlen(const char* src){
-    size_t length = 0;
-    while(*src++ != '\0'){
-        length++;
+void tty_init(void)
+{
+    if (terminal_request.response == NULL || terminal_request.response->terminal_count == 0)
+    {
+        return;
     }
-    return length;
+
+    // Set global variables
+
+    write = terminal_request.response->write;
+    console = terminal_request.response->terminals[0];
 }
 
-const char g_HexChars[] = "0123456789ABCDEF";
-static char itoaOutput[64];
-char* itoa(uint64_t val, uint8_t radix){
-
-    char buffer[64];
-
-    for(int i = 0; i < 32; i++){
-        itoaOutput[i] = 0;
-    }
-
-    int pos = 0;
-    do{
-        uint64_t remainder = val % radix;
-        val /= radix;
-        buffer[pos++] = g_HexChars[remainder];
-    } while(val > 0);
-
-    int _pos = 0;
-    while(--pos >= 0){
-        itoaOutput[_pos++] = buffer[pos];
-    }
-
-    return itoaOutput;
-}
-
-void puts(char* src){
+void puts(const char* src){
     write(console, src, strlen(src));
 }
 
-char _c[2] = {0, 0};
-
 void putc(char c){
-    _c[0] = c;
-    write(console, _c, 1);
+    write(console, &c, 1);
 }
 
-bool strcmp(const char* a, const char* b, int count)
-{
-
-    for(int i = 0; i < count; i++){
-        if(a[i] != b[i]) return false;
-    }
-
-    return true;
-}
-
-
-void assert_fail(const char *assertion, const char *file, unsigned int line)
-{
-    klogf(LOG_CRITICAL, "Assertion Failed -> %s: in file %s, line %d\n", assertion , file, line);
-    for(;;);
-}
-
-void klogf(int level, const char* fmt, ...){
+void klogf(const char* fmt, ...){
     va_list args;
     va_start(args, fmt);
 
@@ -76,27 +40,6 @@ void klogf(int level, const char* fmt, ...){
 
     char* str;
     uint64_t num;
-
-    switch (level)
-    {
-        case LOG_DEBUG:
-            puts("[DEBUG]\t");
-            break;
-        case LOG_ERROR:
-            puts("[ERROR]\t");
-            break;
-        case LOG_CRITICAL:
-            puts("[CRITICAL]\t");
-            break;
-        case LOG_IMPORTANT:
-            puts("[IMPORTANT]\t");
-            break;
-        case LOG_WARNING:
-            puts("[WARNING]\t");
-            break;
-        default:
-            return;
-    }
 
 
     while(fmt[currentCharacter] != '\0'){
@@ -154,5 +97,7 @@ void klogf(int level, const char* fmt, ...){
     }
 
     va_end(args);
+
+}
 
 }

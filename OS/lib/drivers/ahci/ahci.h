@@ -57,7 +57,7 @@ struct sata_status_t
 struct generic_host_ctrl
 {
     host_capabillities_t host_cap;              //aka: CAP
-    global_host_ctrl_t global_host_ctrl;        //aka: GHC
+    global_host_ctrl_t g_host_ctrl;             //aka: GHC
     uint32_t interrupt_status;                  //aka: IS
     uint32_t ports_implemented;                 //aka: PI
     uint32_t hba_version;                       //aka: VS
@@ -71,8 +71,10 @@ struct generic_host_ctrl
 
 struct hba_port_t
 {
-    uint64_t cmd_list_base;
-    uint64_t fis_base_addr;
+    uint32_t cmd_list_base_addr_low;
+    uint32_t cmd_list_base_addr_high;
+    uint32_t fis_base_addr_low;
+    uint32_t fis_base_addr_high;
     uint32_t interupt_status;
     uint32_t interrupt_enable;
     uint32_t command_status;
@@ -112,73 +114,8 @@ struct port_t
     uint8_t port_type;
     uint8_t port_number;
     hba_port_t *port;
-    uint8_t *dma_buffer;
+    void *dma_buffer;
 };
-
-struct hba_command_hdr_t
-{
-    uint8_t command_fis_length : 5;
-    uint8_t atapi : 1;
-    uint8_t write : 1;
-    uint8_t prefetchable : 1;
-    uint8_t reset : 1;
-    uint8_t bist : 1;
-    uint8_t clear_busy : 1;
-    uint8_t rsv0 : 1;
-    uint8_t port_multiplier : 4;
-    uint16_t prdt_length;
-    uint32_t prdb_count;
-    uint64_t cmd_table_base_addr;
-    uint32_t rsv1[4];
-}__attribute__((packed));
-
-struct fis_reg_h2d_t
-{
-    uint8_t fis_type;
-    uint8_t port_multiplier : 4;
-    uint8_t rsv0 : 3;
-    uint8_t command_ctrl : 1;
-    uint8_t command;
-
-    uint8_t feature_low;
-
-    uint8_t lba0;
-    uint8_t lba1;
-    uint8_t lba2;
-
-    uint8_t device_register;
-
-    uint8_t lba3;
-    uint8_t lba4;
-    uint8_t lba5;
-
-    uint8_t feature_high;
-
-    uint16_t count;
-    uint8_t iso_command_completion;
-    uint8_t control;
-    uint8_t rsv1[4];
-
-}__attribute__((packed));
-
-struct hba_prdt_entry_t
-{
-    uint64_t data_base_addr;
-    uint32_t rsv0;
-    uint32_t byte_count : 22;
-    uint32_t rsv1 : 9;
-    uint32_t interrupt_on_completion : 1;
-
-}__attribute__((packed));
-
-struct hba_cmd_table_t
-{
-    uint8_t command_fis[64];
-    uint8_t atapi_cmd[16];
-    uint8_t rsv0[48];
-    hba_prdt_entry_t prdtEntries[];
-
-}__attribute__((packed));
 
 void ahci_init();
 

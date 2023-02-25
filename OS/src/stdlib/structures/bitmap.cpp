@@ -1,8 +1,6 @@
-#include "stdlib/mem.h"
-#include "stdlib/stdio.h"
-#include "stdlib/stdlib.h"
-#include "types.h"
+#include <stdlib/stdlib.h>
 #include <stdlib/structures/bitmap.h>
+#include <kernel/mem.h>
 
 namespace std
 {

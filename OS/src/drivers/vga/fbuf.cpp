@@ -1,6 +1,6 @@
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
-#include <vga/vga.h>
+#include <drivers/vga/vga.h>
 
 volatile limine::limine_framebuffer_request fbuf_req = {LIMINE_FRAMEBUFFER_REQUEST, 0};
 
@@ -78,7 +78,7 @@ void fbuf_init(void)
 {
     fbuf_info = fbuf_req.response->framebuffers[0];
     g_framebuffer = (uint8_t *)fbuf_info->address;
-    klogf(LOG_DEBUG, "Framebuffer found!\nWidth = %d\nHeight = %d\nPitch = %d\nBPP = %d\nAddr: 0x%x\n", fbuf_info->width, fbuf_info->height, fbuf_info->pitch, fbuf_info->bpp, g_framebuffer);
+    std::klogf("Framebuffer found!\nWidth = %d\nHeight = %d\nPitch = %d\nBPP = %d\nAddr: 0x%x\n", fbuf_info->width, fbuf_info->height, fbuf_info->pitch, fbuf_info->bpp, g_framebuffer);
     
     setBackgroundColor(Color(20, 20, 20));
     //fillRect(0, 0, bg, fbuf_info->width, fbuf_info->height);
