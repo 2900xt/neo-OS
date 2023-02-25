@@ -1,3 +1,9 @@
+#compile and build the x86_64-elf-gcc cross compiler
+#
+#requisites:
+# 1.libmpc-dev
+# 2.libmpfr-dev
+# 3.libgmp-dev
 
 export PREFIX="/usr/local/x86_64elfgcc"
 

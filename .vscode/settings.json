@@ -1,7 +1,0 @@
-{
-    "C_Cpp.errorSquiggles": "disabled",
-    "clangd.fallbackFlags": [
-        "-I${workspaceFolder}/kernel/lib",
-        "-I/my/include"
-    ]
-}

@@ -1,10 +1,14 @@
+.PHONY: all
+all: neo-OS.hdd clean
+
 .PHONY: run
-run: neo-OS.hdd clean
+run: all
 	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -hda neo-OS.hdd -smp cpus=4
 
-.PHONY: kernel
-kernel:
-	$(MAKE) -C kernel
+.PHONY: os-bin
+os-bin:
+	clear
+	$(MAKE) -C OS
 
 .PHONY: ovmf
 ovmf:
@@ -16,7 +20,7 @@ limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v4.x-branch-binary --depth=1
 	make -C limine
 
-neo-OS.hdd: kernel
+neo-OS.hdd: os-bin
 	rm -f neo-OS.hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=neo-OS.hdd
 	sudo parted -s neo-OS.hdd mklabel gpt
@@ -28,7 +32,7 @@ neo-OS.hdd: kernel
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount
 	sudo mkdir -p img_mount/EFI/BOOT
-	sudo cp -v kernel/bin/kernel.elf limine.cfg limine/limine.sys wallpaper.bmp img_mount/
+	sudo cp -v OS/bin/kernel.elf limine.cfg limine/limine.sys img_mount/
 	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
 	sync
 	sudo umount img_mount
@@ -38,4 +42,4 @@ neo-OS.hdd: kernel
 .PHONY: clean
 clean:
 	rm -rf iso_root
-	$(MAKE) -C kernel clean
+	$(MAKE) -C OS clean
