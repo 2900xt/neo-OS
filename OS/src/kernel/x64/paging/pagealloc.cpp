@@ -1,4 +1,5 @@
 #include "stdlib/stdio.h"
+#include "types.h"
 #include <kernel/x64/paging.h>
 #include <stdlib/structures/bitmap.h>
 #include <kernel/mem.h>
@@ -46,7 +47,10 @@ void* next_page(void)
 
     page_map->set(current_index, true);
 
-    return (void*)((current_index * page_sz) + allocator_base);
+    uint64_t address = ((current_index * page_sz) + allocator_base);
+    map_page(address, address);
+
+    return (void*)address;
 }
 
 void free_page(void *_pg)

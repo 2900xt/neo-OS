@@ -1,4 +1,5 @@
 #include "limine/limine.h"
+#include "stdlib/stdio.h"
 #include "types.h"
 #include "kernel/x64/paging.h"
 #include <stdlib/stdlib.h>
@@ -120,7 +121,7 @@ void* kmalloc(uint64_t size)
         size += heapBlksize;
     }
     size /= heapBlksize;
-
+    size++;
 
 //Scan through the memory blocks until we find a free one that is greater than or equal to the size
 

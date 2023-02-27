@@ -1,3 +1,5 @@
+#include "kernel/vfs/file.h"
+#include "stdlib/stdio.h"
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
 #include <kernel/x64/io.h>
@@ -10,12 +12,10 @@
 
 const void* _Unwind_Resume;
 
-
 void bsp_done(void)
 {
     for (;;);
 }
-
 
 // Entry point
 
@@ -32,6 +32,8 @@ extern "C" void _start(void)
     heapInit(0x100000, 0x100000, 0x100);
 
     smp_init();
+
+    VFS::vfs_init();
 
     PCI::enumerate_pci();
 

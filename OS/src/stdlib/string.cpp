@@ -39,7 +39,6 @@ char* itoa(uint64_t val, uint8_t radix){
 
 bool strcmp(const char* a, const char* b, int count)
 {
-
     for(int i = 0; i < count; i++){
         if(a[i] != b[i]) return false;
     }
@@ -47,4 +46,10 @@ bool strcmp(const char* a, const char* b, int count)
     return true;
 }
 
+bool strcmp(const char* a, const char* b)
+{
+    size_t len = strlen(a);
+    if(len != strlen(b)) return false;
+    return strcmp(a, b, len);
+}
 }

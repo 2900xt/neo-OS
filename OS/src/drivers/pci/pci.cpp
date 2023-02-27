@@ -157,7 +157,6 @@ void enumerate_bus(uint64_t base, uint64_t bus)
 
 void enumerate_pci(void)
 {
-
     ACPI::MCFG_HDR *mcfg = (ACPI::MCFG_HDR*)ACPI::findACPITable("MCFG");
 
     if(pci_devices != NULL) return;

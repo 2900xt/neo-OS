@@ -1,3 +1,4 @@
+#include "types.h"
 #include <stdlib/stdlib.h>
 #include <kernel/x64/paging.h>
 #include <drivers/ahci/ahci.h>
@@ -33,7 +34,6 @@ static void probe_ports()
 
             port_count++;
             ports[port_count].port_number = i;
-            ports[port_count].dma_buffer = AMD64::next_page();
             ports[port_count].port = &hba_memory->ports[i];
             ports[port_count].port_type = hba_memory->ports[i].signature;
         }
@@ -44,6 +44,7 @@ void ahci_init()
 {
     PCI::device_t *sata_controller = PCI::get_pci_dev(0x1, 0x6, 0x1);
     hba_memory = (hba_mem_t*)((uint64_t)sata_controller->BARS[5]);
+    AMD64::map_page((uint64_t)hba_memory, (uint64_t)hba_memory);
     probe_ports();
 }
 

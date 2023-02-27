@@ -11,5 +11,4 @@ Goals:
 * Standard Library
 * USB
 * Virtual Filesystem
-* Serial
 * Config
