@@ -1,5 +1,7 @@
+#include "kernel/mem.h"
+#include "stdlib/assert.h"
 #include <types.h>
-
+#include <stdlib/string.h>
 namespace std 
 {
 
@@ -52,4 +54,25 @@ bool strcmp(const char* a, const char* b)
     if(len != strlen(b)) return false;
     return strcmp(a, b, len);
 }
+
+const char* strcat(char* dest, const char* src)
+{
+    const char* result = dest;
+    while(*dest++ != 0);
+    while(*src != 0)
+    {
+        *dest++ = *src++;
+    }
+    return result;
+}
+
+const char* strcpy(char* _dest, const char* _src)
+{
+    void* dest = (void*)_dest;
+    void* src = (void*)_src;
+    memcpy(dest, src, strlen(_dest) + strlen(_src));
+    return _dest;
+}
+
+
 }

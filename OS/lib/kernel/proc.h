@@ -48,5 +48,3 @@ public:
     Process*  create_child(const char* child_pname, void (*code)(pid_t ,int, char**));
     void      schedule(void);
 };
-
-void schedule(Process* proc);

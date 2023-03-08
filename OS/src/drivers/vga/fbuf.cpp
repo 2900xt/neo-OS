@@ -48,38 +48,10 @@ void fillRect(int x, int y, Color c, uint32_t w, uint32_t h)
     }
 }
 
-const uint8_t mouse[] = 
-{
-    0b01000000,
-    0b01100000,
-    0b01110000,
-    0b01111000,
-    0b01111100,
-    0b01111110,
-    0b00000100,
-    0b00000010
-}; 
-
-void drawMouse(uint64_t x, uint64_t y)
-{
-    for(int i = y; i < y + 8 ; i++)
-    {
-        for(int j = x; j < x + 8; j++)
-        {
-            if(mouse[i - y] & (1 << (j - x)))
-            {
-                putpixel(j, i, Color(255, 255, 255));
-            }
-        }
-    }
-}
-
 void fbuf_init(void)
 {
     fbuf_info = fbuf_req.response->framebuffers[0];
     g_framebuffer = (uint8_t *)fbuf_info->address;
-    std::klogf("Framebuffer found!\nWidth = %d\nHeight = %d\nPitch = %d\nBPP = %d\nAddr: 0x%x\n", fbuf_info->width, fbuf_info->height, fbuf_info->pitch, fbuf_info->bpp, g_framebuffer);
-    
-    setBackgroundColor(Color(20, 20, 20));
-    //fillRect(0, 0, bg, fbuf_info->width, fbuf_info->height);
+    std::klogf("Found framebuffer at [0x%x]\nWidth = %d\nHeight = %d\n\n",  g_framebuffer, fbuf_info->width, fbuf_info->height);
+    setBackgroundColor(Color(0, 0, 0));
 }

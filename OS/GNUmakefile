@@ -57,25 +57,30 @@ all: $(KERNEL)
 
 # Link rules for the final kernel executable.
 $(KERNEL): $(OBJ)
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
+	@echo linking kernel elf...
+	@$(LD) $(OBJ) $(LDFLAGS) -o $@
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.cpp files.
 %.o: %.cpp
-	$(CROSS) $(CROSSFLAGS) -c $< -o $@
+	@echo $<
+	@$(CROSS) $(CROSSFLAGS) -c $< -o $@
 
 %.o: %.c
-	$(CROSS) $(CROSSFLAGS) -mgeneral-regs-only -c $< -o $@
+	@echo $<
+	@$(CROSS) $(CROSSFLAGS) -mgeneral-regs-only -c $< -o $@
 
 # Compilation rules for *.S files.
 %.o: %.S
-	$(CROSS) $(CROSSFLAGS) -c $< -o $@
+	@echo $<
+	@$(CROSS) $(CROSSFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 %.o: %.asm
-	nasm $(NASMFLAGS) $< -o $@
+	@echo $<
+	@nasm $(NASMFLAGS) $< -o $@
 
 # Remove object files and the final executable.
 .PHONY: clean

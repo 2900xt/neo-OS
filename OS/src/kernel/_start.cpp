@@ -1,3 +1,4 @@
+#include "drivers/vga/vga.h"
 #include "kernel/vfs/file.h"
 #include "stdlib/stdio.h"
 #include <limine/limine.h>
@@ -11,11 +12,12 @@
 #include <kernel/smp.h>
 #include <kernel/proc.h>
 
-const void* _Unwind_Resume;
-
 void bsp_done(void)
 {
-    for (;;);
+    for (;;)
+    {
+        asm volatile ("hlt");
+    }
 }
 
 // Entry point
@@ -25,8 +27,10 @@ extern "C" void _start(void)
     AMD64::enableSSE();
 
     std::tty_init();
+    
+    fbuf_init();
 
-    std::klogf("Loading NEO-OS...\n");
+    std::klogf("Loading NEO-OS 0.01 Alpha...\n\n");
 
     AMD64::fillIDT();
 

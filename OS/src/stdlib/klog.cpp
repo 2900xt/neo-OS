@@ -3,7 +3,7 @@
 #include <stdlib/stdlib.h>
 #include <drivers/serial/serial.h>
 
-#define SERIAL_OUTPUT_ENABLE true
+#define SERIAL_OUTPUT_ENABLE 0
 
 static volatile limine::limine_terminal_request terminal_request = {LIMINE_TERMINAL_REQUEST, 0};
 

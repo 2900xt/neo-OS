@@ -9,7 +9,7 @@ volatile limine::limine_smp_request smp_request = {LIMINE_SMP_REQUEST, 0};
 void smp_init(void)
 {
     AMD64::initAPIC(smp_request.response->bsp_lapic_id);
-    std::klogf("%d cores detected!\n", smp_request.response->cpu_count);
+    std::klogf("CPU: %d cores detected\n", smp_request.response->cpu_count);
     for(int i = 1; i < smp_request.response->cpu_count; i++)
     {
         cpu_jump_to(i, (void*)mt_begin);
@@ -19,10 +19,9 @@ void smp_init(void)
 
 void mt_begin(limine::limine_smp_info* cpu_info)
 {
-    std::klogf("[CPU%d] Online\n", cpu_info->processor_id);
     AMD64::initAPIC(cpu_info->lapic_id);
     for(;;){
-        asm("nop");
+        asm("hlt");
     }
 }
 
