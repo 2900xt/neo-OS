@@ -4,7 +4,7 @@
 #include <kernel/x64/intr/idt.h>
 #include <kernel/x64/intr/apic.h>
 
-namespace AMD64
+namespace kernel
 {
 
 #define stop() for(;;)

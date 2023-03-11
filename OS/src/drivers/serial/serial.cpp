@@ -11,7 +11,7 @@ namespace SERIAL
     {
         for(int i = 0; i < len; i++)
         {
-            AMD64::outb(COM1, str[i]);
+            kernel::outb(COM1, str[i]);
         }
     }
 }

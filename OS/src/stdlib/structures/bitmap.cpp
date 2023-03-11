@@ -1,6 +1,6 @@
 #include <stdlib/stdlib.h>
 #include <stdlib/structures/bitmap.h>
-#include <kernel/mem.h>
+#include <kernel/mem/mem.h>
 
 namespace std
 {

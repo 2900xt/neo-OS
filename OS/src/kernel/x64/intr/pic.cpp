@@ -1,6 +1,6 @@
 #include <kernel/x64/io.h>
 
-namespace AMD64
+namespace kernel
 
 {
 //legacy PIC code

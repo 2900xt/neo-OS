@@ -1,7 +1,7 @@
 #pragma once
 #include <types.h>
 
-namespace AMD64
+namespace kernel
 {
 
 static inline void outb(uint16_t port, uint8_t val){

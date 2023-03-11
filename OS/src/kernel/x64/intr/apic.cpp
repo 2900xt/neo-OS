@@ -3,7 +3,7 @@
 #include <kernel/x64/io.h>
 #include <stdlib/stdlib.h>
 
-namespace AMD64 
+namespace kernel 
 {
 
 static ACPI::MADT*      madt;

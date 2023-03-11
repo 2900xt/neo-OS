@@ -1,6 +1,6 @@
 #pragma once
 
-namespace AMD64
+namespace kernel
 {
 
 void remapPIC(int offset1, int offset2);

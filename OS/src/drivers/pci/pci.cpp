@@ -4,8 +4,8 @@
 #include <kernel/x64/io.h>
 #include <drivers/acpi/mcfg.h>
 #include <stdlib/stdlib.h>
-#include <kernel/x64/paging.h>
-#include <kernel/mem.h>
+#include <kernel/mem/paging.h>
+#include <kernel/mem/mem.h>
 
 namespace PCI
 {
@@ -109,7 +109,7 @@ void enumerate_function(uint64_t device_addr, uint64_t function)
 {
     uint64_t offset = function << 12;
     uint64_t func_addr = device_addr + offset;
-    AMD64::map_page(func_addr, func_addr);     //Identity map the address
+    kernel::map_page(func_addr, func_addr);     //Identity map the address
 
     dev_common_hdr* pci_func = (dev_common_hdr*)func_addr;
     if (pci_func->device_id == 0 || pci_func->device_id == 0xFFFF) return;    //Function doesn't exist
@@ -128,7 +128,7 @@ void enumerate_device(uint64_t bus_address, uint64_t device)
 {
     uint64_t offset = device << 15;
     uint64_t device_addr = bus_address + offset;
-    AMD64::map_page(device_addr, device_addr);     //Identity map the address
+    kernel::map_page(device_addr, device_addr);     //Identity map the address
 
     dev_common_hdr* pci_dev = (dev_common_hdr*)device_addr;
     if (pci_dev->device_id == 0 || pci_dev->device_id == 0xFFFF) return;    //Device doesn't exist
@@ -143,7 +143,7 @@ void enumerate_bus(uint64_t base, uint64_t bus)
 {
     uint64_t offset = bus << 20;
     uint64_t busAddr = base + offset;
-    AMD64::map_page(busAddr, busAddr);     //Identity map the address
+    kernel::map_page(busAddr, busAddr);     //Identity map the address
 
     dev_common_hdr* pci_dev = (dev_common_hdr*)busAddr;
     if (pci_dev->device_id == 0 || pci_dev->device_id == 0xFFFF) return;      //Bus doesn't exist

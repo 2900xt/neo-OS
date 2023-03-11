@@ -1,8 +1,8 @@
 #include "stdlib/assert.h"
 #include <types.h>
 #include <kernel/vfs/file.h>
-#include <kernel/mem.h>
-#include <kernel/x64/paging.h>
+#include <kernel/mem/mem.h>
+#include <kernel/mem/paging.h>
 #include <stdlib/string.h>
 #include <stdlib/stdio.h>
 

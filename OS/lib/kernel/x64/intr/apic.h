@@ -3,7 +3,7 @@
 #include <types.h>
 #include <drivers/acpi/madt.h>
 
-namespace AMD64
+namespace kernel
 {
 
 #define APIC_SUPPORTED  (1 << 9)

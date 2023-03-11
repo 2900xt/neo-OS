@@ -1,11 +1,12 @@
 #include "drivers/vga/vga.h"
 #include "kernel/vfs/file.h"
+#include "kernel/mem/paging.h"
 #include "stdlib/stdio.h"
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
 #include <kernel/x64/io.h>
 #include <kernel/x64/intr/idt.h>
-#include <kernel/mem.h>
+#include <kernel/mem/mem.h>
 #include <kernel/x64/intr/apic.h>
 #include <drivers/pci/pci.h>
 #include <drivers/ahci/ahci.h>
@@ -24,7 +25,7 @@ void bsp_done(void)
 
 extern "C" void _start(void)
 {
-    AMD64::enableSSE();
+    kernel::enableSSE();
 
     std::tty_init();
     
@@ -32,10 +33,12 @@ extern "C" void _start(void)
 
     std::klogf("Loading NEO-OS 0.01 Alpha...\n\n");
 
-    AMD64::fillIDT();
+    kernel::fillIDT();
 
-    heapInit(0x100000, 0x100000, 0x100);
+    heapInit();
 
+    kernel::initialize_page_allocator();
+    
     smp_init();
 
     VFS::vfs_init();
