@@ -27,7 +27,7 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 ## How to use
 
 - build it yourself 
-- use the prebuilt binary "neo-OS.hdd" in the repository
+- or use the prebuilt binary "neo-OS.hdd" in the repository
 
 ### To build it yourself
 
