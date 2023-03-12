@@ -1,5 +1,7 @@
 # NEO-OS - an open source, fast, and secure amd64 operating system
 
+Built on the LIMINE protocol, NEO-OS supports UEFI booting
+
 ## Current Version - 0.001A
 
 ## Features:
@@ -20,5 +22,4 @@
 * Files / Streams
 * Standard Library
 * USB
-* Virtual Filesystem
 * Config
