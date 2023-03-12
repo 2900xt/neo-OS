@@ -32,17 +32,14 @@ Currently, to use the OS, you can either build it yourself or just use the prebu
 
 #### Prerequisites
 
-libmpfr
-libgmp
-libmpc
-texinfos
-
-Make note of the prerequisites. If you don't have an c++ cross compiler at "/usr/local/x86_64elfgcc/bin/x86_64-elf-g++", you can build the toolchain with "./toolchain.sh"
-
-1. clone this repo 
-2. run "make all". 
+- libmpfr
+- libgmp
+- libmpc
+- texinfo
 
 ### To build and test in QEMU
-type "make run"
 
+1. clone this repo
+2. build the toolchain with "./toolchain.sh"
+2. execute "make run"
 
