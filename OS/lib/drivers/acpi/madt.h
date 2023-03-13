@@ -21,4 +21,6 @@ struct MADT
     MADT_ENTRY_HDR     ptr;
 }__attribute__ ((packed));
 
+void parse_madt();
+
 }

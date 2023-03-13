@@ -55,15 +55,6 @@ const char* const exceptions[] = {
     "Security Exception"
 };
 
-struct interruptFrame
-{
-    uint64_t IP;
-    uint64_t CS;
-    uint64_t flags;
-    uint64_t SP;
-    uint64_t BP;
-}__attribute__ ((packed));
-
 static inline void lidt(void* base, uint16_t size)
 {
     struct {
@@ -75,11 +66,6 @@ static inline void lidt(void* base, uint16_t size)
 }
 
 void setIDTEntry(uint8_t vector, void* isr, uint8_t flags){
-
-    if(flags == INTERRUPT){
-        vector += 32;
-    }
-
     IDT[vector].flags                     = flags;
     IDT[vector].zero                      = 0x0;
     IDT[vector].selector                  = 40;
@@ -89,7 +75,10 @@ void setIDTEntry(uint8_t vector, void* isr, uint8_t flags){
     IDT[vector].offsetHigh                = (uint32_t)(((uint64_t)isr & 0xFFFFFFFF00000000) >> 32);
 }
 
-
+void register_isr(uint8_t vector, __attribute__((interrupt)) void (*isr)(interruptFrame*))
+{
+    setIDTEntry(vector, (void*)isr, INTERRUPT);
+}
 
 const char* exceptionNoError = "IP: \t0x%x\nCS: \t0x%x\nFLAGS: \t0x%x\nSP: \t0x%x\n->\t%s\n";
 const char* exceptionError   = "ERROR: 0b%b\nIP: \t0x%x\nCS: \t0x%x\nFLAGS: \t0x%x\nSP: \t0x%x\n->\t%s\n";
@@ -150,7 +139,7 @@ void sleep(int64_t millis)
 
 void fillIDT(void){
 
-    remapPIC(0x20, 0x28);
+    remapPIC(0xF0, 0xF8);
 
     //Exceptions
 
@@ -183,8 +172,8 @@ void fillIDT(void){
         setIDTEntry(i, (void*)exc1, EXCEPTION);
     }
 
-    setIDTEntry(0, (void*)timer_handler, INTERRUPT);
-    setIDTEntry(7, (void*)spurious_isr, INTERRUPT);
+    setIDTEntry(0x20, (void*)timer_handler, INTERRUPT);
+    setIDTEntry(0x27, (void*)spurious_isr, INTERRUPT);
 
     lidt(IDT, sizeof(IDT) - 1);
     

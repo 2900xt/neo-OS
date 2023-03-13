@@ -4,7 +4,8 @@ all: os-img
 .PHONY: run
 run: all
 	@echo Running Image...
-	@qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 >/dev/null 2>&1
+	@qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 -serial stdio -display none 2> /dev/null
+	clear
 
 .PHONY:
 kernel:
@@ -15,7 +16,7 @@ kernel:
 .PHONY: os-img
 os-img:
 	@echo Building Kernel Image...
-	@-$(MAKE) -C . neo-OS.hdd
+	@$(MAKE) -C . neo-OS.hdd
 	@echo Cleaning Up...
 	@$(MAKE) -C OS clean 1> /dev/null
 	@rm -rf iso_root

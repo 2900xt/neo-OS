@@ -12,34 +12,6 @@ static limine::limine_memmap_entry **memory_entries;
 namespace kernel
 {
 
-enum MEMORY_TYPES : uint8_t
-{
-    FREE                    = 0x0,
-    RESERVED                = 0x1,
-    ACPI_RECLAIMABLE        = 0x2,
-    ACPI_NVS                = 0x3,
-    BAD_MEMORY              = 0x4,
-    BOOTLOADER_RECLAIMABLE  = 0x5,
-    KERNEL_MAPPED           = 0x6,
-    FRAMBUFFER              = 0x7,
-    DMA                     = 0x8,
-    SWAPPED                 = 0x9,
-    USED                    = 0xA,
-};
-
-struct memory_segment_t
-{
-    uint64_t        start;
-    uint64_t        size;
-    MEMORY_TYPES    type;
-};
-
-struct page_list_entry_t
-{
-    memory_segment_t    memory;
-    page_list_entry_t*  next;
-    page_list_entry_t*  prev;
-};
 
 static page_list_entry_t page_list_head;
 

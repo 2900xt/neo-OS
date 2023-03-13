@@ -1,3 +1,5 @@
+#include "kernel/mem/paging.h"
+#include "types.h"
 #include <stdlib/stdlib.h>
 #include <kernel/mem/mem.h>
 
@@ -140,6 +142,31 @@ void unmap_page(uint64_t virtualAddr)
 
     uint64_t offset = (virtualAddr >> PT_BITS_OFFSET) & 0b111111111;
     pageTable[offset] = 0;
+}
+
+void map_pages(uint64_t start_virtual_addr, uint64_t end_virtual_addr, uint64_t start_physical_addr, uint64_t end_physical_addr)
+{
+    assert(start_virtual_addr - end_virtual_addr == start_physical_addr - end_physical_addr);
+    uint64_t current_virtual_addr = start_virtual_addr;
+    uint64_t current_physical_addr = start_physical_addr;
+
+    while(current_virtual_addr < end_virtual_addr)
+    {
+        map_page(current_virtual_addr, current_physical_addr);
+        current_virtual_addr    += 0x1000;
+        current_physical_addr   += 0x1000;
+    }
+}
+
+void unmap_pages(uint64_t start_virtual_addr, uint64_t end_virtual_addr)
+{
+    uint64_t current_virtual_addr = start_virtual_addr;
+
+    while(current_virtual_addr < end_virtual_addr)
+    {
+        unmap_page(current_virtual_addr);
+        current_virtual_addr += 0x1000;
+    }
 }
 
 }

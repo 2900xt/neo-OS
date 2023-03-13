@@ -103,5 +103,6 @@ struct IOAPIC_NMI_SOURCE
 void initAPIC(uint8_t APICid);
 void apicSendEOI(void);
 void sleep(int64_t millis);
+void ioapic_init();
 
 }

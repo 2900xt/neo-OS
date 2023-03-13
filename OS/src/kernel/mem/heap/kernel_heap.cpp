@@ -22,13 +22,15 @@ enum MEMORY_TYPES { FREE = 0, USED = 1, BORDER = 2 };
 void heapInit(void) {
   // Heap offset = Higher half address + offset + bitmap size(blkcount)
 
-  heapOffset = heapBlkcount + getHHDM() + 0x100000;
+  heapOffset = getHHDM() + 0x100000;
 
   // Bitmap is gonna be located at the start of the heap, with the bitmap being
   // the size of the heap block count
 
   memoryBitmap = (uint8_t *)heapOffset;
   memoryBitmap[0] = BORDER;
+
+  heapOffset += heapBlksize;
 
   std::klogf("Starting kernel heap at: 0x%x\tWith length: 0x%x\n", heapOffset, heapBlksize * heapBlkcount);
 }
