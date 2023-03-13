@@ -3,9 +3,9 @@
 #include <stdlib/stdio.h>
 
 ACPI::MADT*              madt;
-kernel::LAPIC_ENTRY*     local_apics[32];
+ACPI::LAPIC_ENTRY*       local_apics[32];
 uint64_t                 lapicCount;
-kernel::IOAPIC_ENTRY*    ioapic;
+ACPI::IOAPIC_ENTRY*      ioapic;
 uint32_t*                lapic;
 
 namespace ACPI
@@ -16,7 +16,7 @@ void evaluateMADTEntry(ACPI::MADT_ENTRY_HDR* const tableEntry)
     switch (tableEntry->entryType)
     {
         case 0: //Processor local APIC
-            local_apics[lapicCount] = (kernel::LAPIC_ENTRY*)tableEntry;
+            local_apics[lapicCount] = (LAPIC_ENTRY*)tableEntry;
 
             std::klogf(
             "LAPIC found -> PID: %d APIC ID: %d\n",
@@ -27,7 +27,7 @@ void evaluateMADTEntry(ACPI::MADT_ENTRY_HDR* const tableEntry)
             lapicCount++;
             break;
         case 1:
-            ioapic = (kernel::IOAPIC_ENTRY*)tableEntry;
+            ioapic = (IOAPIC_ENTRY*)tableEntry;
 
             std::klogf(
             "IOAPIC found -> addr 0x%x ID: %d\n",

@@ -179,3 +179,18 @@ void *krealloc(void *old_ptr, uint64_t size) {
 
   return new_ptr;
 }
+
+void* operator new(size_t size)
+{
+    return kcalloc(1, size);
+}
+
+void* operator new[](size_t size)
+{
+    return kcalloc(1, size);
+}
+
+void operator delete(void *addr)
+{
+    kfree(addr);
+}

@@ -3,12 +3,12 @@
 #include <kernel/mem/paging.h>
 #include <stdlib/stdio.h>
 
-extern kernel::IOAPIC_ENTRY*    ioapic;
+extern ACPI::IOAPIC_ENTRY*    ioapic;
 
 namespace kernel
 {
 
-static volatile uint32_t *ioapic_addr;
+static uint32_t *ioapic_addr;
 
 enum IOAPIC_REGISTER_OFFSETS : uint32_t
 {
@@ -41,50 +41,37 @@ enum IOAPIC_REGISTER_OFFSETS : uint32_t
 
 };
 
-struct ioapic_redir_table_entry
-{
-    uint8_t vector;
-    uint8_t delivery_mode : 3;
-    uint8_t destination_mode : 1;
-    uint8_t delivery_status : 1;
-    uint8_t pin_polatiry : 1;
-    uint8_t remote_irr : 1;
-    uint8_t trigger_mode : 1;
-    uint8_t mask : 1;
-    uint64_t reserved : 39;
-    uint8_t destination;
-};
+
 
 static void write_ioapic_register(uint32_t offset, uint32_t val)
 {
     *ioapic_addr = offset;
-    *(ioapic_addr + 0x10) = val;
+    *(ioapic_addr + 0x4) = val;
 }
 
 static uint32_t read_ioapic_register(uint32_t offset)
 {
     *ioapic_addr = offset;
-    return *(ioapic_addr + 0x10);
+    return *(ioapic_addr + 0x4);
 }
 
-void add_io_red_table_entry(uint8_t entry_number, ioapic_redir_table_entry _entry)
+void add_io_red_table_entry(uint8_t entry_number, ioapic_redir_table_entry* _entry)
 {
-    uint64_t entry = *(uint64_t*)(&entry);
+    uint64_t entry = *((uint64_t*)_entry);
     write_ioapic_register(IOAPIC_RED_TBL_HI(entry_number), entry >> 32);
     write_ioapic_register(IOAPIC_RED_TBL_LOW(entry_number), entry);
 
 }
 
+uint8_t get_ioapic_max_entries()
+{
+    return (read_ioapic_register(IOAPIC_VERSION) >> 16) + 1;
+}
+
 void ioapic_init()
 {
-    ioapic_addr = (volatile uint32_t*)kernel::allocate_pages(2);  //Allocating extra pages, in case IOAPIC registers cross a page boundary
-    kernel::map_pages((uint64_t)ioapic_addr , (uint64_t)ioapic_addr + 0x1000 * 2, ioapic->ioapic_base, ioapic->ioapic_base + 0x1000 * 2);
-    for(int i = 0; i < 256; i++)
-    {
-        write_ioapic_register(IOAPIC_RED_TBL_LOW(i), 0xFFFF);
-        write_ioapic_register(IOAPIC_RED_TBL_HI(i), 0xFFFF);
-    }
-    std::klogf("IO: 0x%x\n", (uint64_t)read_ioapic_register(IOAPIC_RED_TBL_HI(0)));
+    ioapic_addr = (uint32_t*)((uint64_t)ioapic->ioapic_base);
+    kernel::map_page(ioapic->ioapic_base, ioapic->ioapic_base);
 }
 
 };

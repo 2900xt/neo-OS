@@ -12,7 +12,7 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 * virtual file system
 * timers
 * simultaneous multiprocessing
-* LAPIC, ACPI, AHCI, PCI, serial & VGA drivers
+* APIC, ACPI, AHCI, PCI, serial & VGA drivers
 
 ## Goals
 
@@ -22,7 +22,6 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 * Files / Streams
 * Standard Library
 * USB
-* I/O APIC
 
 ## How to use
 
