@@ -36,6 +36,8 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 - libgmp
 - libmpc
 - texinfo
+- gcc
+- nasm
 
 ### To build and test in QEMU
 
