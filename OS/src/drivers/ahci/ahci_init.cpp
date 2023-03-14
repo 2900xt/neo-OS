@@ -48,7 +48,6 @@ void ahci_init()
     kernel::map_page((uint64_t)hba_memory, (uint64_t)hba_memory);
     probe_ports();
 
-    std::klogf("Port Size: 0x%x\nMem Size: 0x%x\n", sizeof(hba_port_t), sizeof(hba_mem_t));
 
 }
 
