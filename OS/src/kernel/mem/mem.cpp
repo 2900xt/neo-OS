@@ -31,13 +31,6 @@ void memset_8(void* _addr, uint64_t num, uint8_t value){
 }
 
 void memcpy(void* _destination, void* _src, uint64_t num){
-
-    if(num % 8 != 0){
-        uint8_t remainder = num % 8;
-        num -= remainder;
-        num += 8;
-    }
-
     uint8_t* destPtr = (uint8_t*)_destination;
     uint8_t* srcPtr = (uint8_t*)_src;
 

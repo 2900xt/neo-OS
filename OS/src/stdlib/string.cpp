@@ -57,20 +57,21 @@ bool strcmp(const char* a, const char* b)
 
 const char* strcat(char* dest, const char* src)
 {
-    const char* result = dest;
-    while(*dest++ != 0);
-    while(*src != 0)
-    {
-        *dest++ = *src++;
-    }
-    return result;
+    char* _dest = dest;
+    dest += strlen(dest);
+    strcpy(dest, src);
+    return _dest;
 }
 
 const char* strcpy(char* _dest, const char* _src)
 {
-    void* dest = (void*)_dest;
-    void* src = (void*)_src;
-    memcpy(dest, src, strlen(_dest) + strlen(_src));
+    char* dest = _dest;
+    while(*_src != '\0')
+    {
+        *dest = *_src;
+        dest++;
+        _src++;
+    }
     return _dest;
 }
 

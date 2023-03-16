@@ -1,3 +1,5 @@
+#include "drivers/ahci/ahci_cmd.h"
+#include "drivers/ahci/hba_fis.h"
 #include "drivers/ahci/hba_port.h"
 #include "stdlib/stdio.h"
 #include "types.h"
@@ -9,12 +11,13 @@
 namespace AHCI {
 
 hba_mem_t *hba_memory;
-uint8_t port_count;
+uint8_t device_count;
+AHCIDevice* devices[32];
 
 static void probe_ports()
 {
     assert(hba_memory != NULL);
-    port_count = 0;
+    device_count = 0;
 
     for(int i = 0; i < 32; i++)
     {
@@ -36,7 +39,9 @@ static void probe_ports()
 
             if(hba_memory->ports[i].sata_status.device_detection != 0x3 || hba_memory->ports[i].sata_status.interface_pm != 0x1) continue;
 
-            port_count++;
+            devices[i] = new AHCIDevice(i);
+
+            device_count++;
         }
     }
 }
@@ -47,8 +52,6 @@ void ahci_init()
     hba_memory = (hba_mem_t*)((uint64_t)sata_controller->BARS[5]);
     kernel::map_page((uint64_t)hba_memory, (uint64_t)hba_memory);
     probe_ports();
-
-
 }
 
 }

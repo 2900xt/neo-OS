@@ -1,6 +1,8 @@
 #pragma once
+#include "drivers/ahci/ahci_cmd.h"
+#include "drivers/ahci/hba_fis.h"
 #include <types.h>
-#include <drivers/ahci/generic_host_control.h>
+#include <drivers/ahci/hba_ghc.h>
 #include <drivers/ahci/hba_port.h>
 
 namespace AHCI {
@@ -14,8 +16,26 @@ struct hba_mem_t
     hba_port_t ports[32];
 }__attribute__((packed));
 
-
-
 void ahci_init();
+
+class AHCIDevice 
+{
+
+public:
+
+    hba_port_t      *port;
+    uint8_t          port_num;
+    HBA_CMD_HEADER  *cmd_list;
+    HBA_FIS         *port_fis;
+
+    void    stop_command();
+    void    start_command();
+    int     find_cmd_slot();
+
+    AHCIDevice(uint8_t port_number);
+    
+    bool read_sectors(uint64_t lba, uint32_t count, void *buffer);
+
+};
 
 }
