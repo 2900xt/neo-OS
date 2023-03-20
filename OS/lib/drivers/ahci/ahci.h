@@ -28,13 +28,7 @@ public:
     HBA_CMD_HEADER  *cmd_list;
     HBA_FIS         *port_fis;
 
-    void    stop_command();
-    void    start_command();
-    int     find_cmd_slot();
-
     AHCIDevice(uint8_t port_number);
-    
-    bool read_sectors(uint64_t lba, uint32_t count, void *buffer);
 
 };
 
