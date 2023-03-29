@@ -5,6 +5,26 @@
 # 2.libmpfr-dev
 # 3.libgmp-dev
 
+sudo apt update
+
+sudo apt install build-essential
+
+sudo apt install bison
+
+sudo apt install flex
+
+sudo apt install libgmp3-dev
+
+sudo apt install libmpc-dev
+
+sudo apt install libmpfr-dev
+
+sudo apt install texinfo
+
+sudo apt install nasm
+
+sudo apt install qemu-desktop
+
 export PREFIX="/usr/local/x86_64elfgcc"
 
 export TARGET=x86_64-elf
