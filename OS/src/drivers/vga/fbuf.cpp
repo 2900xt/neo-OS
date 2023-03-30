@@ -1,6 +1,8 @@
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
 #include <drivers/vga/vga.h>
+#include <kernel/x64/intr/apic.h>
+#include <kernel/mem/mem.h>
 
 volatile limine::limine_framebuffer_request fbuf_req = {LIMINE_FRAMEBUFFER_REQUEST, 0};
 

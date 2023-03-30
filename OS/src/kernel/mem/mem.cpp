@@ -37,5 +37,4 @@ void memcpy(void* _destination, void* _src, uint64_t num){
     for(int i = 0; i < num; i++){
         destPtr[i] = srcPtr[i];
     }
-
 }

@@ -5,7 +5,6 @@ double fabs (double x)
     return (x < 0 ? -x : x);
 }
 
-
 const static double epsilon = 0.00001;
 
 double sqrt (double x)
