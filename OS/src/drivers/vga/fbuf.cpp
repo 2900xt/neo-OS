@@ -22,18 +22,6 @@ void repaintScreen()
 
 limine::limine_framebuffer *fbuf_info;
 
-Color bg;
-
-void setBackgroundColor(Color c)
-{
-    bg = c;
-}
-
-Color* getBackgroundColor(void)
-{
-    return &bg;
-}
-
 void putpixel(int x, int y, Color c)
 {
     uint32_t where = x * fbuf_info->bpp / 8 + y * fbuf_info->pitch;
