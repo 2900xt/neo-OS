@@ -4,24 +4,39 @@
 #include <limine/limine.h>
 #include <types.h>
 
+extern limine::limine_framebuffer *fbuf_info;
+
 class Color
 {
 public:
-    uint8_t r, g, b;
+    Color(uint8_t r, uint8_t g, uint8_t b)
+    {
+        rgb = (b << fbuf_info->blue_mask_shift) | (g << fbuf_info->green_mask_shift) | (r << fbuf_info->red_mask_shift);
+    }
+
+    Color(Color const &other)
+    {
+        rgb = other.rgb;
+    }
 
     Color()
     {
-        r = 0;
-        g = 0;
-        b = 0;
+        rgb = 0;
     }
 
-    Color(uint8_t r, uint8_t g, uint8_t b)
+    uint32_t getRGB()
     {
-        this->r = r;
-        this->g = g;
-        this->b = b;
+        return rgb;
     }
+
+    Color const &operator=(Color const &other)
+    {
+        this->rgb = other.rgb;
+        return *this;
+    }
+
+protected:
+    uint32_t rgb;
 };
 
 extern limine::limine_framebuffer *fbuf_info;

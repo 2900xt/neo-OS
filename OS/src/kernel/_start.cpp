@@ -25,9 +25,7 @@ extern "C" void _start(void)
 
     std::tty_init();
     
-    fbuf_init();
-
-    std::klogf("Loading NEO-OS 0.01 Alpha...\n\n");
+    std::klogf("Loading NEO-OS\n\n");
 
     kernel::fillIDT();
 
@@ -35,6 +33,8 @@ extern "C" void _start(void)
 
     kernel::initialize_page_allocator();
     
+    fbuf_init();
+
     smp_init();
 
     VFS::vfs_init();

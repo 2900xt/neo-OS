@@ -5,10 +5,9 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "lldb",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/<executable file>",
+            "name": "Launch",
+            "program": "make run",
             "args": [],
             "cwd": "${workspaceFolder}"
         }

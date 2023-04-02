@@ -1,10 +1,24 @@
+#include "kernel/mem/mem.h"
+#include "kernel/mem/paging.h"
+#include "stdlib/stdio.h"
+#include "types.h"
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
 #include <drivers/vga/vga.h>
 
 volatile limine::limine_framebuffer_request fbuf_req = {LIMINE_FRAMEBUFFER_REQUEST, 0};
 
-uint8_t *g_framebuffer;
+uint32_t *g_framebuffer1;
+uint32_t *g_framebuffer2;
+
+uint64_t framebufferSize;
+
+//Map the unused buffer to the address given by limine
+//Unmap the first buffer
+void repaintScreen()
+{
+    memcpy(g_framebuffer1, g_framebuffer2, framebufferSize);
+}
 
 limine::limine_framebuffer *fbuf_info;
 
@@ -12,9 +26,7 @@ Color bg;
 
 void setBackgroundColor(Color c)
 {
-    bg.r = c.r;
-    bg.g = c.g;
-    bg.b = c.b;
+    bg = c;
 }
 
 Color* getBackgroundColor(void)
@@ -25,25 +37,19 @@ Color* getBackgroundColor(void)
 void putpixel(int x, int y, Color c)
 {
     uint32_t where = x * fbuf_info->bpp / 8 + y * fbuf_info->pitch;
-    g_framebuffer[where] = c.b;
-    g_framebuffer[where + 1] = c.g;
-    g_framebuffer[where + 2] = c.r;
+    g_framebuffer2[where] = c.getRGB();
 }
 
 void fillRect(int x, int y, Color c, uint32_t w, uint32_t h)
 {
     uint32_t where;
-
     for (int i = y; i < h + y; i++)
     {
-        where = fbuf_info->pitch * i;
+        where = (fbuf_info->pitch * i) / 4;
         for (int j = x; j < w + x; j++)
         {
-            g_framebuffer[where] = c.b;
-            g_framebuffer[where + 1] = c.g;
-            g_framebuffer[where + 2] = c.r;
-
-            where += 4;
+            g_framebuffer2[where] = c.getRGB();
+            where++;
         }
     }
 }
@@ -51,7 +57,11 @@ void fillRect(int x, int y, Color c, uint32_t w, uint32_t h)
 void fbuf_init(void)
 {
     fbuf_info = fbuf_req.response->framebuffers[0];
-    g_framebuffer = (uint8_t *)fbuf_info->address;
-    std::klogf("Found framebuffer at [0x%x]\nWidth = %d\nHeight = %d\n\n",  g_framebuffer, fbuf_info->width, fbuf_info->height);
-    setBackgroundColor(Color(0, 0, 0));
+    framebufferSize =  fbuf_info->width * fbuf_info->bpp / 8.0 + fbuf_info->height * fbuf_info->pitch;
+    g_framebuffer1 = (uint32_t*)fbuf_info->address;
+    g_framebuffer2 = (uint32_t*)kernel::allocate_pages(framebufferSize / 0x1000  + 1);
+    kernel::map_pages((uint64_t)g_framebuffer2, (uint64_t)g_framebuffer2, framebufferSize / 0x1000  + 1);
+    std::klogf("Sz: 0x%x\n", framebufferSize);
+    fillRect(0, 0, {255, 0, 0}, fbuf_info->width, fbuf_info->height);
+    repaintScreen();
 }

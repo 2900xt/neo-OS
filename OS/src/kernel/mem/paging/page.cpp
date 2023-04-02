@@ -169,4 +169,14 @@ void unmap_pages(uint64_t start_virtual_addr, uint64_t end_virtual_addr)
     }
 }
 
+void map_pages(uint64_t startVirtualAddr, uint64_t startPhysicalAddr, uint64_t count)
+{
+    for(int i = 0; i < count; i++)
+    {
+        map_page(startVirtualAddr, startPhysicalAddr);
+        startVirtualAddr += 0x1000;
+        startPhysicalAddr += 0x1000;
+    }
+}
+
 }
