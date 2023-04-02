@@ -1,6 +1,7 @@
 #include "drivers/vga/vga.h"
 #include "kernel/vfs/file.h"
 #include "kernel/mem/paging.h"
+#include "stdlib/stdio.h"
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
 #include <kernel/x64/io.h>
