@@ -2,7 +2,7 @@
 all: os-img
 
 .PHONY: run
-run_serial: all
+run_serial: all 
 	@echo Running Image...
 	@qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 -serial stdio -display none 2> /dev/null
 	clear
@@ -31,12 +31,11 @@ ovmf:
 	mkdir -p ovmf-x64
 	cd ovmf-x64 && curl -o OVMF-X64.zip https://efi.akeo.ie/OVMF/OVMF-X64.zip && unzip OVMF-X64.zip
 
-.PHONY: limine
-limine:
+./limine/limine-deploy: 
 	git clone https://github.com/limine-bootloader/limine.git --branch=v4.x-branch-binary --depth=1
 	make -C limine
 
-neo-OS.hdd: kernel
+neo-OS.hdd: kernel ./limine/limine-deploy
 	@rm -f neo-OS.hdd
 	@echo Generating Image
 	@dd if=/dev/zero bs=1M count=0 seek=64 of=neo-OS.hdd >/dev/null 2>&1
