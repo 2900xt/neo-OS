@@ -1,6 +1,4 @@
 #pragma once
-#include "drivers/ahci/ahci_cmd.h"
-#include "drivers/ahci/hba_fis.h"
 #include <types.h>
 #include <drivers/ahci/hba_ghc.h>
 #include <drivers/ahci/hba_port.h>
@@ -25,10 +23,14 @@ public:
 
     hba_port_t      *port;
     uint8_t          port_num;
-    HBA_CMD_HEADER  *cmd_list;
-    HBA_FIS         *port_fis;
 
     AHCIDevice(uint8_t port_number);
+
+    int read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffer);
+
+protected:
+
+    int getSlot();
 
 };
 

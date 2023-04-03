@@ -1,5 +1,3 @@
-#include "drivers/ahci/ahci_cmd.h"
-#include "drivers/ahci/hba_fis.h"
 #include "drivers/ahci/hba_port.h"
 #include "stdlib/stdio.h"
 #include "types.h"
@@ -7,7 +5,7 @@
 #include <kernel/mem/paging.h>
 #include <drivers/ahci/ahci.h>
 #include <drivers/pci/pci.h>
-
+#include <drivers/ahci/ahci_cmd.h>
 namespace AHCI {
 
 hba_mem_t *hba_memory;
@@ -49,9 +47,14 @@ static void probe_ports()
 void ahci_init()
 {
     PCI::device_t *sata_controller = PCI::get_pci_dev(0x1, 0x6, 0x1);
-    hba_memory = (hba_mem_t*)((uint64_t)sata_controller->BARS[5]);
+
+    sata_controller->hdr.command.intr_disable = 0;
+    sata_controller->hdr.command.mem_space_enable = 1;
+
+    hba_memory = (hba_mem_t*)((uint64_t)sata_controller->BARS[5] & ~0xFFF);
     kernel::map_page((uint64_t)hba_memory, (uint64_t)hba_memory);
     probe_ports();
+
 }
 
 }

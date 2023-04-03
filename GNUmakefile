@@ -9,8 +9,7 @@ run_serial: all
 
 run: all
 	@echo Running Image...
-	@qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 2> /dev/null
-	clear
+	@qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 
 
 .PHONY:
 kernel:

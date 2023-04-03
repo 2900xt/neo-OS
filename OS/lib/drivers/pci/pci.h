@@ -14,11 +14,27 @@ struct DEVICE_CONFIG
     uint32_t reserved;
 }__attribute__((packed));
 
+struct pci_command_t
+{
+    uint16_t io_space_enable : 1;
+    uint16_t mem_space_enable : 1;
+    uint16_t bus_master_enable : 1;
+    uint16_t special_cycle_enable : 1;
+    uint16_t mvi_enable : 1;
+    uint16_t VGA_pallete_snoop_enable : 1;
+    uint16_t parity_err_response_enable : 1;
+    uint16_t wait_cycle_enable : 1;
+    uint16_t SERR_enable : 1;
+    uint16_t fast_back_to_back_enable : 1;
+    uint16_t intr_disable : 1;
+    uint16_t rsv0 : 5;
+}__attribute__((packed));
+
 struct dev_common_hdr
 {
     uint16_t vendor_id;        //Identifies the manufacturer of the device
     uint16_t device_id;        //identifies the particular device
-    uint16_t command;          //Provides control over a device's ability to generate and respond to PCI cycles. Where the only functionality guaranteed to be supported by all devices is, when a 0 is written to this register, the device is disconnected from the PCI bus for all accesses except Configuration Space access. 
+    pci_command_t command;     //Provides control over a device's ability to generate and respond to PCI cycles. Where the only functionality guaranteed to be supported by all devices is, when a 0 is written to this register, the device is disconnected from the PCI bus for all accesses except Configuration Space access. 
     uint16_t status;           //A register used to record status information for PCI bus related events
     uint8_t revision_id;       //Specifies a revision identifier for a particular device. Where valid IDs are allocated by the vendor. 
     uint8_t prog_ifb;          //A read-only register that specifies a register-level programming interface the device has, if it has any at all. 
@@ -28,7 +44,7 @@ struct dev_common_hdr
     uint8_t latency_timer;     //Specifies the latency timer in units of PCI bus clocks. 
     uint8_t header_type;       //Identifies the layout of the rest of the header beginning at byte 0x10 of the header. If bit 7 of this register is set, the device has multiple functions; otherwise, it is a single function device. Types:  0x0: a general device - 0x1: a PCI-to-PCI bridge  - 0x2: a PCI-to-CardBus bridge. 
     uint8_t BIST;              //Represents that status and allows control of a devices BIST (built-in self test).
-};
+}__attribute__((packed));
 
 struct device_t
 {
@@ -39,11 +55,12 @@ struct device_t
     uint16_t subsystem_id;
     uint32_t expansion_rom_addr;
     uint8_t  capabillities_ptr;
-    uint8_t  max_latency;
-    uint8_t  interrupt_pin;
-    uint8_t  min_grant;
-    uint8_t  interrupt_line;
-};
+    uint8_t rsv0[7];
+    uint8_t intr_line;
+    uint8_t intr_pin;
+    uint8_t min_grant;
+    uint8_t max_latency;
+}__attribute__((packed));
 
 struct base_mem_t           //Memory Space BAR Layout 
 {

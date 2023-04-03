@@ -13,7 +13,7 @@ size_t strlen(const char* src){
     return length;
 }
 
-const char g_HexChars[] = "0123456789ABCDEF";
+const char* g_HexChars = "0123456789ABCDEF";
 static char itoaOutput[64];
 char* itoa(uint64_t val, uint8_t radix){
 

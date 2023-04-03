@@ -1,4 +1,5 @@
 #pragma once
+#include "drivers/ahci/ahci_cmd.h"
 #include <types.h>
 
 namespace AHCI {
@@ -170,10 +171,8 @@ struct device_sleep_t
 
 struct hba_port_t
 {
-    uint32_t                cmd_list_base_addr_low;
-    uint32_t                cmd_list_base_addr_high;
-    uint32_t                fis_base_addr_low;
-    uint32_t                fis_base_addr_high;
+    command_hdr_t*          cmd_list_base_addr;
+    uint64_t                fis_base_addr;
     interrupt_sts_t         interupt_status;
     interrupt_enable_t      interrupt_enable;
     command_status_t        command_status;
