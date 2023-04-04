@@ -1,12 +1,12 @@
-#include "drivers/ahci/hba_port.h"
+#include "drivers/disk/ahci/hba_port.h"
 #include "stdlib/stdio.h"
 #include "types.h"
 #include <stdlib/stdlib.h>
 #include <kernel/mem/paging.h>
-#include <drivers/ahci/ahci.h>
+#include <drivers/disk/ahci/ahci.h>
 #include <drivers/pci/pci.h>
-#include <drivers/ahci/ahci_cmd.h>
-namespace AHCI {
+#include <drivers/disk/ahci/ahci_cmd.h>
+namespace DISK {
 
 hba_mem_t *hba_memory;
 uint8_t device_count;
@@ -25,7 +25,6 @@ static void probe_ports()
             switch(hba_memory->ports[i].signature)
             {
                 case SIGNATURE_ATA:
-                case SIGNATURE_ATAPI:
                     ok = true;
                     break;
                 default:

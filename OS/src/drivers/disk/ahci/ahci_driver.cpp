@@ -1,7 +1,8 @@
-#include "drivers/ahci/ahci_cmd.h"
-#include "drivers/ahci/hba_port.h"
+#include "drivers/disk/ahci/ahci_cmd.h"
+#include "drivers/disk/ahci/hba_port.h"
+#include "drivers/fs/gpt.h"
 #include <types.h>
-#include <drivers/ahci/ahci.h>
+#include <drivers/disk/ahci/ahci.h>
 #include <stdlib/stdio.h>
 #include <kernel/mem/paging.h>
 #include <kernel/mem/mem.h>
@@ -9,7 +10,7 @@
 #include <stdlib/string.h>
 
 
-namespace AHCI {
+namespace DISK {
 
 extern hba_mem_t *hba_memory;
 extern uint8_t device_count;
@@ -26,19 +27,10 @@ AHCIDevice::AHCIDevice(uint8_t port_num)
 
     //Add the block device
 
-    char* new_filename;
-    if(port->signature == SIGNATURE_ATA)
-    {
-        new_filename = (char*)kcalloc(1, 4);
-        std::strcpy(new_filename, "hd");
-        std::strcat(new_filename, std::itoa(hd_cnt++, 10));
-    }
-    else {
-        new_filename = (char*)kcalloc(1, 7);
-        std::strcpy(new_filename, "cdrom");
-        std::strcat(new_filename, std::itoa(cd_cnt++, 10));
-    }
-
+    
+    char *new_filename = (char*)kcalloc(1, 4);
+    std::strcpy(new_filename, "hd");
+    std::strcat(new_filename, std::itoa(hd_cnt++, 10));
     VFS::file_t* block = VFS::get_root()->get_subdir("dev")->create_child(new_filename, VFS::DEVICE);
     block->file_data = (void*)this;
     block->permissions = 0xFF;
@@ -78,6 +70,36 @@ AHCIDevice::AHCIDevice(uint8_t port_num)
     while(port->command_status.cmd_list_running);
     port->command_status.FIS_recieve_enable = 1;
     port->command_status.cmd_start = 1;
+
+    //Read the GPT data
+    this->read_gpt();
+}
+
+void AHCIDevice::read_gpt()
+{
+    gpt_data = (FS::gpt_part_data*)kernel::allocate_pages(4);
+    kernel::map_pages((uint64_t)gpt_data, (uint64_t)gpt_data, 4);
+    FS::gpt_part_table_hdr *gpt_hdr = &gpt_data->hdr;
+
+    //Read the GPT header, located at LBA 1
+    this->read(1, 1, gpt_hdr);
+
+    //Read the partition table until ESP found
+    int currentEntry = 0;
+    uint32_t lba;
+
+    for(lba = gpt_hdr->lba_part_entry_arr; lba < gpt_hdr->part_entry_count + gpt_hdr->lba_part_entry_arr; lba++)
+    {
+        if(lba + gpt_hdr->lba_part_entry_arr >= 32) break;
+        this->read(lba, 1, &gpt_data->entries[currentEntry]);
+        currentEntry++;
+    }
+
+}
+
+FS::gpt_part_data* AHCIDevice::get_gpt()
+{
+    return gpt_data;
 }
 
 #define AHCI_ERR_TOO_MANY_SECTORS   -1

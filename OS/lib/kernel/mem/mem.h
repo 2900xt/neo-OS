@@ -18,4 +18,4 @@ void* kcalloc(uint64_t count, uint64_t size);
 
 void* operator new(size_t size);
 void* operator new[](size_t size);
-void operator delete(void *addr);
+void operator delete(void *addr, uint64_t);

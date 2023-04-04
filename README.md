@@ -16,7 +16,7 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 
 ## Goals
 
-* Finish AHCI Driver
+* FAT and EXT2 Filesystems
 * Processes
 * Scheduler
 * Files / Streams

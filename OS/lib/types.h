@@ -25,5 +25,7 @@ typedef uint64_t                qword_t;
 #endif
 #endif
 
+extern "C" void __cxa_pure_virtual();
+
 
 #endif // !TYPES_H

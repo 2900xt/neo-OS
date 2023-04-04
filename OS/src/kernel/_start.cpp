@@ -1,4 +1,3 @@
-#include "drivers/ahci/ahci.h"
 #include "drivers/vga/vga.h"
 #include "kernel/vfs/file.h"
 #include "kernel/mem/paging.h"
@@ -11,6 +10,8 @@
 #include <kernel/mem/mem.h>
 #include <kernel/smp.h>
 #include <config.h>
+
+extern "C" void __cxa_pure_virtual() { while (1); }
 
 void bsp_done(void)
 {
