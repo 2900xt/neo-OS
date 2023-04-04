@@ -31,6 +31,7 @@ public:
 protected:
 
     int getSlot();
+    int identifyDevice();
 
 };
 

@@ -77,8 +77,10 @@ AHCIDevice::AHCIDevice(uint8_t port_num)
     port->command_status.cmd_start = 1;
 }
 
-#define AHCI_ERR_TOO_MANY_SECTORS -1
-#define AHCI_READ_SUCCESS 0
+#define AHCI_ERR_TOO_MANY_SECTORS   -1
+#define AHCI_ERR_DEV_BUSY           -2
+#define AHCI_ERR_CONTROLLER_ERR     -3
+#define AHCI_SUCCESS            0
 
 int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffer)
 {
@@ -86,7 +88,13 @@ int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffe
 
     *((uint32_t*)(&port->interupt_status)) = -1;
 
-    command_hdr_t *command_header = port->cmd_list_base_addr;
+    int slot = getSlot();
+    if(slot == -1)
+    {
+        return AHCI_ERR_DEV_BUSY;
+    }
+
+    command_hdr_t *command_header = &port->cmd_list_base_addr[slot];
     command_header->cmdfis_length = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
     command_header->write_command = 0;
     command_header->prdt_length = (uint16_t)((sector_cnt - 1) >> 4) + 1;
@@ -102,7 +110,9 @@ int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffe
     {
         command_table->prdt[i].data_base_address = (uint64_t)dma_buffer;
         command_table->prdt[i].data_byte_count = 8 * 1024 - 1;
+        command_table->prdt[i].intr_on_completion = 1;
     }
+
 
     command_table->prdt[i].data_base_address = (uint64_t)dma_buffer;
     command_table->prdt[i].data_byte_count = (sector_cnt << 9) - 1;
@@ -133,17 +143,70 @@ int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffe
 
     //Wait for port to be ready
 
-    while(port->task_file_data.status_busy && port->task_file_data.status_data_transfer_requested);
+    int spin = 0;
+    while(port->task_file_data.status_busy && port->task_file_data.status_data_transfer_requested)
+    {
+        if(spin >= 100000)
+        {
+            return AHCI_ERR_DEV_BUSY;
+        }
 
-    port->command_issue = 1;
+        spin++;
+    }
+
+    port->command_issue = 1 << slot;
 
     //Wait for port to finish
 
-    while(port->command_issue & 1);
- 
-    std::klogf("0x%x\n", cmdfis);
+    while(port->command_issue & (1 << slot))
+    {
+        if(port->interupt_status.task_file_error_sts)
+        {
+            return AHCI_ERR_CONTROLLER_ERR;
+        }
+    }
 
-    return AHCI_READ_SUCCESS;
+
+    return AHCI_SUCCESS;
+}
+
+#define AHCI_DEVICE_IDENTIFY_CMD 0xEC
+
+int AHCIDevice::identifyDevice()
+{
+    int slot = getSlot();
+    if(slot == -1)
+    {
+        return AHCI_ERR_DEV_BUSY;
+    }
+
+    command_hdr_t *command_header = &port->cmd_list_base_addr[slot];
+    command_header->cmdfis_length = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
+    command_header->write_command = 0;
+    command_header->prdt_length   = 0;
+
+    if(command_header->prdt_length >= 9) 
+    {
+        return AHCI_ERR_TOO_MANY_SECTORS;
+    }
+
+    return AHCI_SUCCESS;
+}
+
+int AHCIDevice::getSlot()
+{
+    //Return the first avalible command slot
+    uint32_t avalible_slots = port->sata_active | port->command_issue;
+    for(int current_slot = 0; current_slot < 32; current_slot++)
+    {
+        if(!((1 << current_slot) & avalible_slots))
+        {
+            return current_slot;
+        }
+    }
+
+    //No slots found!
+    return -1;
 }
 
 }
