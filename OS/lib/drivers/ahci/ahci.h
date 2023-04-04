@@ -27,11 +27,13 @@ public:
     AHCIDevice(uint8_t port_number);
 
     int read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffer);
+    int write(uint64_t starting_lba, uint32_t sector_cnt, void *data_buffer);
+    int identifyDevice(uint16_t *buffer);
 
 protected:
 
     int getSlot();
-    int identifyDevice();
+    int run_command(int slot);
 
 };
 

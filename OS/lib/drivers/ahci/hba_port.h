@@ -172,7 +172,7 @@ struct device_sleep_t
 struct hba_port_t
 {
     command_hdr_t*          cmd_list_base_addr;
-    uint64_t                fis_base_addr;
+    HBA_FIS*                fis_base_addr;
     interrupt_sts_t         interupt_status;
     interrupt_enable_t      interrupt_enable;
     command_status_t        command_status;

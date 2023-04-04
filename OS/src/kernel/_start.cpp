@@ -44,18 +44,5 @@ extern "C" void _start(void)
 
     kernel::load_drivers();
 
-    AHCI::AHCIDevice* hd0 = (AHCI::AHCIDevice*)VFS::get_root()->get_subdir("dev")->get_subdir("hd0")->file_data;
-    uint8_t* buf = (uint8_t*)kernel::allocate_pages(10);
-    kernel::map_pages((uint64_t)buf, (uint64_t)buf, 10);
-    int sts = hd0->read(0, 12, buf);
-
-    for(int i = 0; i < 512; i++)
-    {
-        std::klogf(" %x", buf[i]);
-    }
-
-
-    std::klogf("\nStatus: %d\n", sts);
-
     bsp_done();
 }
