@@ -59,37 +59,44 @@ void klogf(const char* fmt, ...){
 
         switch(fmt[currentCharacter + 1])
         {
-            case 'c':
+            case 'c':   //Char
             case 'C':
                 argFound = true;
                 num = va_arg(args, int);
                 putc(num);
                 break;
-            case 's':
+            case 's':   //String
             case 'S':
                 argFound = true;
                 str = va_arg(args, char*);
                 puts(str);
                 break;
-            case 'd':
-            case 'D':
+            case 'u':   //Unsigned Integer
+            case 'U':
                 argFound = true;
                 num = va_arg(args, uint64_t);
+                str = utoa(num, 10);
+                puts(str);
+                break;
+            case 'd':
+            case 'D':   //Signed integer
+                argFound = true;
+                num = va_arg(args, int64_t);
                 str = itoa(num, 10);
                 puts(str);
                 break;
-            case 'x':
+            case 'x':   //Hexadecimal unsigned int
             case 'X':
                 argFound = true;
                 num = va_arg(args, uint64_t);
-                str = itoa(num, 16);
+                str = utoa(num, 16);
                 puts(str);
                 break;
-            case 'b':
+            case 'b':   //Binary
             case 'B':
                 argFound = true;
                 num = va_arg(args, uint64_t);
-                str = itoa(num, 2);
+                str = utoa(num, 2);
                 puts(str);
                 break;
             default:

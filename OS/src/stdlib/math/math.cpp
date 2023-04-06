@@ -1,4 +1,6 @@
 #include <stdlib/math.h>
+namespace std
+{
 
 double fabs (double x)
 {
@@ -34,4 +36,6 @@ uint64_t min (uint64_t a, uint64_t b)
 uint64_t max (uint64_t a, uint64_t b)
 {
     return (a > b ? a : b);
+}
+
 }

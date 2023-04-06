@@ -22,6 +22,7 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 * Files / Streams
 * Standard Library
 * USB
+* Port BusyBox
 
 ## How to use
 

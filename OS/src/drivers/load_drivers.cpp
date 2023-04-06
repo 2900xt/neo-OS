@@ -14,7 +14,9 @@ void load_drivers()
     //Try to load the BPB from the first hard drive
 
     DISK::AHCIDevice *hd0 = (DISK::AHCIDevice*)VFS::get_root()->get_subdir("dev")->get_subdir("hd0")->file_data;
-    FS::FATPartition *esp = new FS::FATPartition(hd0, 1);
+    FS::FATPartition *esp = new FS::FATPartition(hd0, 0);
+    char *buf;
+    esp->read_file("test.txt", (void**)&buf);
 }
 
 }

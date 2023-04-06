@@ -135,7 +135,7 @@ void initAPIC(const uint8_t apicID)
     const uint8_t id = apicReadRegister(LAPIC_ID_REG) >> 24;
     if(id != apicID)
     {
-        std::klogf("APIC ID not matching: given: %d\t sys:%d\n", apicID, id);
+        std::klogf("APIC ID not matching: given: %u\t sys:%u\n", apicID, id);
         return;
     }
 
@@ -178,7 +178,7 @@ void initAPIC(const uint8_t apicID)
 
     cpuFreq *= 16 * 100;
 
-    std::klogf("CPU freq: %d mhz\n", (uint64_t)cpuFreq / 1000000);
+    std::klogf("CPU freq: %u mhz\n", (uint64_t)cpuFreq / 1000000);
 
     cpuFreq /= 16;
     cpuFreq /= 1000;

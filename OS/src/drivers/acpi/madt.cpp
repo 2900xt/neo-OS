@@ -19,7 +19,7 @@ void evaluateMADTEntry(ACPI::MADT_ENTRY_HDR* const tableEntry)
             local_apics[lapicCount] = (LAPIC_ENTRY*)tableEntry;
 
             std::klogf(
-            "LAPIC found -> PID: %d APIC ID: %d\n",
+            "LAPIC found -> PID: %u APIC ID: %u\n",
             local_apics[lapicCount]->processor_id,
             local_apics[lapicCount]->apic_id
             );
@@ -30,7 +30,7 @@ void evaluateMADTEntry(ACPI::MADT_ENTRY_HDR* const tableEntry)
             ioapic = (IOAPIC_ENTRY*)tableEntry;
 
             std::klogf(
-            "IOAPIC found -> addr 0x%x ID: %d\n",
+            "IOAPIC found -> addr 0x%x ID: %u\n",
             ioapic->ioapic_base,
             ioapic->ioapic_id
             );

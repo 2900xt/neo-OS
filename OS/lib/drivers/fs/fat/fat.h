@@ -24,19 +24,22 @@ struct bios_param_block
     uint16_t        bytes_per_sector;
     uint8_t         sectors_per_cluster;
     uint16_t        reserved_sectors;
-    uint8_t         FAT_count;
-    [[gnu::deprecated]] uint16_t        root_dir_entry_count;    
-    [[gnu::deprecated]] uint16_t        total_sector_count;     //If set to 0, there are more than 65535 sectors and the actual value is in the large sector counts
+    uint8_t         num_fats;
+    [[gnu::deprecated]] 
+    uint16_t        root_dir_entry_count;    
+    [[gnu::deprecated]] 
+    uint16_t        total_sector_count_16;     //If set to 0, there are more than 65535 sectors and the actual value is in the large sector counts
     uint8_t         media_type;
-    [[gnu::deprecated]] uint16_t        fat_size;
+    [[gnu::deprecated]] 
+    uint16_t        fat_size_16;
     uint16_t        sector_per_track;
     uint16_t        head_count;
     uint32_t        hidden_sector_count;
-    uint32_t        sector_count_f32;
+    uint32_t        total_sector_count_32;
 
     //Extended Boot Record (FAT32 Only)
 
-    uint32_t        sectors_per_fat;
+    uint32_t        fat_size_32;
     uint16_t        flags;
     uint16_t        FAT_version;
     uint32_t        root_dir_cluster;
@@ -58,9 +61,12 @@ struct bios_param_block
 struct fat_dir_entry
 {
     char        dir_name[11];
-    F32_ATTRIB  dir_attrib;
+    uint8_t     dir_attrib;
     uint8_t     rsv0;           //Reserved by windows NT
     uint8_t     time_created_ms;
+    uint16_t    time_created;
+    uint16_t    date_created;
+    uint16_t    last_access_date;
     uint16_t    first_cluster_h;
     uint16_t    last_write_time;
     uint16_t    last_write_date;
@@ -78,17 +84,30 @@ class FATPartition
 fat_dir_entry *root_dir;
 bios_param_block *bpb;
 
+uint8_t *fat;
+
 uint32_t sectorCount;
 uint32_t fatSize;
 uint32_t firstDataSector;
 uint32_t firstFatSector;
 uint32_t totalDataSectors;
 uint32_t totalClusters;
+uint32_t firstSector;
+uint32_t rootDirSize;
 
 public:
+
     FATPartition(DISK::AHCIDevice *dev, int parition);
 
+    ~FATPartition();
+
     int read_file(const char *filename, void **buffer);
+
+private:
+
+    uint32_t get_next_cluster(int current_cluster);
 };
+
+
 
 }
