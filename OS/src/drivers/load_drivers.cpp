@@ -15,8 +15,7 @@ void load_drivers()
 
     DISK::AHCIDevice *hd0 = (DISK::AHCIDevice*)VFS::get_root()->get_subdir("dev")->get_subdir("hd0")->file_data;
     FS::FATPartition *esp = new FS::FATPartition(hd0, 0);
-    char *buf;
-    esp->read_file("test.txt", (void**)&buf);
+    esp->open_file("test.txt");
 }
 
 }

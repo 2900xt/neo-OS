@@ -52,7 +52,7 @@ neo-OS.hdd: kernel ./limine/limine-deploy
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount
 	sudo mkdir -p img_mount/EFI/BOOT
-	sudo cp -v OS/bin/kernel.elf limine.cfg limine/limine.sys img_mount/
+	sudo cp -v OS/bin/kernel.elf limine.cfg limine/limine.sys test.txt img_mount/
 	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
 	sync
 	sudo umount img_mount

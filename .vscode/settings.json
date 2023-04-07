@@ -1,6 +1,6 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
     "clangd.fallbackFlags": [
-        "-I${workspaceFolder}/OS/lib/"
+        "-I${workspaceFolder}/OS/include/"
     ]
 }

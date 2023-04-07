@@ -4,7 +4,7 @@ override CROSS := /usr/local/x86_64elfgcc/bin/x86_64-elf-g++
 override LD := /usr/local/x86_64elfgcc/bin/x86_64-elf-ld
 
 # User controllable CFLAGS.
-CROSSFLAGS ?= -g -I lib -Wall -Wno-deprecated-declarations  -Ttext 0xffffffff80000000 -Wno-char-subscripts -Wno-sign-compare -Wno-int-to-pointer-cast -O0
+CROSSFLAGS ?= -g -I include -Wall -Wno-deprecated-declarations  -Ttext 0xffffffff80000000 -Wno-char-subscripts -Wno-sign-compare -Wno-int-to-pointer-cast -O0
 
 # User controllable nasm flags.
 NASMFLAGS ?= -F dwarf -g
