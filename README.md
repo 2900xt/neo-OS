@@ -16,7 +16,7 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 
 ## Goals
 
-* FAT and EXT2 Filesystems
+* EXT2 Filesystem
 * Processes
 * Scheduler
 * Files / Streams

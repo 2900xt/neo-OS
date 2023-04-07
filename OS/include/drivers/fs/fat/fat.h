@@ -106,6 +106,8 @@ public:
 
     void *open_file(const char *filename);
 
+    void create_file(const char *filename);
+
 private:
 
     void *read_file(fat_dir_entry *file);
@@ -113,6 +115,8 @@ private:
     uint32_t get_next_cluster(int current_cluster);
 
     fat_dir_entry *search_dir(fat_dir_entry *directory, const char *filename);
+
+    int format_path(const char *_filepath, char **filepath);
 };
 
 

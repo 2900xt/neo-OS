@@ -205,13 +205,11 @@ FATPartition::~FATPartition()
     kernel::free_pages(root_dir);
 }
 
-void *FATPartition::open_file(const char *_filepath)
+int FATPartition::format_path(const char *_filepath, char **filepath)
 {
-    //Split up the filepath into filenames
-
     int pathLength = std::strlen(_filepath);
 
-    char *filepath = new char[pathLength + 1];
+    *filepath = new char[pathLength + 1];
 
     int dir_level_count = 0;
 
@@ -219,15 +217,25 @@ void *FATPartition::open_file(const char *_filepath)
     {
         if(_filepath[i] == '/')
         {
-            filepath[i] = '\0';
+            (*filepath)[i] = '\0';
             dir_level_count++;
             continue;
         }
 
-        filepath[i] = _filepath[i];
+        (*filepath)[i] = _filepath[i];
     }
 
-    filepath[pathLength] = -1;
+    (*filepath)[pathLength] = -1;
+
+    return dir_level_count;
+}
+
+void *FATPartition::open_file(const char *_filepath)
+{
+    //Split up the filepath into filenames
+
+    char *filepath;
+    int dir_level_count = format_path(_filepath, &filepath);
 
     //Now, normalize the paths one by one and read directories
 
@@ -274,8 +282,17 @@ void *FATPartition::open_file(const char *_filepath)
     }
 
     delete[] normalized_file;
+    delete[] filepath;
 
     return buf;
+}
+
+void FATPartition::create_file(const char *_filepath)
+{
+    //Split up the filepath into filenames
+
+    char *filepath;
+    int dir_level_count = format_path(_filepath, &filepath);
 }
 
 }
