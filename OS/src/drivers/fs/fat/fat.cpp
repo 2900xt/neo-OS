@@ -236,6 +236,7 @@ void *FATPartition::open_file(const char *_filepath)
 
     char *filepath;
     int dir_level_count = format_path(_filepath, &filepath);
+    char *const filepath_org = filepath;
 
     //Now, normalize the paths one by one and read directories
 
@@ -282,7 +283,7 @@ void *FATPartition::open_file(const char *_filepath)
     }
 
     delete[] normalized_file;
-    delete[] filepath;
+    delete[] filepath_org;
 
     return buf;
 }
