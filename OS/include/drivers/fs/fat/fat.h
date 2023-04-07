@@ -104,7 +104,7 @@ public:
 
     ~FATPartition();
 
-    int open_file(const char *filename);
+    void *open_file(const char *filename);
 
 private:
 

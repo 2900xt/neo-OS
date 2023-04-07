@@ -15,6 +15,16 @@ size_t strlen(const char* src){
     return length;
 }
 
+size_t strclen(const char *src, char term)
+{
+    size_t length = 0;
+    while(*src != '\0' && *src != term){
+        length++;
+        src++;
+    }
+    return length;
+}
+
 const char *g_HexChars = "0123456789ABCDEF";
 static char itoaOutput[64];
 char *utoa(uint64_t val, uint8_t radix){

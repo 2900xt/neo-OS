@@ -24,10 +24,15 @@ static bios_param_block *read_bpb(DISK::AHCIDevice *device, int partition)
 void format_filename(const char *src, char *dest)
 {
     int i;
+    bool noExt = false;
     for(i = 0; i < 8; i++)
     {
         if(src[i] == '.') break;
-        if(src[i] == '\0') return;
+        if(src[i] == '\0') 
+        {
+            noExt = true;
+            break;
+        }
 
         char caps = src[i];
 
@@ -46,24 +51,30 @@ void format_filename(const char *src, char *dest)
     //File extension
     for(int j = 0; j < 3; j++)
     {
-        if(src[file_ext_start] == '\0') return;
+        if(noExt) break;
+        if(src[file_ext_start] == '\0') break;
         char caps = src[file_ext_start];
         if(caps >= 97) caps -= 32;
         dest[i++] = caps;
 
         file_ext_start++;
     }
+
+
+    for(; i < 11; i++)
+    {
+        dest[i] = ' ';
+    }
 }
 
-fat_dir_entry *FATPartition::search_dir(fat_dir_entry *directory, const char *_filename)
+fat_dir_entry *FATPartition::search_dir(fat_dir_entry *directory, const char *filename)
 {
-    char* filename = new char[11];
-    format_filename(_filename, filename);
     fat_dir_entry *current_file = directory;
     bool file_found = false;
 
-    for(int entry = 0; entry < rootDirSize; entry++)
+    while (true) 
     {
+    
         if((uint8_t)current_file->dir_name[0] == 0xE5)      //Unused entry
         {
             current_file++;
@@ -94,9 +105,8 @@ fat_dir_entry *FATPartition::search_dir(fat_dir_entry *directory, const char *_f
     if(!file_found)
     {
         std::klogf("File not found: %s\n",  filename);
+        return nullptr;
     }
-
-    delete[] filename;
 
     return current_file;
 }
@@ -117,10 +127,8 @@ void *FATPartition::read_file(fat_dir_entry *file)
             return nullptr;
         }
 
-        uint32_t lba = firstSector + current_cluster * bpb->sectors_per_cluster;
+        uint32_t lba = firstSector + firstDataSector + (current_cluster - 2) * bpb->sectors_per_cluster;
         int sts = dev->read(lba, bpb->sectors_per_cluster, buffer);
-
-        std:std::klogf("%x, %x\n", current_cluster, lba);
 
         if(sts != 0)
         {
@@ -130,6 +138,7 @@ void *FATPartition::read_file(fat_dir_entry *file)
         }
 
         buffer += bpb->bytes_per_sector * bpb->sectors_per_cluster;
+
         current_cluster = get_next_cluster(current_cluster);
     } while (current_cluster < 0x0FFFFFF8);
 
@@ -186,7 +195,6 @@ FATPartition::FATPartition(DISK::AHCIDevice *dev, int partition)
 
         buf += bpb->bytes_per_sector * bpb->sectors_per_cluster;
         current_cluster = get_next_cluster(current_cluster);
-        rootDirSize += (bpb->bytes_per_sector * bpb->sectors_per_cluster) / sizeof(fat_dir_entry);
     } while (current_cluster < 0x0FFFFFF8);
 }
 
@@ -197,14 +205,77 @@ FATPartition::~FATPartition()
     kernel::free_pages(root_dir);
 }
 
-int FATPartition::open_file(const char *filename)
+void *FATPartition::open_file(const char *_filepath)
 {
-    fat_dir_entry *file = search_dir(root_dir, filename);
-    char *buffer = (char*)read_file(file);
-    std::klogf("%s\n", buffer);
-    return 0;
+    //Split up the filepath into filenames
+
+    int pathLength = std::strlen(_filepath);
+
+    char *filepath = new char[pathLength + 1];
+
+    int dir_level_count = 0;
+
+    for(int i = 0; i < pathLength; i++)
+    {
+        if(_filepath[i] == '/')
+        {
+            filepath[i] = '\0';
+            dir_level_count++;
+            continue;
+        }
+
+        filepath[i] = _filepath[i];
+    }
+
+    filepath[pathLength] = -1;
+
+    //Now, normalize the paths one by one and read directories
+
+    fat_dir_entry *directory = root_dir;
+
+    for(int i = 0; i < dir_level_count; i++)
+    {
+        char *normalized_dir = new char[11];
+
+        int current_dir_len = std::strlen(filepath);
+
+        format_filename(filepath, normalized_dir);
+
+        fat_dir_entry *entry = search_dir(directory, normalized_dir);
+
+        if(directory != root_dir) kernel::free_pages(directory);
+
+        directory = (fat_dir_entry*)read_file(entry);
+
+        filepath += current_dir_len + 1;
+
+        delete[] normalized_dir;
+    }
+
+    //Finally, read the file from the directory
+
+    char *normalized_file = new char[11];
+    format_filename(filepath, normalized_file);
+
+    fat_dir_entry *file = search_dir(directory, normalized_file);
+
+    if(!file) 
+    {
+        std::klogf("Error: unable to find file\n");
+        return nullptr;
+    }
+
+    void *buf = read_file(file);
+
+    if(!buf)
+    {
+        std::klogf("Error: unable to read file\n");
+        return nullptr;
+    }
+
+    delete[] normalized_file;
+
+    return buf;
 }
-
-
 
 }

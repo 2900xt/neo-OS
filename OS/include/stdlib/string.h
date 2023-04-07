@@ -12,5 +12,6 @@ bool        strcmp(const char* a, const char* b, int count);
 const char* strcpy(char* _dest, const char* _src);
 const char* strcat(char* dest, const char* src);
 bool        strcmp(const char* a, const char* b);
+size_t      strclen(const char *src, char term);
 
 }

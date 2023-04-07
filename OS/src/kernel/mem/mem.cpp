@@ -30,7 +30,7 @@ void memset_8(void* _addr, uint64_t num, uint8_t value){
     }
 }
 
-void memcpy(void* _destination, void* _src, uint64_t num){
+void memcpy(void* _destination, const void* _src, uint64_t num){
     uint8_t* destPtr = (uint8_t*)_destination;
     uint8_t* srcPtr = (uint8_t*)_src;
 
