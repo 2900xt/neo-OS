@@ -190,7 +190,7 @@ void* operator new[](size_t size)
     return kcalloc(1, size);
 }
 
-void operator delete(void *addr)
+void operator delete(void *addr, uint64_t)
 {
     kfree(addr);
 }

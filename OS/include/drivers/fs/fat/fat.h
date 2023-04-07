@@ -117,6 +117,10 @@ private:
     fat_dir_entry *search_dir(fat_dir_entry *directory, const char *filename);
 
     int format_path(const char *_filepath, char **filepath);
+
+    fat_dir_entry *get_file(const char *filepath);
+
+    fat_dir_entry *get_directory(const char *filepath);
 };
 
 

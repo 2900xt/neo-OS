@@ -70,45 +70,27 @@ void format_filename(const char *src, char *dest)
 fat_dir_entry *FATPartition::search_dir(fat_dir_entry *directory, const char *filename)
 {
     fat_dir_entry *current_file = directory;
-    bool file_found = false;
 
     while (true) 
     {
     
-        if((uint8_t)current_file->dir_name[0] == 0xE5)      //Unused entry
+        if((uint8_t)current_file->dir_name[0] == 0xE5 || current_file->dir_attrib == 0x0F)      //Unused entry  or Long file name
         {
             current_file++;
             continue;
         }
 
-        if(current_file->dir_name[0] == 0x00)               //Reaced end of directory
+        if(current_file->dir_name[0] == 0x00)                                                   //Reaced end of directory
         {
-            break;
+            return nullptr;
         }
 
-        if(current_file->dir_attrib == 0x0F)                //Long file name entry
+        if(std::strcmp(filename, current_file->dir_name, 11))                       //File found
         {
-            current_file++;
-            continue;
+            return current_file;
         }
-
-        file_found = std::strcmp(filename, current_file->dir_name, 11);
-        
-        if(file_found)
-        {
-            break;
-        }
-
         current_file ++;
     }
-
-    if(!file_found)
-    {
-        std::klogf("File not found: %s\n",  filename);
-        return nullptr;
-    }
-
-    return current_file;
 }
 
 void *FATPartition::read_file(fat_dir_entry *file)
@@ -177,7 +159,6 @@ FATPartition::FATPartition(DISK::AHCIDevice *dev, int partition)
     dev->read(firstFatSector, fatSize / bpb->bytes_per_sector + 1, fat);
 
     //Read the root directory
-    
     root_dir = (fat_dir_entry*)kernel::allocate_pages(5);
     mmap(root_dir, root_dir);
     fat_dir_entry *buf = root_dir;
@@ -230,46 +211,13 @@ int FATPartition::format_path(const char *_filepath, char **filepath)
     return dir_level_count;
 }
 
-void *FATPartition::open_file(const char *_filepath)
+void *FATPartition::open_file(const char *filepath)
 {
-    //Split up the filepath into filenames
-
-    char *filepath;
-    int dir_level_count = format_path(_filepath, &filepath);
-
-    //Now, normalize the paths one by one and read directories
-
-    fat_dir_entry *directory = root_dir;
-
-    for(int i = 0; i < dir_level_count; i++)
-    {
-        char *normalized_dir = new char[11];
-
-        int current_dir_len = std::strlen(filepath);
-
-        format_filename(filepath, normalized_dir);
-
-        fat_dir_entry *entry = search_dir(directory, normalized_dir);
-
-        if(directory != root_dir) kernel::free_pages(directory);
-
-        directory = (fat_dir_entry*)read_file(entry);
-
-        filepath += current_dir_len + 1;
-
-        delete[] normalized_dir;
-    }
-
-    //Finally, read the file from the directory
-
-    char *normalized_file = new char[11];
-    format_filename(filepath, normalized_file);
-
-    fat_dir_entry *file = search_dir(directory, normalized_file);
+    fat_dir_entry *file = get_file(filepath);
 
     if(!file) 
     {
-        std::klogf("Error: unable to find file\n");
+        std::klogf("Error: unable to find file: %s\n", filepath);
         return nullptr;
     }
 
@@ -277,22 +225,11 @@ void *FATPartition::open_file(const char *_filepath)
 
     if(!buf)
     {
-        std::klogf("Error: unable to read file\n");
+        std::klogf("Error: unable to read file: %s\n", filepath);
         return nullptr;
     }
 
-    delete[] normalized_file;
-    delete[] filepath;
-
     return buf;
-}
-
-void FATPartition::create_file(const char *_filepath)
-{
-    //Split up the filepath into filenames
-
-    char *filepath;
-    int dir_level_count = format_path(_filepath, &filepath);
 }
 
 }
