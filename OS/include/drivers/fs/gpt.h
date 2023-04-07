@@ -36,7 +36,6 @@ struct gpt_part_table_entry
     uint64_t        ending_lba;
     uint64_t        attrib;
     char            parition_name[72];
-    uint8_t         pad[512 - 128];
 }__attribute__((packed));
 
 

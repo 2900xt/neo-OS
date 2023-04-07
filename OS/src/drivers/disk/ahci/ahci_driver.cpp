@@ -88,10 +88,14 @@ void AHCIDevice::read_gpt()
     int currentEntry = 0;
     uint32_t lba;
 
-    for(lba = gpt_hdr->lba_part_entry_arr; lba < gpt_hdr->part_entry_count + gpt_hdr->lba_part_entry_arr; lba++)
+    int gpt_entry_sectors = gpt_hdr->part_entry_count * gpt_hdr->part_entry_size / 0x200;
+    int gpt_entry_page_count = (gpt_entry_sectors * 0x200) / 0x1000;
+
+    for(lba = gpt_hdr->lba_part_entry_arr; lba < gpt_entry_sectors + gpt_hdr->lba_part_entry_arr; lba++)
     {
-        if(lba + gpt_hdr->lba_part_entry_arr >= 32) break;
         this->read(lba, 1, &gpt_data->entries[currentEntry]);
+        uint64_t part_size = (gpt_data->entries[currentEntry].starting_lba - gpt_data->entries[currentEntry].ending_lba ) * 512;
+        std::klogf("(hd%u, gpt%u) \tlabel: %s\tsize: 0x%x\n", port_num, currentEntry, gpt_data->entries[currentEntry].parition_name, part_size);
         currentEntry++;
     }
 
