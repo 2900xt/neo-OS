@@ -88,17 +88,19 @@ void AHCIDevice::read_gpt()
     int currentEntry = 0;
     uint32_t lba;
 
-    int gpt_entry_sectors = gpt_hdr->part_entry_count * gpt_hdr->part_entry_size / 0x200;
+    int gpt_entry_sectors = (gpt_hdr->part_entry_count * gpt_hdr->part_entry_size) / 0x200;
     int gpt_entry_page_count = (gpt_entry_sectors * 0x200) / 0x1000;
 
     for(lba = gpt_hdr->lba_part_entry_arr; lba < gpt_entry_sectors + gpt_hdr->lba_part_entry_arr; lba++)
     {
         this->read(lba, 1, &gpt_data->entries[currentEntry]);
-        uint64_t part_size = (gpt_data->entries[currentEntry].starting_lba - gpt_data->entries[currentEntry].ending_lba ) * 512;
-        std::klogf("(hd%u, gpt%u) \tlabel: %s\tsize: 0x%x\n", port_num, currentEntry, gpt_data->entries[currentEntry].parition_name, part_size);
-        currentEntry++;
+        for(int i = 0; i < 4; i++) {
+            uint64_t part_size = (gpt_data->entries[currentEntry].ending_lba - gpt_data->entries[currentEntry].starting_lba ) * 512;
+            std::klogf("(hd%u, gpt%u) \tlabel: %l\tsize: %x\n", port_num, currentEntry, gpt_data->entries[currentEntry].parition_name, part_size);
+            currentEntry++;
+            if(gpt_data->entries[currentEntry].starting_lba == 0) return;
+        }
     }
-
 }
 
 FS::gpt_part_data* AHCIDevice::get_gpt()

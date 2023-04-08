@@ -114,7 +114,7 @@ private:
 
     uint32_t get_next_cluster(int current_cluster);
 
-    fat_dir_entry *search_dir(fat_dir_entry *directory, const char *filename);
+    fat_dir_entry *search_dir(fat_dir_entry *first_entry, const char *filename);
 
     int format_path(const char *_filepath, char **filepath);
 

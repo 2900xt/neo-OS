@@ -67,9 +67,9 @@ void format_filename(const char *src, char *dest)
     }
 }
 
-fat_dir_entry *FATPartition::search_dir(fat_dir_entry *directory, const char *filename)
+fat_dir_entry *FATPartition::search_dir(fat_dir_entry *first_entry, const char *filename)
 {
-    fat_dir_entry *current_file = directory;
+    fat_dir_entry *current_file = first_entry;
 
     while (true) 
     {
@@ -133,6 +133,71 @@ uint32_t FATPartition::get_next_cluster(int current_cluster)
     return *(uint32_t*)&fat[current_cluster] & ~0xF0000000;
 }
 
+
+int FATPartition::format_path(const char *_filepath, char **filepath)
+{
+    int pathLength = std::strlen(_filepath);
+
+    *filepath = new char[pathLength + 1];
+
+    int dir_level_count = 0;
+
+    for(int i = 0; i < pathLength; i++)
+    {
+        if(_filepath[i] == '/')
+        {
+            (*filepath)[i] = '\0';
+            dir_level_count++;
+            continue;
+        }
+
+        (*filepath)[i] = _filepath[i];
+    }
+
+    (*filepath)[pathLength] = -1;
+
+    return dir_level_count;
+}
+
+fat_dir_entry *FATPartition::get_file(const char *filepath)
+{
+    int path_length = std::strlen(filepath);
+    char *fmt_filepath = new char[path_length + 1];
+    int dir_level = format_path(filepath, &fmt_filepath);
+    fat_dir_entry *current_entry;
+
+    //Now find the current directory
+
+    for(int i = 0; i < dir_level; i++)
+    {
+        
+    }
+
+    delete[] fmt_filepath;
+    return current_entry;
+}
+
+void *FATPartition::open_file(const char *filepath)
+{
+    fat_dir_entry *file = get_file(filepath);
+
+    if(!file) 
+    {
+        std::klogf("Error: unable to find file: %s\n", filepath);
+        return nullptr;
+    }
+
+    void *buf = read_file(file);
+
+    if(!buf)
+    {
+        std::klogf("Error: unable to read file: %s\n", filepath);
+        return nullptr;
+    }
+
+    return buf;
+}
+
 FATPartition::FATPartition(DISK::AHCIDevice *dev, int partition)
 {
     this->dev = dev;
@@ -184,52 +249,6 @@ FATPartition::~FATPartition()
     kernel::free_pages(fat);
     kernel::free_pages(bpb);
     kernel::free_pages(root_dir);
-}
-
-int FATPartition::format_path(const char *_filepath, char **filepath)
-{
-    int pathLength = std::strlen(_filepath);
-
-    *filepath = new char[pathLength + 1];
-
-    int dir_level_count = 0;
-
-    for(int i = 0; i < pathLength; i++)
-    {
-        if(_filepath[i] == '/')
-        {
-            (*filepath)[i] = '\0';
-            dir_level_count++;
-            continue;
-        }
-
-        (*filepath)[i] = _filepath[i];
-    }
-
-    (*filepath)[pathLength] = -1;
-
-    return dir_level_count;
-}
-
-void *FATPartition::open_file(const char *filepath)
-{
-    fat_dir_entry *file = get_file(filepath);
-
-    if(!file) 
-    {
-        std::klogf("Error: unable to find file: %s\n", filepath);
-        return nullptr;
-    }
-
-    void *buf = read_file(file);
-
-    if(!buf)
-    {
-        std::klogf("Error: unable to read file: %s\n", filepath);
-        return nullptr;
-    }
-
-    return buf;
 }
 
 }

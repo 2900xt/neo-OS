@@ -28,8 +28,18 @@ void tty_init(void)
     serial_output = SERIAL_OUTPUT_ENABLE;
 }
 
-void puts(const char* src){
+void puts(const char *src){
     write(console, src, strlen(src));
+}
+
+//Print unicode-16
+void puts_16(const char *src)
+{
+    while(*src != '\0')
+    {
+        putc(*src);
+        src += 2;
+    }
 }
 
 void putc(char c){
@@ -99,6 +109,13 @@ void klogf(const char* fmt, ...){
                 str = utoa(num, 2);
                 puts(str);
                 break;
+            case 'l':
+            case 'L':
+                str = va_arg(args, char*);
+                puts_16(str);
+                argFound = true;
+                break;
+                
             default:
                 argFound = false;
         }

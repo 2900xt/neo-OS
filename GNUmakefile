@@ -45,6 +45,7 @@ neo-OS.hdd: kernel ./limine/limine-deploy
 	dd if=/dev/zero bs=1M count=0 seek=64 of=neo-OS.hdd >/dev/null 2>&1
 	sudo parted -s neo-OS.hdd mklabel gpt
 	sudo parted -s neo-OS.hdd mkpart ESP fat32 2048s 100%
+	sudo parted -s neo-OS.hdd name 1 boot
 	sudo parted -s neo-OS.hdd set 1 esp on
 	limine/limine-deploy neo-OS.hdd >/dev/null 2>&1
 	sudo losetup -Pf --show neo-OS.hdd > loopback_dev
