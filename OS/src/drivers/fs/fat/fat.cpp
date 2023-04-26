@@ -90,6 +90,7 @@ fat_dir_entry *FATPartition::search_dir(fat_dir_entry *first_entry, const char *
             return current_file;
         }
         current_file ++;
+
     }
 }
 
@@ -162,18 +163,63 @@ int FATPartition::format_path(const char *_filepath, char **filepath)
 fat_dir_entry *FATPartition::get_file(const char *filepath)
 {
     int path_length = std::strlen(filepath);
+
     char *fmt_filepath = new char[path_length + 1];
+    char *_ptr = fmt_filepath;
+    
+    read_root_dir();
+
     int dir_level = format_path(filepath, &fmt_filepath);
-    fat_dir_entry *current_entry;
+    fat_dir_entry *current_entry = root_dir;    //First entry in the root directory
 
     //Now find the current directory
 
     for(int i = 0; i < dir_level; i++)
     {
+        char *dir_entry_name = new char[11];
+        format_filename(fmt_filepath, dir_entry_name);
+
+        //Find the next directory
+
+        fat_dir_entry *old_entry = current_entry;
+
+        current_entry = search_dir(current_entry, dir_entry_name);
+
+        if(current_entry == nullptr)
+        {
+            std::klogf("Unable to find %s\n", dir_entry_name);
+            return old_entry;
+        }
         
+        //Now read the next directory from current entry
+
+        fat_dir_entry *new_entry = (fat_dir_entry*)read_file(current_entry);
+
+        current_entry = new_entry;
+
+        //Current entry holds the next first entry of the directory
+
+        fmt_filepath += std::strlen(fmt_filepath) + 1;
+
+        delete[] dir_entry_name;
     }
 
-    delete[] fmt_filepath;
+    //Now search the final directory for the target file
+
+    char *file_name_fmt = new char[11];
+    format_filename(fmt_filepath, file_name_fmt);
+
+    fat_dir_entry *old_entry = current_entry;
+    current_entry = search_dir(current_entry, file_name_fmt);
+
+    if(current_entry == nullptr)    //The file doesn't exist
+    {
+        return old_entry;
+    }
+
+    delete[] file_name_fmt;
+    delete[] _ptr;
+
     return current_entry;
 }
 
@@ -196,6 +242,73 @@ void *FATPartition::open_file(const char *filepath)
     }
 
     return buf;
+}
+
+fat_dir_entry *FATPartition::read_root_dir()
+{
+    if(root_dir)
+    {
+        kernel::free_pages(root_dir);
+    }
+
+    root_dir = (fat_dir_entry*)kernel::allocate_pages(1);
+    mmap(root_dir, root_dir);
+    fat_dir_entry *buf = root_dir;
+    uint32_t current_cluster = firstDataSector;
+    rootDirSize = 0;
+    do {
+        if(current_cluster == 0x0FFFFFF7)
+        {
+            std::klogf("Bad cluster: %u\n", current_cluster);
+            break;
+        }
+
+        uint32_t lba = firstSector + current_cluster * bpb->sectors_per_cluster;
+        int sts = dev->read(lba, bpb->sectors_per_cluster, buf);
+
+        buf += bpb->bytes_per_sector * bpb->sectors_per_cluster;
+        current_cluster = get_next_cluster(current_cluster);
+    } while (current_cluster < 0x0FFFFFF8);
+
+    return root_dir;
+
+}
+
+void FATPartition::create_file(const char *parent_dir_path, const char *filename, F32_ATTRIB attrib)
+{
+
+    char *filename_fmt = new char[11];
+
+    format_filename(filename, filename_fmt);
+
+    //Now go to the end of the parent directory
+
+    fat_dir_entry *current_file = get_file(parent_dir_path);
+
+    while (true) 
+    {
+    
+        if((uint8_t)current_file->dir_name[0] == 0xE5 || current_file->dir_attrib == 0x0F)      //Unused entry  or Long file name
+        {
+            current_file++;
+            continue;
+        }
+
+        if(current_file->dir_name[0] == 0x00)                                                   //Reaced end of directory
+        {
+            break;
+        }
+
+        current_file ++;
+
+    }
+
+    current_file->file_size = 0;
+    current_file->dir_attrib = (uint8_t)attrib;
+
+    std::strcpy(current_file->dir_name, filename_fmt);
+
+    delete[] filename_fmt;
 }
 
 FATPartition::FATPartition(DISK::AHCIDevice *dev, int partition)
@@ -224,31 +337,11 @@ FATPartition::FATPartition(DISK::AHCIDevice *dev, int partition)
     dev->read(firstFatSector, fatSize / bpb->bytes_per_sector + 1, fat);
 
     //Read the root directory
-    root_dir = (fat_dir_entry*)kernel::allocate_pages(5);
-    mmap(root_dir, root_dir);
-    fat_dir_entry *buf = root_dir;
-    uint32_t current_cluster = firstDataSector;
-    rootDirSize = 0;
-    do {
-        if(current_cluster == 0x0FFFFFF7)
-        {
-            std::klogf("Bad cluster: %u\n", current_cluster);
-            break;
-        }
-
-        uint32_t lba = firstSector + current_cluster * bpb->sectors_per_cluster;
-        int sts = dev->read(lba, bpb->sectors_per_cluster, buf);
-
-        buf += bpb->bytes_per_sector * bpb->sectors_per_cluster;
-        current_cluster = get_next_cluster(current_cluster);
-    } while (current_cluster < 0x0FFFFFF8);
+    
 }
 
 FATPartition::~FATPartition()
 {
-    kernel::free_pages(fat);
-    kernel::free_pages(bpb);
-    kernel::free_pages(root_dir);
 }
 
 }

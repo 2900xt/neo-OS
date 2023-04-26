@@ -106,7 +106,7 @@ public:
 
     void *open_file(const char *filename);
 
-    void create_file(const char *filename);
+    void create_file(const char *parent_dir_path, const char *filename, F32_ATTRIB attrib);
 
 private:
 
@@ -120,7 +120,7 @@ private:
 
     fat_dir_entry *get_file(const char *filepath);
 
-    fat_dir_entry *get_directory(const char *filepath);
+    fat_dir_entry *read_root_dir();
 };
 
 
