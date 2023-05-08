@@ -107,7 +107,7 @@ public:
 
     void *read_file(const char *filename);
 
-    void create_file(const char *parent_dir_path, const char *filename, uint8_t attrib);
+    void create_file(const char *filename);
 
 private:
 
@@ -121,7 +121,7 @@ private:
 
     fat_dir_entry *get_file(const char *filepath);
 
-    fat_dir_entry *get_directory(const char *filepath);
+    fat_dir_entry *read_root_dir();
 };
 
 
