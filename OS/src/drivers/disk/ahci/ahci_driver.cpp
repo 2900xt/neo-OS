@@ -31,14 +31,14 @@ AHCIDevice::AHCIDevice(uint8_t port_num)
     this->interface.disk_number = port_num;
     this->interface.driver = this;
     this->interface.type = diskTypes::AHCI;
-    
+/*
     char *new_filename = (char*)kcalloc(1, 4);
     std::strcpy(new_filename, "hd");
     std::strcat(new_filename, std::itoa(hd_cnt++, 10));
     VFS::file_t* block = VFS::get_root()->get_subdir("dev")->create_child(new_filename, VFS::DEVICE);
     block->file_data = (void*)this->get_interface();
     block->permissions = 0xFF;
-
+*/
     //Stop the port from doing any commands
 
     port->command_status.cmd_start = 0;

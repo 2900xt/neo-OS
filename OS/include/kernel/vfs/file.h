@@ -1,4 +1,5 @@
 #pragma once
+#include <stdlib/string.h>
 #include <types.h>
 
 #define FILE_READABLE       (1 << 0)
@@ -10,33 +11,46 @@ namespace VFS
 
 enum file_types : uint8_t
 {
-    FILE,
+    FILESYSTEM,
     DIRECTORY,
     DEVICE,
 };
 
-class file_t
+enum file_permissions : uint8_t
 {
-public:
-    const char* filename;
-    uint8_t permissions;
-    file_types file_type;
+    READ    = 0x1,
+    WRITE   = 0x2,
+    EXECUTE = 0x4,
+};
 
+enum filesystem_type : uint8_t
+{
+    FAT32,
+};
 
-    file_t* youngest_child;
-    file_t* parent;
-    file_t* older_sibling;
-    file_t* younger_sibling;
+struct fsinfo_t 
+{
+    uint64_t drive;
+    uint64_t partition;
+    uint64_t starting_lba;
 
-    void* file_data;
+    filesystem_type fstype;
+};
 
-    file_t* get_subdir(const char* sub_filename);
-    file_t* create_child(const char* new_filename, enum file_types new_file_type);
+struct File
+{
+    std::string filename;
+    uint8_t     permissions;
+    uint8_t     file_type;
 
+    File* youngest_child;
+    File* parent;
+    File* older_sibling;
+    File* younger_sibling;
+
+    void* opt_ptr;
+    fsinfo_t fsinfo;
 };
 
 
-void vfs_init();
-file_t* get_root();
-void chroot(file_t* new_root);
 }

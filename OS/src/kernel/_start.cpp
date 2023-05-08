@@ -10,6 +10,7 @@
 #include <kernel/mem/mem.h>
 #include <kernel/smp.h>
 #include <config.h>
+#include <stdlib/string.h>
 
 extern "C" void __cxa_pure_virtual() { while (1); }
 
@@ -40,8 +41,6 @@ extern "C" void _start(void)
     fbuf_init();
 
     smp_init();
-
-    VFS::vfs_init();
 
     kernel::load_drivers();
 

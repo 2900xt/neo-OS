@@ -1,3 +1,4 @@
+#include <stdlib/string.h>
 #include <types.h>
 #include <config.h>
 #include <limine/limine.h>
@@ -76,9 +77,13 @@ void klogf(const char* fmt, ...){
                 putc(num);
                 break;
             case 's':   //String
-            case 'S':
                 argFound = true;
                 str = va_arg(args, char*);
+                puts(str);
+                break;
+            case 'S':
+                argFound = true;
+                str = va_arg(args, std::string*)->c_str();
                 puts(str);
                 break;
             case 'u':   //Unsigned Integer
