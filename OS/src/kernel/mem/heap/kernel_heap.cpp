@@ -80,7 +80,7 @@ void *kmalloc(uint64_t size) {
 
   // Not enough memory
 
-  return nullptr;
+  return NULL;
 
 blockFound:
 

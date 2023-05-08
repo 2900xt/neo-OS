@@ -2,6 +2,7 @@
 #include <types.h>
 #include <drivers/disk/ahci/hba_ghc.h>
 #include <drivers/disk/ahci/hba_port.h>
+#include "drivers/disk/disk_driver.h"
 #include "drivers/fs/gpt.h"
 
 namespace DISK {
@@ -25,12 +26,15 @@ public:
     FS::gpt_part_data   *gpt_data;
     hba_port_t          *port;
     uint8_t             port_num;
+    rw_disk_t           interface;
 
     AHCIDevice(uint8_t port_number);
 
     int read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffer);
     int write(uint64_t starting_lba, uint32_t sector_cnt, void *data_buffer);
     int identifyDevice(uint16_t *buffer);
+
+    rw_disk_t *get_interface();
 
     FS::gpt_part_data *get_gpt();
     

@@ -1,6 +1,7 @@
 
 #pragma once
 #include "drivers/disk/ahci/ahci.h"
+#include "drivers/disk/disk_driver.h"
 #include <types.h>
 
 namespace FS
@@ -76,7 +77,7 @@ struct fat_dir_entry
 }__attribute__((packed));
 
 
-void* read_file(DISK::AHCIDevice *device, int partition);
+void* read_file(DISK::rw_disk_t *device, int partition);
 
 class FATPartition
 {
@@ -95,18 +96,18 @@ class FATPartition
     uint32_t firstSector;
     uint32_t rootDirSize;
 
-    DISK::AHCIDevice *dev;
+    DISK::rw_disk_t *dev;
     int parition;
 
 public:
 
-    FATPartition(DISK::AHCIDevice *dev, int parition);
+    FATPartition(DISK::rw_disk_t *dev, int parition);
 
     ~FATPartition();
 
-    void *open_file(const char *filename);
+    void *read_file(const char *filename);
 
-    void create_file(const char *filename);
+    void create_file(const char *parent_dir_path, const char *filename, uint8_t attrib);
 
 private:
 

@@ -1,5 +1,6 @@
 #include "drivers/disk/ahci/ahci_cmd.h"
 #include "drivers/disk/ahci/hba_port.h"
+#include "drivers/disk/disk_driver.h"
 #include "drivers/fs/gpt.h"
 #include <types.h>
 #include <drivers/disk/ahci/ahci.h>
@@ -27,12 +28,15 @@ AHCIDevice::AHCIDevice(uint8_t port_num)
 
     //Add the block device
 
+    this->interface.disk_number = port_num;
+    this->interface.driver = this;
+    this->interface.type = diskTypes::AHCI;
     
     char *new_filename = (char*)kcalloc(1, 4);
     std::strcpy(new_filename, "hd");
     std::strcat(new_filename, std::itoa(hd_cnt++, 10));
     VFS::file_t* block = VFS::get_root()->get_subdir("dev")->create_child(new_filename, VFS::DEVICE);
-    block->file_data = (void*)this;
+    block->file_data = (void*)this->get_interface();
     block->permissions = 0xFF;
 
     //Stop the port from doing any commands
@@ -327,6 +331,11 @@ int AHCIDevice::run_command(int slot)
         }
     }
     return AHCI_SUCCESS;
+}
+
+rw_disk_t *AHCIDevice::get_interface()
+{
+    return &this->interface;
 }
 
 }

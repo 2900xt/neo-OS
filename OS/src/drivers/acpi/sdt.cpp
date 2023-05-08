@@ -38,7 +38,7 @@ void* findACPITable(const char* signature)
         }
     }
 
-    return nullptr;
+    return NULL;
 }
 
 }

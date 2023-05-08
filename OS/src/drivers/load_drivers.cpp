@@ -1,3 +1,4 @@
+#include "drivers/disk/disk_driver.h"
 #include "drivers/fs/fat/fat.h"
 #include "kernel/vfs/file.h"
 #include "stdlib/stdio.h"
@@ -14,10 +15,9 @@ void load_drivers()
 
     //Try to load the BPB from the first hard drive
 
-    DISK::AHCIDevice *hd0 = (DISK::AHCIDevice*)VFS::get_root()->get_subdir("dev")->get_subdir("hd0")->file_data;
+    DISK::rw_disk_t *hd0 = (DISK::rw_disk_t*)VFS::get_root()->get_subdir("dev")->get_subdir("hd0")->file_data;
     FS::FATPartition *esp = new FS::FATPartition(hd0, 0);
-    //esp->create_file("test/hello.txt");
-    void *file = esp->open_file("test/lol/test.txt");
+    void *file = esp->read_file("test/lol/test.txt");
     std::klogf("%s\n", file);
 }
 

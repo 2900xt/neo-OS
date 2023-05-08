@@ -82,6 +82,16 @@ char *itoa(int64_t val, uint8_t radix)
     return itoaOutput;
 }
 
+char toUpper(char c)
+{
+    if(c >= 97)
+    {
+        return c - 32;
+    }
+
+    return c;
+}
+
 
 
 bool strcmp(const char* a, const char* b, int count)
@@ -119,6 +129,5 @@ const char* strcpy(char* _dest, const char* _src)
     }
     return _dest;
 }
-
 
 }

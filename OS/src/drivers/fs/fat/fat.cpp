@@ -8,68 +8,52 @@
 #include "stdlib/string.h"
 #include <types.h>
 #include <drivers/fs/fat/fat.h>
+#include <drivers/disk/disk_driver.h>
 
 namespace FS 
 {
 
-static bios_param_block *read_bpb(DISK::AHCIDevice *device, int partition)
+static bios_param_block *read_bpb(DISK::rw_disk_t *device, int partition)
 {
-    uint32_t lba = device->get_gpt()->entries[partition].starting_lba;
+    uint32_t lba = DISK::get_gpt(device)->entries[partition].starting_lba;
     bios_param_block *data = (bios_param_block*)kernel::allocate_pages(1);
     mmap(data, data);
-    device->read(lba, 1, data);
+    DISK::read(device, lba, 1, data);
     return data;
 }
 
+#define MAX_FILENAME_LENGTH 11
+
 void format_filename(const char *src, char *dest)
 {
-    int i;
-    bool noExt = false;
-    for(i = 0; i < 8; i++)
+
+    memset_8(dest, MAX_FILENAME_LENGTH, ' ');
+
+    for(int i = 0; i < MAX_FILENAME_LENGTH; i++)
     {
-        if(src[i] == '.') break;
-        if(src[i] == '\0') 
+        if(*src == '\0')
         {
-            noExt = true;
             break;
         }
 
-        char caps = src[i];
+        if(*src == '.')
+        {
+            i = 8;
+            src++;
+        }
 
-        if(caps >= 97) caps -= 32;
-
-        dest[i] = caps;
-    }
-
-    int file_ext_start = i + 1;
-
-    for(; i < 8; i++)
-    {
-        dest[i] = ' ';
-    }
-
-    //File extension
-    for(int j = 0; j < 3; j++)
-    {
-        if(noExt) break;
-        if(src[file_ext_start] == '\0') break;
-        char caps = src[file_ext_start];
-        if(caps >= 97) caps -= 32;
-        dest[i++] = caps;
-
-        file_ext_start++;
-    }
-
-
-    for(; i < 11; i++)
-    {
-        dest[i] = ' ';
+        dest[i] = std::toUpper(*src);
+        src++;
     }
 }
 
 fat_dir_entry *FATPartition::search_dir(fat_dir_entry *first_entry, const char *filename)
 {
     fat_dir_entry *current_file = first_entry;
+
+    //Format the filename
+    char *fmt_filename = new char[MAX_FILENAME_LENGTH];
+    format_filename(filename, fmt_filename);
 
     while (true) 
     {
@@ -82,15 +66,18 @@ fat_dir_entry *FATPartition::search_dir(fat_dir_entry *first_entry, const char *
 
         if(current_file->dir_name[0] == 0x00)                                                   //Reaced end of directory
         {
-            return nullptr;
+            return NULL;
         }
 
-        if(std::strcmp(filename, current_file->dir_name, 11))                       //File found
+        if(std::strcmp(fmt_filename, current_file->dir_name, 11))                       //File found
         {
             return current_file;
         }
         current_file ++;
     }
+
+    delete [] fmt_filename;
+    return NULL;
 }
 
 void *FATPartition::read_file(fat_dir_entry *file)
@@ -106,18 +93,11 @@ void *FATPartition::read_file(fat_dir_entry *file)
         {
             std::klogf("Bad cluster: %u\n", current_cluster);
             kernel::free_pages(_buffer);
-            return nullptr;
+            return NULL;
         }
 
         uint32_t lba = firstSector + firstDataSector + (current_cluster - 2) * bpb->sectors_per_cluster;
-        int sts = dev->read(lba, bpb->sectors_per_cluster, buffer);
-
-        if(sts != 0)
-        {
-            std::klogf("Error reading sector %u on (hd%u, gpt%u)n", lba, dev->port_num, parition);
-            kernel::free_pages(_buffer);
-            return nullptr;
-        }
+        DISK::read(dev, lba, bpb->sectors_per_cluster, buffer);
 
         buffer += bpb->bytes_per_sector * bpb->sectors_per_cluster;
 
@@ -164,27 +144,44 @@ fat_dir_entry *FATPartition::get_file(const char *filepath)
     int path_length = std::strlen(filepath);
     char *fmt_filepath = new char[path_length + 1];
     int dir_level = format_path(filepath, &fmt_filepath);
-    fat_dir_entry *current_entry;
-
+    fat_dir_entry *current_entry = root_dir;
+    char *current_name = fmt_filepath;
+    
     //Now find the current directory
 
     for(int i = 0; i < dir_level; i++)
     {
-        
+        fat_dir_entry *current_dir = current_entry;
+        current_entry = search_dir(current_entry, current_name);
+        current_entry = (fat_dir_entry*)read_file(current_entry);
+        current_name += std::strlen(current_name) + 1;
+
+        kernel::free_pages(current_dir);
+
+        if(current_entry == NULL)
+        {
+            std::klogf("FATAL Error: File not found!\n\n");
+            return NULL;
+        }
     }
 
+    char *fmt_name = new char[MAX_FILENAME_LENGTH];
+    format_filename(current_name, fmt_name);
+    current_entry = search_dir(current_entry, fmt_name);
+
+    delete[] fmt_name;
     delete[] fmt_filepath;
     return current_entry;
 }
 
-void *FATPartition::open_file(const char *filepath)
+void *FATPartition::read_file(const char *filepath)
 {
     fat_dir_entry *file = get_file(filepath);
 
     if(!file) 
     {
         std::klogf("Error: unable to find file: %s\n", filepath);
-        return nullptr;
+        return NULL;
     }
 
     void *buf = read_file(file);
@@ -192,23 +189,43 @@ void *FATPartition::open_file(const char *filepath)
     if(!buf)
     {
         std::klogf("Error: unable to read file: %s\n", filepath);
-        return nullptr;
+        return NULL;
     }
 
     return buf;
 }
 
-FATPartition::FATPartition(DISK::AHCIDevice *dev, int partition)
+void FATPartition::create_file(const char *parent_dir_path, const char *filename, uint8_t attrib)
+{
+    fat_dir_entry *parent_dir = get_file(parent_dir_path);
+    parent_dir = (fat_dir_entry*)read_file(parent_dir);
+    
+    //Go to the end of the parent dir
+    while(parent_dir->dir_name[0] != 0x00)
+    {
+        parent_dir++;
+    }
+
+    char *fmt_filename = new char[MAX_FILENAME_LENGTH];
+
+    //Create a new entry
+    parent_dir->dir_attrib = attrib;
+
+    delete[] fmt_filename;
+    
+}
+
+FATPartition::FATPartition(DISK::rw_disk_t *dev, int partition)
 {
     this->dev = dev;
     this->parition = partition;
     this->bpb = read_bpb(dev, partition);
     if(bpb->magic_number != 0xAA55)
     {
-        std::klogf("Invalid Magic Number: 0x%x on (hd%u, gpt%u)\n", bpb->magic_number, dev->port_num, partition);
+        std::klogf("Invalid Magic Number: 0x%x on (hd%u, gpt%u)\n", bpb->magic_number, partition);
     }
 
-    firstSector = dev->get_gpt()->entries[partition].starting_lba;
+    firstSector = DISK::get_gpt(dev)->entries[partition].starting_lba;
     
     sectorCount = bpb->total_sector_count_32;
     fatSize = bpb->fat_size_32;
@@ -221,7 +238,7 @@ FATPartition::FATPartition(DISK::AHCIDevice *dev, int partition)
 
     fat = (uint8_t*)kernel::allocate_pages(fatSize / 0x1000 + 1);
     kernel::map_pages((uint64_t)fat, (uint64_t)fat, fatSize / 0x1000 + 1);
-    dev->read(firstFatSector, fatSize / bpb->bytes_per_sector + 1, fat);
+    DISK::read(dev, firstFatSector, fatSize / bpb->bytes_per_sector + 1, fat);
 
     //Read the root directory
     root_dir = (fat_dir_entry*)kernel::allocate_pages(5);
@@ -237,7 +254,7 @@ FATPartition::FATPartition(DISK::AHCIDevice *dev, int partition)
         }
 
         uint32_t lba = firstSector + current_cluster * bpb->sectors_per_cluster;
-        int sts = dev->read(lba, bpb->sectors_per_cluster, buf);
+        DISK::read(dev, lba, bpb->sectors_per_cluster, buf);
 
         buf += bpb->bytes_per_sector * bpb->sectors_per_cluster;
         current_cluster = get_next_cluster(current_cluster);

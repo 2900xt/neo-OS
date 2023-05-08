@@ -90,7 +90,7 @@ device_t* get_pci_dev(uint16_t vendor, uint16_t device)
     {
         if(pci_devices[i]->hdr.vendor_id == vendor && pci_devices[i]->hdr.device_id == device) return pci_devices[i];
     }
-    return nullptr;
+    return NULL;
 }
 
 device_t* get_pci_dev(uint8_t class_code, uint8_t subclass, uint8_t prog_if)
