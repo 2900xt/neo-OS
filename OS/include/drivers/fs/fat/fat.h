@@ -76,9 +76,6 @@ struct fat_dir_entry
 
 }__attribute__((packed));
 
-
-void* read_file(DISK::rw_disk_t *device, int partition);
-
 class FATPartition
 {
 
@@ -106,6 +103,7 @@ public:
     ~FATPartition();
 
     void *read_file(const char *filename);
+    fat_dir_entry *get_file(const char *filepath);
 
     void create_file(const char *parent_dir_path, const char *filename, uint8_t attrib);
 
@@ -118,8 +116,6 @@ private:
     fat_dir_entry *search_dir(fat_dir_entry *first_entry, const char *filename);
 
     int format_path(const char *_filepath, char **filepath);
-
-    fat_dir_entry *get_file(const char *filepath);
 
     fat_dir_entry *get_directory(const char *filepath);
 };

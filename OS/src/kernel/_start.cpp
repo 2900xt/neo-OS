@@ -25,11 +25,10 @@ void bsp_done(void)
 
 extern "C" void _start(void)
 {
-    kernel::enableSSE();
-
     std::tty_init();
+    std::klogf("Loading Kernel NEO...\n\n");
     
-    std::klogf("Loading NEO-OS\n\n");
+    kernel::enableSSE();
 
     kernel::fillIDT();
 
@@ -40,8 +39,6 @@ extern "C" void _start(void)
     fbuf_init();
 
     smp_init();
-
-    VFS::vfs_init();
 
     kernel::load_drivers();
 

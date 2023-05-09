@@ -7,6 +7,9 @@
 namespace DISK
 {
     
+rw_disk_t *disks[10];
+uint8_t disk_count;
+
 void write(rw_disk_t *disk, uint32_t starting_lba, uint32_t sector_cnt, void *buffer)
 {
     int status;

@@ -122,6 +122,11 @@ int FATPartition::format_path(const char *_filepath, char **filepath)
 
     int dir_level_count = 0;
 
+    while(*_filepath == '/')
+    {
+        _filepath++;
+    }
+
     for(int i = 0; i < pathLength; i++)
     {
         if(_filepath[i] == '/')

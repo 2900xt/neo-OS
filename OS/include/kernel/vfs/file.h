@@ -1,4 +1,7 @@
 #pragma once
+#include <stdlib/string.h>
+#include "drivers/fs/fat/fat.h"
+#include "drivers/disk/disk_driver.h"
 #include <types.h>
 
 #define FILE_READABLE       (1 << 0)
@@ -10,33 +13,60 @@ namespace VFS
 
 enum file_types : uint8_t
 {
-    FILE,
-    DIRECTORY,
+    PHYS_FILE,
+    VIRT_FILE,
+    PHYS_DIR,
+    VIRT_DIR,
     DEVICE,
+    RESERVED,
+    ROOT,
 };
 
-class file_t
+enum file_permissions : uint8_t
 {
-public:
-    const char* filename;
-    uint8_t permissions;
-    file_types file_type;
-
-
-    file_t* youngest_child;
-    file_t* parent;
-    file_t* older_sibling;
-    file_t* younger_sibling;
-
-    void* file_data;
-
-    file_t* get_subdir(const char* sub_filename);
-    file_t* create_child(const char* new_filename, enum file_types new_file_type);
-
+    READ     = (1 << 0),
+    WRITE    = (1 << 1),
+    EXECUTE  = (1 << 2),
 };
 
+enum filesystem_id : uint64_t 
+{
+    FAT32    = 0xFA5432,
+};
 
-void vfs_init();
-file_t* get_root();
-void chroot(file_t* new_root);
+struct fsinfo_t
+{
+    uint64_t drive_number;
+    uint64_t volume_number;
+    uint64_t filesystem_id;
+};
+
+struct File 
+{
+    std::string filename;
+    std::string owner_name;
+
+    uint8_t filetype;
+    uint8_t permissions;
+    uint64_t file_size;
+
+// Parent Dir
+    File *parent;
+
+// Contemporary Dir
+    File *next;
+    File *prev;
+
+// Child directoriess
+    File *child;
+
+    fsinfo_t fsinfo; 
+};
+
+void mount_root(DISK::rw_disk_t *disk, uint64_t partition, filesystem_id fs);
+FS::FATPartition *get_root_part();
+File *get_root();
+File* open(const char *filepath);
+void read(File *file, void *buffer);
+
 }
