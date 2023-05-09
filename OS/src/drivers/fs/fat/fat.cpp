@@ -158,6 +158,13 @@ fat_dir_entry *FATPartition::get_file(const char *filepath)
     {
         fat_dir_entry *current_dir = current_entry;
         current_entry = search_dir(current_entry, current_name);
+
+        if(current_entry == NULL)
+        {
+            std::klogf("F32: FATAL Error: File not found!\n");
+            return NULL;
+        }
+
         current_entry = (fat_dir_entry*)read_file(current_entry);
         current_name += std::strlen(current_name) + 1;
 
@@ -165,7 +172,7 @@ fat_dir_entry *FATPartition::get_file(const char *filepath)
 
         if(current_entry == NULL)
         {
-            std::klogf("FATAL Error: File not found!\n\n");
+            std::klogf("F32: FATAL Error: File not found!\n");
             return NULL;
         }
     }
@@ -185,7 +192,7 @@ void *FATPartition::read_file(const char *filepath)
 
     if(!file) 
     {
-        std::klogf("Error: unable to find file: %s\n", filepath);
+        std::klogf("File Does Not Exist! %s\n", filepath);
         return NULL;
     }
 
@@ -193,7 +200,7 @@ void *FATPartition::read_file(const char *filepath)
 
     if(!buf)
     {
-        std::klogf("Error: unable to read file: %s\n", filepath);
+        std::klogf("File Read Error! %s\n", filepath);
         return NULL;
     }
 

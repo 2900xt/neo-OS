@@ -39,12 +39,20 @@ protected:
     uint32_t rgb;
 };
 
+struct image 
+{
+    uint32_t x, y, w, h;
+    uint32_t *data;
+};
+
 extern limine::limine_framebuffer *fbuf_info;
 
 void drawMouse(uint64_t x, uint64_t y);
 void setBackgroundColor(Color c);
 Color* getBackgroundColor(void);
 void fbuf_init(void);
+void repaintScreen();
 void fillRect(int x, int y, Color c, uint32_t w, uint32_t h);
+image *tga_parse(void *ptr, int size);
 
 #endif

@@ -7,6 +7,7 @@
 #include <drivers/vga/vga.h>
 #include <kernel/x64/intr/apic.h>
 #include <kernel/mem/mem.h>
+#include <kernel/vfs/file.h>
 
 volatile limine::limine_framebuffer_request fbuf_req = {LIMINE_FRAMEBUFFER_REQUEST, 0};
 
@@ -53,5 +54,6 @@ void fbuf_init(void)
     kernel::map_pages((uint64_t)g_framebuffer2, (uint64_t)g_framebuffer2, framebufferSize / 0x1000  + 1);
     std::klogf("Sz: 0x%x\n", framebufferSize);
     fillRect(0, 0, {255, 0, 0}, fbuf_info->width, fbuf_info->height);
+
     repaintScreen();
 }

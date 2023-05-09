@@ -49,6 +49,13 @@ FS::FATPartition *get_root_part()
 File* open(const char *filepath)
 {
     FS::fat_dir_entry *fat_file = get_root_part()->get_file(filepath);
+    
+    if(!fat_file)
+    {
+        std::klogf("VFS: Unable to find file: %s\n", filepath);
+        return NULL;
+    }
+    
     File *fp = new File;
     fp->file_size = fat_file->file_size;
     fp->filename = fat_file->dir_name;
@@ -72,6 +79,12 @@ const char* get_file_path(File *file)
 
 void read(File *file, void *buffer)
 {
+    if(!file)
+    {
+        trace_vfs("Invalid File Pointer!");
+        return;
+    }
+
     const char *fp = get_file_path(file);
     void *tmpbuf = get_root_part()->read_file(fp);
     

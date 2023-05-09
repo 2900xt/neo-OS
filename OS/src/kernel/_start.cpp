@@ -12,7 +12,7 @@
 #include <config.h>
 
 extern "C" void __cxa_pure_virtual() { while (1); }
-
+extern uint32_t *g_framebuffer2;
 void bsp_done(void)
 {
     for (;;)
@@ -42,5 +42,11 @@ extern "C" void _start(void)
 
     kernel::load_drivers();
 
+    VFS::File *fp = VFS::open("logo.tga");
+    void *buf = kernel::allocate_pages(fp->file_size / 0x1000 + 1);
+    VFS::read(fp, buf);
+    image * img = tga_parse(buf, fp->file_size);
+    
+    repaintScreen();
     bsp_done();
 }

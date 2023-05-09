@@ -53,10 +53,9 @@ neo-OS.hdd: kernel ./limine/limine-deploy
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount
 	sudo mkdir -p img_mount/EFI/BOOT
-	sudo mkdir -p img_mount/test/lol
 	sudo cp -v OS/bin/kernel.elf limine.cfg limine/limine.sys img_mount/
 	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
-	sudo cp -v test.txt img_mount/test/lol/
+	sudo cp -v archlinux.tga img_mount/logo.tga
 	sync
 	sudo umount img_mount
 	sudo losetup -d `cat loopback_dev` 
