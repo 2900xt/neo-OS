@@ -2,9 +2,7 @@ package Utils;
 
 import java.awt.Color;
 import java.awt.image.*;
-import java.io.BufferedWriter;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import javax.swing.ImageIcon;
