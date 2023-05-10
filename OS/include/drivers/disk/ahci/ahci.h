@@ -30,8 +30,8 @@ public:
 
     AHCIDevice(uint8_t port_number);
 
-    int read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffer);
-    int write(uint64_t starting_lba, uint32_t sector_cnt, void *data_buffer);
+    int read(uint64_t starting_lba, uint32_t sector_cnt, uint8_t *dma_buffer);
+    int write(uint64_t starting_lba, uint32_t sector_cnt, uint8_t *data_buffer);
     int identifyDevice(uint16_t *buffer);
 
     rw_disk_t *get_interface();

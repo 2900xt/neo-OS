@@ -50,6 +50,19 @@ char *utoa(uint64_t val, uint8_t radix){
     return itoaOutput;
 }
 
+//For unsigned integers
+uint64_t atou(const char *str, uint64_t len)
+{
+    uint64_t num = 0;
+
+    for(uint64_t i = 0; i < len; i++)
+    {
+        num = num * 10 + (str[i] - 48);
+    }
+
+    return num;
+}
+
 char *itoa(int64_t val, uint8_t radix)
 {
     for(int i = 0; i < 64; i++){

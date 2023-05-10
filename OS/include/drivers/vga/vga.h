@@ -52,7 +52,9 @@ void setBackgroundColor(Color c);
 Color* getBackgroundColor(void);
 void fbuf_init(void);
 void repaintScreen();
+
 void fillRect(int x, int y, Color c, uint32_t w, uint32_t h);
-image *tga_parse(void *ptr, int size);
+void drawImage(const image *img);
+image *loadImage(const char *filepath);
 
 #endif

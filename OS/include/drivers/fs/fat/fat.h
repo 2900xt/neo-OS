@@ -82,7 +82,7 @@ class FATPartition
     fat_dir_entry *root_dir;
     bios_param_block *bpb;
 
-    uint8_t *fat;
+    uint32_t *fat;
 
     uint32_t sectorCount;
     uint32_t fatSize;

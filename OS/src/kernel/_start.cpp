@@ -2,6 +2,7 @@
 #include "kernel/vfs/file.h"
 #include "kernel/mem/paging.h"
 #include "stdlib/stdio.h"
+#include "stdlib/string.h"
 #include "types.h"
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
@@ -42,10 +43,8 @@ extern "C" void _start(void)
 
     kernel::load_drivers();
 
-    VFS::File *fp = VFS::open("logo.tga");
-    void *buf = kernel::allocate_pages(fp->file_size / 0x1000 + 1);
-    VFS::read(fp, buf);
-    image * img = tga_parse(buf, fp->file_size);
+    image *img = loadImage("/logo.nic");
+    drawImage(img);
     
     repaintScreen();
     bsp_done();

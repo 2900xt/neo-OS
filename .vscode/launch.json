@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "ImageConverter",
+            "request": "launch",
+            "mainClass": "ImageConverter.ImageConverter",
+            "projectName": "neo-OS_2ea31541"
+        },
+        {
             "request": "launch",
             "name": "Launch",
             "program": "make run",

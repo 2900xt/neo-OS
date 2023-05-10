@@ -109,8 +109,7 @@ void *FATPartition::read_file(fat_dir_entry *file)
 
 uint32_t FATPartition::get_next_cluster(int current_cluster)
 {
-    current_cluster *= 4;
-    return *(uint32_t*)&fat[current_cluster] & ~0xF0000000;
+    return fat[current_cluster] & ~0xF0000000;
 }
 
 
@@ -248,9 +247,9 @@ FATPartition::FATPartition(DISK::rw_disk_t *dev, int partition)
 
     //Read the FAT
 
-    fat = (uint8_t*)kernel::allocate_pages(fatSize / 0x1000 + 1);
-    kernel::map_pages((uint64_t)fat, (uint64_t)fat, fatSize / 0x1000 + 1);
-    DISK::read(dev, firstFatSector, fatSize / bpb->bytes_per_sector + 1, fat);
+    fat = (uint32_t*)kernel::allocate_pages((fatSize * bpb->bytes_per_sector) / 0x1000 + 1);
+    kernel::map_pages((uint64_t)fat, (uint64_t)fat, (fatSize * bpb->bytes_per_sector) / 0x1000 + 1);
+    DISK::read(dev, firstFatSector, fatSize, fat);
 
     //Read the root directory
     root_dir = (fat_dir_entry*)kernel::allocate_pages(5);

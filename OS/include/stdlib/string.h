@@ -17,6 +17,7 @@ const char* strcat(char* dest, const char* src);
 bool        strcmp(const char* a, const char* b);
 size_t      strclen(const char *src, char term);
 char        toUpper(char c);
+uint64_t    atou(const char *str, uint64_t len);
 
 class string 
 {

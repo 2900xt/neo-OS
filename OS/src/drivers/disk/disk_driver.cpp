@@ -16,7 +16,7 @@ void write(rw_disk_t *disk, uint32_t starting_lba, uint32_t sector_cnt, void *bu
     if(disk->type == diskTypes::AHCI)
     {
         AHCIDevice *driver = (AHCIDevice*)disk->driver;
-        status = driver->write(starting_lba, sector_cnt, buffer);
+        status = driver->write(starting_lba, sector_cnt, (uint8_t*)buffer);
     } else
     {
         std::klogf("Unknown Disk Type: %d\nFatal Read Error!\n\n", disk->type);
@@ -35,7 +35,7 @@ void read(rw_disk_t *disk, uint64_t starting_lba, uint32_t sector_cnt, void *buf
     if(disk->type == diskTypes::AHCI)
     {
         AHCIDevice *driver = (AHCIDevice*)disk->driver;
-        status = driver->read(starting_lba, sector_cnt, buffer);
+        status = driver->read(starting_lba, sector_cnt, (uint8_t*)buffer);
     } else
     {
         std::klogf("Unknown Disk Type: %d\nFatal Read Error!\n\n", disk->type);

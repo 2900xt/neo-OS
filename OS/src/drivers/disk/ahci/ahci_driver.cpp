@@ -17,8 +17,6 @@ extern hba_mem_t *hba_memory;
 extern uint8_t device_count;
 extern AHCIDevice* devices[32];
 
-static int hd_cnt = 0, cd_cnt = 0;
-
 // class AHCIDevice
 
 AHCIDevice::AHCIDevice(uint8_t port_num)
@@ -88,18 +86,17 @@ void AHCIDevice::read_gpt()
     FS::gpt_part_table_hdr *gpt_hdr = &gpt_data->hdr;
 
     //Read the GPT header, located at LBA 1
-    this->read(1, 1, gpt_hdr);
+    this->read(1, 1, (uint8_t*)gpt_hdr);
 
     //Read the partition table until ESP found
     int currentEntry = 0;
     uint32_t lba;
 
     int gpt_entry_sectors = (gpt_hdr->part_entry_count * gpt_hdr->part_entry_size) / 0x200;
-    int gpt_entry_page_count = (gpt_entry_sectors * 0x200) / 0x1000;
 
     for(lba = gpt_hdr->lba_part_entry_arr; lba < gpt_entry_sectors + gpt_hdr->lba_part_entry_arr; lba++)
     {
-        this->read(lba, 1, &gpt_data->entries[currentEntry]);
+        this->read(lba, 1, (uint8_t*)&gpt_data->entries[currentEntry]);
         for(int i = 0; i < 4; i++) {
             uint64_t part_size = (gpt_data->entries[currentEntry].ending_lba - gpt_data->entries[currentEntry].starting_lba ) * 512;
             std::klogf("(hd%u, gpt%u) \tlabel: %l\tsize: %x\n", port_num, currentEntry, gpt_data->entries[currentEntry].parition_name, part_size);
@@ -114,12 +111,11 @@ FS::gpt_part_data* AHCIDevice::get_gpt()
     return gpt_data;
 }
 
-#define AHCI_ERR_TOO_MANY_SECTORS   -1
 #define AHCI_ERR_DEV_BUSY           -2
 #define AHCI_ERR_CONTROLLER_ERR     -3
 #define AHCI_SUCCESS                 0
 
-int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffer)
+int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, uint8_t *dma_buffer)
 {
     //Clear pending interrupts
 
@@ -135,7 +131,6 @@ int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffe
     command_header->cmdfis_length = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
     command_header->write_command = 0;
     command_header->prdt_length = (uint16_t)((sector_cnt - 1) >> 4) + 1;
-    if(command_header->prdt_length >= 9) return AHCI_ERR_TOO_MANY_SECTORS;
 
     //Set up the PRDT
 
@@ -148,6 +143,8 @@ int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffe
         command_table->prdt[i].data_base_address = (uint64_t)dma_buffer;
         command_table->prdt[i].data_byte_count = 8 * 1024 - 1;
         command_table->prdt[i].intr_on_completion = 1;
+        dma_buffer += 0x2000;
+        sector_cnt -= 16;
     }
 
 
@@ -182,7 +179,7 @@ int AHCIDevice::read(uint64_t starting_lba, uint32_t sector_cnt, void *dma_buffe
     return run_command(slot);
 }
 
-int AHCIDevice::write(uint64_t starting_lba, uint32_t sector_cnt, void *data_buffer)
+int AHCIDevice::write(uint64_t starting_lba, uint32_t sector_cnt, uint8_t *data_buffer)
 {
     //Clear pending interrupts
 
@@ -198,7 +195,6 @@ int AHCIDevice::write(uint64_t starting_lba, uint32_t sector_cnt, void *data_buf
     command_header->cmdfis_length = sizeof(FIS_REG_H2D) / sizeof(uint32_t);
     command_header->write_command = 1;
     command_header->prdt_length = (uint16_t)((sector_cnt - 1) >> 4) + 1;
-    if(command_header->prdt_length >= 9) return AHCI_ERR_TOO_MANY_SECTORS;
 
     //Set up the PRDT
 
@@ -211,6 +207,8 @@ int AHCIDevice::write(uint64_t starting_lba, uint32_t sector_cnt, void *data_buf
         command_table->prdt[i].data_base_address = (uint64_t)data_buffer;
         command_table->prdt[i].data_byte_count = 8 * 1024 - 1;
         command_table->prdt[i].intr_on_completion = 1;
+        data_buffer += 0x2000;
+        sector_cnt -= 16;
     }
 
 
