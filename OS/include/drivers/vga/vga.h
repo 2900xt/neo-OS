@@ -41,8 +41,8 @@ protected:
 
 struct image 
 {
-    uint32_t x, y, w, h;
-    uint32_t *data;
+    uint32_t w, h;
+    uint32_t data[1];
 };
 
 extern limine::limine_framebuffer *fbuf_info;
@@ -54,7 +54,7 @@ void fbuf_init(void);
 void repaintScreen();
 
 void fillRect(int x, int y, Color c, uint32_t w, uint32_t h);
-void drawImage(const image *img);
+void drawImage(const image *img, int x, int y);
 image *loadImage(const char *filepath);
 
 #endif

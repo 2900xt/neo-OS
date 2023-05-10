@@ -27,22 +27,22 @@ limine::limine_framebuffer *fbuf_info;
 
 void putpixel(int x, int y, Color c)
 {
-    uint32_t where = x * fbuf_info->bpp / 8 + y * fbuf_info->pitch;
+    uint32_t where = x + y * fbuf_info->pitch / 4;
     g_framebuffer2[where] = c.getRGB();
 }
 
 void fillRect(int x, int y, Color c, uint32_t w, uint32_t h)
 {
     uint32_t where;
-    for (int i = y; i < h + y; i++)
+    for(int i = y; i < y + h; i++)
     {
-        where = (fbuf_info->pitch * i) / 4;
-        for (int j = x; j < w + x; j++)
+        where = x + i * fbuf_info->pitch / 4;
+        for(int j = x; j < x + w; j++)
         {
             g_framebuffer2[where] = c.getRGB();
-            where++;
+            where ++;
         }
-    }
+    } 
 }
 
 void fbuf_init(void)

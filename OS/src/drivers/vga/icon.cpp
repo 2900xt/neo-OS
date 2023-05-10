@@ -8,16 +8,25 @@
 
 extern uint32_t *g_framebuffer2;
 
-void drawImage(const image *img)
+void drawImage(const image *img, int x, int y)
 {
     uint32_t where;
     uint32_t ptr = 0;
-    for (int i = 0; i < img->h; i++)
+    for (int i =  y; i < y + img->h; i++)
     {
-        where = (fbuf_info->pitch * i) / 4;
-        for (int j = 0; j < img->h; j++)
+        where = x + i * fbuf_info->pitch / 4;
+        for (int j = x; j < x + img->w; j++)
         {
-            g_framebuffer2[where] = img->data[ptr++];
+            int rgba = img->data[ptr];
+
+            if((rgba & 0xFF000000) != 0xFF000000)
+            {
+                continue;
+            }
+
+            g_framebuffer2[where] = rgba;
+            
+            ptr++;
             where++;
         }
     }
@@ -32,32 +41,14 @@ image *loadImage(const char *filepath)
     }
 
     int pages = fp->file_size / 0x1000 + 1;
-    char *buffer = (char*)kernel::allocate_pages(pages);
-    char *_buffer = buffer;
+    image *buffer = (image*)kernel::allocate_pages(pages);
     kernel::map_pages((uint64_t)buffer, (uint64_t)buffer, pages);
     VFS::read(fp, buffer);
 
-    image *img = new image;
+    return buffer;
+}
 
-    int n = std::strlen(buffer);
-    img->w = std::atou(buffer, n);
-    buffer += n + 1;
-
-    n = std::strlen(buffer);
-    img->h = std::atou(buffer, n);
-    buffer += n + 1;
-
-    pages = (img->w * img->h * sizeof(uint32_t)) / 0x1000 + 1;
-    img->data = (uint32_t*)kernel::allocate_pages(pages);
-    kernel::map_pages((uint64_t)img->data, (uint64_t)img->data, pages);
-
-    for(int i = 0; i < img->w * img->h; i++)
-    {
-        n = std::strlen(buffer);
-        img->data[i] = std::atou(buffer, n);
-        buffer += n + 1;
-    }
-
-    kernel::free_pages(_buffer);
-    return img;
+void closeImage(image *img)
+{
+    kernel::free_pages(img);
 }

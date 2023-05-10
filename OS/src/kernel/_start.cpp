@@ -13,7 +13,6 @@
 #include <config.h>
 
 extern "C" void __cxa_pure_virtual() { while (1); }
-extern uint32_t *g_framebuffer2;
 void bsp_done(void)
 {
     for (;;)
@@ -43,8 +42,8 @@ extern "C" void _start(void)
 
     kernel::load_drivers();
 
-    image *img = loadImage("/logo.nic");
-    drawImage(img);
+    image *icon = loadImage("/logo.nic");
+    drawImage(icon, 0, 0);
     
     repaintScreen();
     bsp_done();
