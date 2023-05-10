@@ -10,6 +10,7 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 * stdlib with basic string, math and i/o functions
 * heap
 * virtual file system
+* custom icon file format
 * timers
 * simultaneous multiprocessing
 * APIC, ACPI, AHCI, PCI, serial & VGA drivers
@@ -19,7 +20,6 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 * EXT2 Filesystem
 * Processes
 * Scheduler
-* Files / Streams
 * Standard Library
 * USB
 * Port BusyBox
