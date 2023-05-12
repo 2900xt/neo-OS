@@ -10,7 +10,7 @@ run-serial: all
 .PHONY: run
 run: all
 	@echo Running Image...
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 
+	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 -serial stdio
 
 .PHONY: run-bin
 run-bin:
@@ -40,23 +40,28 @@ ovmf:
 	make -C limine
 
 neo-OS.hdd: kernel ./limine/limine-deploy
-	rm -f neo-OS.hdd
+	@rm -f neo-OS.hdd
 	@echo Generating Image
-	dd if=/dev/zero bs=1M count=0 seek=64 of=neo-OS.hdd >/dev/null 2>&1
-	sudo parted -s neo-OS.hdd mklabel gpt
-	sudo parted -s neo-OS.hdd mkpart ESP fat32 2048s 100%
-	sudo parted -s neo-OS.hdd name 1 boot
-	sudo parted -s neo-OS.hdd set 1 esp on
-	limine/limine-deploy neo-OS.hdd >/dev/null 2>&1
-	sudo losetup -Pf --show neo-OS.hdd > loopback_dev
-	sudo mkfs.fat -F 32 `cat loopback_dev`p1 >/dev/null 2>&1
-	mkdir -p img_mount
-	sudo mount `cat loopback_dev`p1 img_mount
-	sudo mkdir -p img_mount/EFI/BOOT
-	sudo cp -v OS/bin/kernel.elf limine.cfg limine/limine.sys img_mount/
-	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
-	sudo cp -v logo.nic img_mount/logo.nic
-	sync
-	sudo umount img_mount
-	sudo losetup -d `cat loopback_dev` 
-	sudo rm -rf loopback_dev img_mount
+	@dd if=/dev/zero bs=1M count=0 seek=64 of=neo-OS.hdd >/dev/null 2>&1
+	@sudo parted -s neo-OS.hdd mklabel gpt
+	@sudo parted -s neo-OS.hdd mkpart ESP fat32 2048s 100%
+	@sudo parted -s neo-OS.hdd set 1 esp on
+	@limine/limine-deploy neo-OS.hdd >/dev/null 2>&1
+	@sudo losetup -Pf --show neo-OS.hdd > loopback_dev
+	@sudo mkfs.fat -F 32 `cat loopback_dev`p1 >/dev/null 2>&1
+	@mkdir -p img_mount
+	@sudo mount `cat loopback_dev`p1 img_mount
+	@sudo mkdir -p img_mount/EFI/BOOT
+	@sudo cp -v OS/bin/kernel.elf limine.cfg limine/limine.sys img_mount/
+	@sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
+	@sudo cp -v logo.nic img_mount/logo.nic
+	@sync
+	@sudo umount img_mount
+	@sudo losetup -d `cat loopback_dev` 
+	@sudo rm -rf loopback_dev img_mount
+
+reset:
+	@echo Reseting Failed Build...
+	@sudo umount img_mount
+	@sudo rm -rf img_mount
+	@sync

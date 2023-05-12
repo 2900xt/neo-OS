@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.image.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import javax.swing.ImageIcon;
 
@@ -22,6 +25,7 @@ public class ImageConverter
 
     public static void main(String []args) throws IOException
     {
+        LocalDateTime start = LocalDateTime.now();
         if(args.length != 4 && args.length != 2)
         {
             usage();
@@ -44,14 +48,18 @@ public class ImageConverter
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         image.getGraphics().drawImage(input.getImage(), 0, 0, width, height, null);
 
-
+        
         FileOutputStream fileOut = new FileOutputStream(args[1]);
-        fileOut.write(intToByte(width));
-        fileOut.write(intToByte(height));
+
 
         long count = width * height;
         double progress = 0;
         int progStrLen = 0;
+        int bytes = width * height * 4  + 8;
+
+        ByteBuffer byteBuf = ByteBuffer.allocate(bytes);
+        byteBuf.put(intToByte(width));
+        byteBuf.put(intToByte(height));
 
         for(int i = 0; i < height; i++)
         {
@@ -59,7 +67,7 @@ public class ImageConverter
             {
                 Color c = new Color(image.getRGB(j, i));
                 int rgb = ((int)c.getAlpha() << 24) | ((int)c.getRed() << 16) | ((int)c.getGreen() << 8) | (int)c.getBlue();
-                fileOut.write(intToByte(rgb));
+                byteBuf.put(intToByte(rgb));
             }
 
             progress = (i * width) / (double)count;
@@ -75,8 +83,14 @@ public class ImageConverter
             System.out.print(progString);
         }
 
-        double bytes = width * height * 4  + 8;
-        System.out.println("\nTotal File Size: " + Math.round(bytes / 10000) / 100.0 + "M");
+        fileOut.write(byteBuf.array());
+
+        System.out.println("\nTotal File Size: " + Math.round(bytes / 10000.0) / 100.0 + "M");
+        Duration elapsedTime = Duration.between(start, LocalDateTime.now());
+        System.out.println("Time: " + elapsedTime.toMillis() / 1000.0 + "s");
+
+        double mbPerSecond = (Math.round(bytes / 10000.0) / 100.0) / (elapsedTime.toMillis() / 1000.0);
+        System.out.println("Speed: " + Math.round(mbPerSecond * 10) / 10 + " MB/S");
 
         fileOut.close();
     }

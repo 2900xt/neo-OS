@@ -8,6 +8,13 @@
             "type": "java",
             "name": "ImageConverter",
             "request": "launch",
+            "mainClass": "Utils.ImageConverter",
+            "projectName": "neo-OS_2ea31541"
+        },
+        {
+            "type": "java",
+            "name": "ImageConverter",
+            "request": "launch",
             "mainClass": "ImageConverter.ImageConverter",
             "projectName": "neo-OS_2ea31541"
         },

@@ -14,34 +14,34 @@ LDFLAGS ?=
 
 # Internal C++ flags that should not be changed by the user.
 override CROSSFLAGS +=   \
-    -std=c++17           \
-    -fno-exceptions      \
-    -ffreestanding       \
-    -fno-stack-protector \
-    -fno-stack-check     \
-    -fno-lto             \
-    -fno-pie             \
-    -fno-pic             \
-    -m64                 \
-    -march=x86-64        \
-    -mabi=sysv           \
-    -mno-red-zone        \
-    -mcmodel=kernel      \
-    -MMD                 \
+	-std=c++17           \
+	-fno-exceptions      \
+	-ffreestanding       \
+	-fno-stack-protector \
+	-fno-stack-check     \
+	-fno-lto             \
+	-fno-pie             \
+	-fno-pic             \
+	-m64                 \
+	-march=x86-64        \
+	-mabi=sysv           \
+	-mno-red-zone        \
+	-mcmodel=kernel      \
+	-MMD                 \
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS +=         \
-    -z max-page-size=0x1000 \
-    -T linker.ld            \
+	-z max-page-size=0x1000 \
+	-T linker.ld            \
 
 # Check if the linker supports -no-pie and enable it if it does
 ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
-    override LDFLAGS += -no-pie
+	override LDFLAGS += -no-pie
 endif
 
 # Internal nasm flags that should not be changed by the user.
 override NASMFLAGS += \
-    -f elf64
+	-f elf64
 
 # Use find to glob all *.c, *.S, and *.asm files in the directory and extract the object names.
 override CPPFILES := $(shell find ./src -type f -name '*.cpp')
@@ -58,25 +58,29 @@ all: $(KERNEL)
 # Link rules for the final kernel executable.
 $(KERNEL): $(OBJ)
 	@echo linking kernel elf...
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
+	@$(LD) $(OBJ) $(LDFLAGS) -o $@
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.cpp files.
 %.o: %.cpp
-	$(CROSS) $(CROSSFLAGS) -c $< -o $@
+	@$(CROSS) $(CROSSFLAGS) -c $< -o $@
+	@echo $<
 
 %.o: %.c
-	$(CROSS) $(CROSSFLAGS) -mgeneral-regs-only -c $< -o $@
+	@echo $<
+	@$(CROSS) $(CROSSFLAGS) -mgeneral-regs-only -c $< -o $@
 
 # Compilation rules for *.S files.
 %.o: %.S
-	$(CROSS) $(CROSSFLAGS) -c $< -o $@
+	@echo $<
+	@$(CROSS) $(CROSSFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 %.o: %.asm
-	nasm $(NASMFLAGS) $< -o $@
+	@echo $<
+	@nasm $(NASMFLAGS) $< -o $@
 
 # Remove object files and the final executable.
 .PHONY: clean

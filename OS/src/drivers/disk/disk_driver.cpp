@@ -57,6 +57,7 @@ FS::gpt_part_data *get_gpt(rw_disk_t *disk)
     } else
     {
         std::klogf("Unknown Disk Type: %d\nUnable to get GPT\n\n", disk->type);
+        return NULL;
     }
 }
 

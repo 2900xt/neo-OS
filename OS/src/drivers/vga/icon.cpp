@@ -19,12 +19,10 @@ void drawImage(const image *img, int x, int y)
         {
             int rgba = img->data[ptr];
 
-            if((rgba & 0xFF000000) != 0xFF000000)
+            if(rgba & 0xFF)
             {
-                continue;
+                g_framebuffer2[where] = rgba;
             }
-
-            g_framebuffer2[where] = rgba;
             
             ptr++;
             where++;
