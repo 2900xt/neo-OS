@@ -61,4 +61,9 @@ FS::gpt_part_data *get_gpt(rw_disk_t *disk)
     }
 }
 
+rw_disk_t *get_disk(uint8_t drive_num)
+{
+    return disks[drive_num];
+}
+
 }

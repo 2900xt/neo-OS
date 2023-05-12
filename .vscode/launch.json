@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ImageViewer",
+            "request": "launch",
+            "mainClass": "Utils.ImageViewer",
+            "projectName": "neo-OS_2ea31541"
+        },
+        {
+            "type": "java",
             "name": "ImageConverter",
             "request": "launch",
             "mainClass": "Utils.ImageConverter",
