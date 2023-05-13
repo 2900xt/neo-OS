@@ -30,6 +30,8 @@ void drawImage(const image *img, int x, int y)
     }
 }
 
+const char * NIC_SIGNATURE = "NIC-1.0";
+
 image *loadImage(const char *filepath)
 {
     VFS::File *fp = VFS::open(filepath);
@@ -42,6 +44,12 @@ image *loadImage(const char *filepath)
     image *buffer = (image*)kernel::allocate_pages(pages);
     kernel::map_pages((uint64_t)buffer, (uint64_t)buffer, pages);
     VFS::read(fp, buffer);
+
+    if(!std::strcmp(buffer->signature, NIC_SIGNATURE, 7))
+    {
+        std::klogf("Invalid NIC File Signature: %s\n", buffer);
+        return NULL;
+    }
 
     return buffer;
 }

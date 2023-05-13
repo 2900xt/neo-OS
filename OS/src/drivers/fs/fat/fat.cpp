@@ -80,7 +80,7 @@ fat_dir_entry *FATPartition::search_dir(fat_dir_entry *first_entry, const char *
     return NULL;
 }
 
-void *FATPartition::read_file(fat_dir_entry *file)
+void *FATPartition::read_entry(fat_dir_entry *file)
 {
     int page_count = file->file_size / 0x1000;
     void *_buffer = (void*)kernel::allocate_pages(page_count);
@@ -164,7 +164,7 @@ fat_dir_entry *FATPartition::get_file(const char *filepath)
             return NULL;
         }
 
-        current_entry = (fat_dir_entry*)read_file(current_entry);
+        current_entry = (fat_dir_entry*)read_entry(current_entry);
         current_name += std::strlen(current_name) + 1;
 
         kernel::free_pages(current_dir);
@@ -195,7 +195,7 @@ void *FATPartition::read_file(const char *filepath)
         return NULL;
     }
 
-    void *buf = read_file(file);
+    void *buf = read_entry(file);
 
     if(!buf)
     {
@@ -209,7 +209,7 @@ void *FATPartition::read_file(const char *filepath)
 void FATPartition::create_file(const char *parent_dir_path, const char *filename, uint8_t attrib)
 {
     fat_dir_entry *parent_dir = get_file(parent_dir_path);
-    parent_dir = (fat_dir_entry*)read_file(parent_dir);
+    parent_dir = (fat_dir_entry*)read_entry(parent_dir);
     
     //Go to the end of the parent dir
     while(parent_dir->dir_name[0] != 0x00)

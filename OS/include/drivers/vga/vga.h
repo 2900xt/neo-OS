@@ -41,9 +41,10 @@ protected:
 
 struct image 
 {
+    char signature[7];
     uint32_t w, h;
     uint32_t data[1];
-};
+}__attribute__((packed));
 
 extern limine::limine_framebuffer *fbuf_info;
 

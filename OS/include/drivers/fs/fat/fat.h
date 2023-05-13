@@ -103,13 +103,13 @@ public:
     ~FATPartition();
 
     void *read_file(const char *filename);
+    void *read_entry(fat_dir_entry *file);
     fat_dir_entry *get_file(const char *filepath);
 
     void create_file(const char *parent_dir_path, const char *filename, uint8_t attrib);
 
 private:
 
-    void *read_file(fat_dir_entry *file);
 
     uint32_t get_next_cluster(int current_cluster);
 

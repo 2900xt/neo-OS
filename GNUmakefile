@@ -51,10 +51,7 @@ neo-OS.hdd: kernel ./limine/limine-deploy
 	@sudo mkfs.fat -F 32 `cat loopback_dev`p1 >/dev/null 2>&1
 	@mkdir -p img_mount
 	@sudo mount `cat loopback_dev`p1 img_mount
-	@sudo mkdir -p img_mount/EFI/BOOT
-	@sudo cp -v OS/bin/kernel.elf limine.cfg limine/limine.sys img_mount/
-	@sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
-	@sudo cp -v logo.nic img_mount/logo.nic
+	sudo cp -v -r filesystem/* img_mount/
 	@sync
 	@sudo umount img_mount
 	@sudo losetup -d `cat loopback_dev` 

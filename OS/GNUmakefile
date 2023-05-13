@@ -1,4 +1,4 @@
-override KERNEL := bin/kernel.elf
+override KERNEL := ../filesystem/bin/kernel.elf
 
 override CROSS := /usr/local/x86_64elfgcc/bin/x86_64-elf-g++
 override LD := /usr/local/x86_64elfgcc/bin/x86_64-elf-ld
