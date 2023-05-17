@@ -99,7 +99,9 @@ void AHCIDevice::read_gpt()
         this->read(lba, 1, (uint8_t*)&gpt_data->entries[currentEntry]);
         for(int i = 0; i < 4; i++) {
             uint64_t part_size = (gpt_data->entries[currentEntry].ending_lba - gpt_data->entries[currentEntry].starting_lba ) * 512;
-            std::klogf("(hd%u, gpt%u) \tlabel: %l\tsize: %x\n", port_num, currentEntry, gpt_data->entries[currentEntry].parition_name, part_size);
+            Log.v(
+                "AHCI Disks",
+                "(hd%u, gpt%u) \tlabel: %l\tsize: %x", port_num, currentEntry, gpt_data->entries[currentEntry].parition_name, part_size);
             currentEntry++;
             if(gpt_data->entries[currentEntry].starting_lba == 0) return;
         }

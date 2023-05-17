@@ -13,27 +13,7 @@ namespace PCI
 constexpr uint16_t PCI_CONFIG_ADDR = 0xCF8;
 constexpr uint16_t PCI_CONFIG_DATA = 0xCFC;
 
-const char* const pci_classes[]
-{
-    "Unclassifled",
-    "Mass Storage Controller",
-    "Network Controller",
-    "Display Controller",
-    "Multimedia Controller",
-    "Memory Controller",
-    "Bridge",
-    "Simple Communication Controller",
-    "Base System Perhiperal",
-    "Input Device Controller",
-    "Docking Station",
-    "Processor",
-    "Serial Bus Controller",
-    "Wireless Controller",
-    "Intelligent Controller",
-    "Satilite Communication Controller",
-    "Encryption Controller",
-    "Signal Processing Controller",
-};
+const char * pci_tag = "PCI Scanner";
 
 const char* const vendor_ids[]
 {
@@ -116,7 +96,7 @@ void enumerate_function(uint64_t device_addr, uint64_t function)
 
     device_t* dev = (device_t*)pci_func;
 
-    std::klogf("PCI device found: %s %s %s\n", getVendorString(pci_func->vendor_id), getDeviceName(pci_func->vendor_id, pci_func->device_id), pci_classes[pci_func->class_code]);
+    Log.d(pci_tag, "PCI device found: %s %s", getVendorString(pci_func->vendor_id), getDeviceName(pci_func->vendor_id, pci_func->device_id));
     
     if((dev->hdr.header_type & 0xF) == 0x0)
     {
@@ -164,7 +144,6 @@ void enumerate_pci(void)
 
     pci_devices = (device_t**)kcalloc(1, sizeof(device_t*) * 128);
 
-    std::klogf("Scanning PCI bus...\n");
     int entries = ((mcfg->hdr.length) - sizeof(ACPI::MCFG_HDR)) / sizeof(DEVICE_CONFIG);
     for(int i = 0; i < entries; i++)
     {

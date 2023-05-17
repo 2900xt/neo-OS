@@ -1,3 +1,4 @@
+#include "stdlib/stdio.h"
 #include <drivers/acpi/sdt.h>
 #include <stdlib/stdlib.h>
 
@@ -18,7 +19,9 @@ RSDPDescriptor* getRSDP(void)
 
     rsdp = (RSDPDescriptor*)rsdp_request.response->address;
 
-    std::klogf("RSDP at -> 0x%x\n", rsdp);
+    Log.d(
+        kernel_tag,
+        "RSDP at -> 0x%x", rsdp);
 
     return rsdp;
 }

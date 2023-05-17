@@ -12,6 +12,7 @@ static limine::limine_memmap_entry **memory_entries;
 namespace kernel
 {
 
+const char * page_allocator_tag = "Page Alloc";
 
 static page_list_entry_t page_list_head;
 
@@ -100,7 +101,7 @@ void free_pages(void *page)
         {
             if(current_page_entry->memory.type != USED) 
             {
-                std::klogf("Asking to free an unused page!\n");
+                Log.w(page_allocator_tag, "Asking to free an unused page!");
                 return;
             }
             page_entry = current_page_entry;

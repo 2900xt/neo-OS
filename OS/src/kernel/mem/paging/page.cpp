@@ -5,6 +5,7 @@
 
 namespace kernel
 {
+extern const char * page_allocator_tag;
 
 enum PAGE_PROPERTIES
 {
@@ -74,12 +75,12 @@ uint64_t getPhysicalAddress(uint64_t virtualAddr)
     uint64_t pageOffset = (virtualAddr >> PT_BITS_OFFSET) & 0b111111111, physOffset = virtualAddr & 0xFFF;
 
     if(!getPageEntry(virtualAddr, &page)){
-        std::klogf("Page table(s) is not present in memory!\n");
+        Log.e(page_allocator_tag, "Page table(s) is not present in memory!");
         return NULL;
     }
 
     if(~page[pageOffset] & PRESENT){
-        std::klogf("Page is not present in memory!\n");
+        Log.e(page_allocator_tag, "Page is not present in memory!");
         return NULL;
     }
 

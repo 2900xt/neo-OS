@@ -3,6 +3,6 @@
 
 void assert_fail(const char *assertion, const char *file, unsigned int line)
 {
-    std::klogf("Assertion Failed -> %s: in file %s, line %u\n", assertion , file, line);
+    Log.e(kernel_tag, "Assertion Failed -> %s: in file %s, line %u", assertion , file, line);
     for(;;);
 }

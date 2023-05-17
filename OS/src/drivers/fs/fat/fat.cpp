@@ -13,6 +13,8 @@
 namespace FS 
 {
 
+static const char * fat_driver_tag = "FAT Driver";
+
 static bios_param_block *read_bpb(DISK::rw_disk_t *device, int partition)
 {
     uint32_t lba = DISK::get_gpt(device)->entries[partition].starting_lba;
@@ -91,7 +93,7 @@ void *FATPartition::read_entry(fat_dir_entry *file)
     do {
         if(current_cluster == 0x0FFFFFF7)
         {
-            std::klogf("Bad cluster: %u\n", current_cluster);
+            Log.e(fat_driver_tag, "Bad Cluster: %u", current_cluster);
             kernel::free_pages(_buffer);
             return NULL;
         }
@@ -160,7 +162,7 @@ fat_dir_entry *FATPartition::get_file(const char *filepath)
 
         if(current_entry == NULL)
         {
-            std::klogf("F32: FATAL Error: File not found!\n");
+            Log.e(fat_driver_tag, "Unable to read parent directory");
             return NULL;
         }
 
@@ -171,7 +173,7 @@ fat_dir_entry *FATPartition::get_file(const char *filepath)
 
         if(current_entry == NULL)
         {
-            std::klogf("F32: FATAL Error: File not found!\n");
+            Log.e(fat_driver_tag, "Unable to find entry for parent directorys");
             return NULL;
         }
     }
@@ -191,7 +193,7 @@ void *FATPartition::read_file(const char *filepath)
 
     if(!file) 
     {
-        std::klogf("File Does Not Exist! %s\n", filepath);
+        Log.e(fat_driver_tag, "File Does Not Exist! %s\n", filepath);
         return NULL;
     }
 
@@ -199,7 +201,7 @@ void *FATPartition::read_file(const char *filepath)
 
     if(!buf)
     {
-        std::klogf("File Read Error! %s\n", filepath);
+        Log.e(fat_driver_tag, "File Read Error! %s", filepath);
         return NULL;
     }
 
@@ -233,7 +235,9 @@ FATPartition::FATPartition(DISK::rw_disk_t *dev, int partition)
     this->bpb = read_bpb(dev, partition);
     if(bpb->magic_number != 0xAA55)
     {
-        std::klogf("Invalid Magic Number: 0x%x on (hd%u, gpt%u)\n", bpb->magic_number, partition);
+        Log.e(
+            fat_driver_tag,
+            "Invalid Magic Number: 0x%x on (hd%u, gpt%u)", bpb->magic_number, partition);
     }
 
     firstSector = DISK::get_gpt(dev)->entries[partition].starting_lba;
@@ -260,7 +264,9 @@ FATPartition::FATPartition(DISK::rw_disk_t *dev, int partition)
     do {
         if(current_cluster == 0x0FFFFFF7)
         {
-            std::klogf("Bad cluster: %u\n", current_cluster);
+            Log.e(
+                fat_driver_tag,
+                "Bad cluster: %u", current_cluster);
             break;
         }
 

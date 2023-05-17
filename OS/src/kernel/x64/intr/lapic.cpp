@@ -12,6 +12,8 @@ extern uint32_t*                lapic;
 namespace kernel 
 {
 
+static const char * lapic_tag = "LAPIC";
+
 #define APIC_SUPPORTED  (1 << 9)
 #define APIC_ENABLE     (1 << 11)
 
@@ -93,7 +95,7 @@ void enableAPIC(void)
     cpuid(1, &eax, &edx);
     if(!(edx & APIC_SUPPORTED))
     {
-        std::klogf("APIC not supported on this system! (CPUID_ERROR)\n");
+        Log.e(lapic_tag, "APIC not supported on this system! (CPUID_ERROR)");
         for(;;);
     }
 
@@ -106,7 +108,7 @@ void enableAPIC(void)
 
     if(!(rdmsr(0x1B) & APIC_ENABLE))
     {
-        std::klogf("APIC not suported on this system! (MSR_NOT_PRESENT)\n");
+        Log.e(lapic_tag, "APIC not suported on this system! (MSR_NOT_PRESENT)");
         for(;;);
     }
 
@@ -135,7 +137,7 @@ void initAPIC(const uint8_t apicID)
     const uint8_t id = apicReadRegister(LAPIC_ID_REG) >> 24;
     if(id != apicID)
     {
-        std::klogf("APIC ID not matching: given: %u\t sys:%u\n", apicID, id);
+        Log.e(lapic_tag, "APIC ID not matching: given: %u\t sys:%u", apicID, id);
         return;
     }
 
@@ -177,9 +179,6 @@ void initAPIC(const uint8_t apicID)
     //Calculate CPU frequency
 
     cpuFreq *= 16 * 100;
-
-    std::klogf("CPU freq: %u mhz\n", (uint64_t)cpuFreq / 1000000);
-
     cpuFreq /= 16;
     cpuFreq /= 1000;
 

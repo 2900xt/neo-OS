@@ -6,10 +6,12 @@
 
 volatile limine::limine_smp_request smp_request = {LIMINE_SMP_REQUEST, 0};
 
+const char * kernel_scheduler_tag = "Scheduler";
+
 void smp_init(void)
 {
     kernel::initAPIC(smp_request.response->bsp_lapic_id);
-    std::klogf("CPU: %u cores detected\n", smp_request.response->cpu_count);
+    Log.d(kernel_scheduler_tag, "CPU: %u cores detected", smp_request.response->cpu_count);
     for(int i = 1; i < smp_request.response->cpu_count; i++)
     {
         cpu_jump_to(i, (void*)mt_begin);
@@ -40,5 +42,5 @@ void cpu_jump_to(uint8_t pid, void *addr)
         currentCPU++;
     }
 
-    std::klogf("Unable to find CPU #%u!\n", pid);
+    Log.e(kernel_scheduler_tag, "Unable to find CPU #%u!", pid);
 }

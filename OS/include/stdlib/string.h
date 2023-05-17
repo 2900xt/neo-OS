@@ -18,6 +18,7 @@ bool        strcmp(const char* a, const char* b);
 size_t      strclen(const char *src, char term);
 char        toUpper(char c);
 uint64_t    atou(const char *str, uint64_t len);
+char*       dtoa(double number, int max_decimals);
 
 class string 
 {

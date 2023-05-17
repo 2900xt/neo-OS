@@ -51,9 +51,6 @@ void fbuf_init(void)
     framebufferSize =  fbuf_info->width * fbuf_info->bpp / 8.0 + fbuf_info->height * fbuf_info->pitch;
     g_framebuffer1 = (uint32_t*)fbuf_info->address;
     g_framebuffer2 = (uint32_t*)kernel::allocate_pages(framebufferSize / 0x1000  + 1);
-    kernel::map_pages((uint64_t)g_framebuffer2, (uint64_t)g_framebuffer2, framebufferSize / 0x1000  + 1);
-    std::klogf("Sz: 0x%x\n", framebufferSize);
-    fillRect(0, 0, {255, 0, 0}, fbuf_info->width, fbuf_info->height);
 
-    repaintScreen();
+    kernel::map_pages((uint64_t)g_framebuffer2, (uint64_t)g_framebuffer2, framebufferSize / 0x1000  + 1);
 }

@@ -3,6 +3,7 @@
 #include "kernel/mem/paging.h"
 #include "stdlib/stdio.h"
 #include "stdlib/string.h"
+#include "stdlib/timer.h"
 #include "types.h"
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
@@ -13,20 +14,26 @@
 #include <config.h>
 
 extern "C" void __cxa_pure_virtual() { while (1); }
+
+const char * kernel_tag = "NEO-OS Kernel";
+
 void bsp_done(void)
 {
     for (;;)
     {
-        asm volatile ("hlt");
+        call_timers();
     }
 }
 
 // Entry point
+void onTimer()
+{
+    Log.v(kernel_tag, "On Timer");
+}
 
 extern "C" void _start(void)
 {
     std::tty_init();
-    std::klogf("Loading Kernel NEO...\n\n");
     
     kernel::enableSSE();
 
@@ -35,6 +42,8 @@ extern "C" void _start(void)
     heapInit();
 
     kernel::initialize_page_allocator();
+
+    Log.v("Kernel", "Starting Neo-OS:");
     
     fbuf_init();
 
@@ -43,8 +52,10 @@ extern "C" void _start(void)
     kernel::load_drivers();
 
     image *icon = loadImage("/logo.nic");
-    drawImage(icon, 0, 0);
+    drawImage(icon, (fbuf_info->width - icon->w)/ 2, (fbuf_info->height - icon->h)/ 2);
     
     repaintScreen();
     bsp_done();
 }
+
+

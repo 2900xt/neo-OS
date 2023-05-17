@@ -8,11 +8,10 @@
 #include <stdlib/string.h>
 #include <stdlib/stdio.h>
 
-#define trace_vfs(msg) std::klogf("VFS: %s\n", msg)
-
 namespace VFS 
 {
 
+static const char * vfs_tag = "VFS";
 static File root;
 static FS::FATPartition *root_part;
 
@@ -20,7 +19,7 @@ void mount_root(DISK::rw_disk_t *disk, uint64_t partition, filesystem_id fs)
 {
     if(fs != FAT32)
     {
-        trace_vfs("Unable to mount non-FAT32 media as root partition!");
+        Log.e(vfs_tag, "Unable to mount non FAT32 media as root partition");
         return;
     }
 
@@ -52,7 +51,7 @@ File* open(const char *filepath)
     
     if(!fat_file)
     {
-        std::klogf("VFS: Unable to find file: %s\n", filepath);
+        std::klogf("VFS: Unable to find file: %s", filepath);
         return NULL;
     }
     
@@ -81,7 +80,7 @@ void read(File *file, void *buffer)
 {
     if(!file)
     {
-        trace_vfs("Invalid File Pointer!");
+        Log.e(vfs_tag, "Invalid file pointer");
         return;
     }
 
@@ -90,7 +89,7 @@ void read(File *file, void *buffer)
     
     if(!tmpbuf)
     {
-        trace_vfs("File Not Found!");
+        Log.e(vfs_tag, "File not found");
         return;
     }
 

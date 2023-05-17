@@ -10,6 +10,8 @@ namespace DISK
 rw_disk_t *disks[10];
 uint8_t disk_count;
 
+static const char * disk_driver_tag = "Disk Driver";
+
 void write(rw_disk_t *disk, uint32_t starting_lba, uint32_t sector_cnt, void *buffer)
 {
     int status;
@@ -19,13 +21,15 @@ void write(rw_disk_t *disk, uint32_t starting_lba, uint32_t sector_cnt, void *bu
         status = driver->write(starting_lba, sector_cnt, (uint8_t*)buffer);
     } else
     {
-        std::klogf("Unknown Disk Type: %d\nFatal Read Error!\n\n", disk->type);
+        Log.e(
+            disk_driver_tag,
+            "Unknown Disk Type: %u", disk->type);
         return;
     }
 
     if(status != 0)
     {
-        std::klogf("Disk Write Error: %d\n", status);
+        Log.e(disk_driver_tag, "Disk Write Error: %d", status);
     }
 }
 
@@ -38,13 +42,13 @@ void read(rw_disk_t *disk, uint64_t starting_lba, uint32_t sector_cnt, void *buf
         status = driver->read(starting_lba, sector_cnt, (uint8_t*)buffer);
     } else
     {
-        std::klogf("Unknown Disk Type: %d\nFatal Read Error!\n\n", disk->type);
+        Log.e(disk_driver_tag, "Unknown Disk Type: %u", disk->type);
         return;
     }
 
     if(status != 0)
     {
-        std::klogf("Disk Read Error: %d\n", status);
+        Log.e(disk_driver_tag, "Disk Read Error: %d", status);
     }
 }
 
@@ -56,7 +60,7 @@ FS::gpt_part_data *get_gpt(rw_disk_t *disk)
         return driver->get_gpt();
     } else
     {
-        std::klogf("Unknown Disk Type: %d\nUnable to get GPT\n\n", disk->type);
+        Log.e(disk_driver_tag, "Unable to find GPT data - Unknown Disk Type: %u", disk->type);
         return NULL;
     }
 }

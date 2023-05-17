@@ -1,3 +1,6 @@
+#include "stdlib/stdlib.h"
+#include "stdlib/string.h"
+#include <stdarg.h>
 #include <types.h>
 #include <config.h>
 #include <limine/limine.h>
@@ -49,15 +52,14 @@ void putc(char c){
     }
 }
 
-void klogf(const char* fmt, ...){
-    va_list args;
-    va_start(args, fmt);
+static void klogvf(const char* fmt, va_list args){
 
     int currentCharacter = 0;
     bool argFound = false;
 
     char* str;
     uint64_t num;
+    double dec;
 
 
     while(fmt[currentCharacter] != '\0'){
@@ -115,7 +117,16 @@ void klogf(const char* fmt, ...){
                 puts_16(str);
                 argFound = true;
                 break;
-                
+            case 'f':
+            case 'F':
+                dec = va_arg(args, double);
+                str = dtoa(dec, 5);
+                argFound = true;
+
+                puts(str);
+
+                delete[] str;
+                break;
             default:
                 argFound = false;
         }
@@ -127,9 +138,103 @@ void klogf(const char* fmt, ...){
 
         currentCharacter++;
     }
-
-    va_end(args);
+}
 
 }
 
+extern uint64_t millis_since_boot;
+Logger Log;
+
+void Logger::v(const char *source, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    char *seconds = std::dtoa(millis_since_boot / 1000.0, 5);
+    std::puts(seconds);
+    delete []seconds;
+
+    std::puts("\t[Verbose]   ");
+    std::puts(source);
+    int len = std::strlen(source);
+    for(int i = len; i <= 15; i++)
+    {
+        std::putc(' ');
+    }
+
+    std::klogvf(fmt, args);
+
+    std::putc('\n');
+
+    va_end(args);
+}
+
+void Logger::d(const char *source, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    char *seconds = std::dtoa(millis_since_boot / 1000.0, 5);
+    std::puts(seconds);
+    delete []seconds;
+    
+    std::puts("\t[Debug]     ");
+    std::puts(source);
+    int len = std::strlen(source);
+    for(int i = len; i <= 15; i++)
+    {
+        std::putc(' ');
+    }
+
+    std::klogvf(fmt, args);
+    std::putc('\n');
+
+    va_end(args);
+}
+
+void Logger::w(const char *source, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    char *seconds = std::dtoa(millis_since_boot / 1000.0, 5);
+    std::puts(seconds);
+    delete []seconds;
+    
+    std::puts("\t[Warning]   ");
+    std::puts(source);
+    int len = std::strlen(source);
+    for(int i = len; i <= 15; i++)
+    {
+        std::putc(' ');
+    }
+
+    std::klogvf(fmt, args);
+    std::putc('\n');
+
+    va_end(args);
+}
+
+void Logger::e(const char *source, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+   
+    char *seconds = std::dtoa(millis_since_boot / 1000.0, 5);
+    std::puts(seconds);
+    delete []seconds;
+
+    std::puts("\t[Error]     ");
+    std::puts(source);
+    
+    int len = std::strlen(source);
+    for(int i = len; i <= 15; i++)
+    {
+        std::putc(' ');
+    }
+
+    std::klogvf(fmt, args);
+    std::putc('\n');
+
+    va_end(args);
 }

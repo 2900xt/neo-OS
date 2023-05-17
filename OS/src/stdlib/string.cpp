@@ -63,6 +63,7 @@ uint64_t atou(const char *str, uint64_t len)
     return num;
 }
 
+//TODO: Doesn't work
 char *itoa(int64_t val, uint8_t radix)
 {
     for(int i = 0; i < 64; i++){
@@ -95,6 +96,77 @@ char *itoa(int64_t val, uint8_t radix)
     return itoaOutput;
 }
 
+//Remember to delete the value!
+char* dtoa(double number, int dec_cnt) {
+    bool negative = false;
+
+    if (number < 0) {
+        negative = true;
+        number = -number;
+    }
+
+    int intPart = static_cast<int>(number);
+    double fractionalPart = number - intPart;
+
+    const int bufferSize = 64;
+    char* result = new char[bufferSize];
+    char* current = result;
+
+    // Convert the integer part to string
+    if (intPart == 0) {
+        *current++ = '0';
+    } else {
+        while (intPart != 0) {
+            *current++ = '0' + intPart % 10;
+            intPart /= 10;
+        }
+    }
+
+    // Reverse the integer part
+    char* start = result;
+    char* end = current - 1;
+    while (start < end) {
+        char temp = *start;
+        *start++ = *end;
+        *end-- = temp;
+    }
+
+    // Add the decimal point if there is a fractional part
+    if (fractionalPart > 0) {
+        *current++ = '.';
+
+        for (int i = 0; i < dec_cnt; i++) {
+            fractionalPart *= 10;
+            int digit = static_cast<int>(fractionalPart);
+            *current++ = '0' + digit;
+            fractionalPart -= digit;
+        }
+    } 
+    else 
+    {
+        *current++ = '.';
+        for(int i = 0; i < dec_cnt; i++)
+        {
+            *current++ = '0';
+        }
+    }
+
+    // Add the null terminator
+    *current = '\0';
+
+    // Add negative sign if necessary
+    if (negative) {
+        char* temp = new char[current - result + 2];
+        *temp = '-';
+        memcpy(temp + 1, result, current - result + 1);
+        delete[] result;
+        result = temp;
+    }
+
+    return result;
+}
+
+
 char toUpper(char c)
 {
     if(c >= 97)
@@ -104,8 +176,6 @@ char toUpper(char c)
 
     return c;
 }
-
-
 
 bool strcmp(const char* a, const char* b, int count)
 {

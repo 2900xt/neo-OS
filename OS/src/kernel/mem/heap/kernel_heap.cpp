@@ -7,6 +7,8 @@
 
 static volatile limine::limine_hhdm_request hhdm_request = {LIMINE_HHDM_REQUEST, 0};
 
+static const char * heap_tag = "Kernel Heap";
+
 uint64_t getHHDM(void) { return hhdm_request.response->offset; }
 int avalibleMemoryRegionsCount = 0;
 uint64_t heapOffset, 
@@ -31,8 +33,6 @@ void heapInit(void) {
   memoryBitmap[0] = BORDER;
 
   heapOffset += heapBlksize;
-
-  std::klogf("Starting kernel heap at: 0x%x\tWith length: 0x%x\n", heapOffset, heapBlksize * heapBlkcount);
 }
 
 void *kmalloc(uint64_t size) {
@@ -159,7 +159,7 @@ void kfree(void *ptr) {
 
 ERROR:
 
-  std::klogf("Invalid Heap Pointer: %x\n", ptr);
+  Log.e(heap_tag, "Invalid Heap Pointer: %x", ptr);
 }
 
 void *krealloc(void *old_ptr, uint64_t size) {

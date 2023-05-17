@@ -18,8 +18,9 @@ void evaluateMADTEntry(ACPI::MADT_ENTRY_HDR* const tableEntry)
         case 0: //Processor local APIC
             local_apics[lapicCount] = (LAPIC_ENTRY*)tableEntry;
 
-            std::klogf(
-            "LAPIC found -> PID: %u APIC ID: %u\n",
+            Log.v(
+            kernel_tag,
+            "LAPIC found -> PID: %u APIC ID: %u",
             local_apics[lapicCount]->processor_id,
             local_apics[lapicCount]->apic_id
             );
@@ -29,8 +30,9 @@ void evaluateMADTEntry(ACPI::MADT_ENTRY_HDR* const tableEntry)
         case 1:
             ioapic = (IOAPIC_ENTRY*)tableEntry;
 
-            std::klogf(
-            "IOAPIC found -> addr 0x%x ID: %u\n",
+            Log.v(
+            kernel_tag,
+            "IOAPIC found -> addr 0x%x ID: %u",
             ioapic->ioapic_base,
             ioapic->ioapic_id
             );
