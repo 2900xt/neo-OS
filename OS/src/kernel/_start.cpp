@@ -26,9 +26,27 @@ void bsp_done(void)
 }
 
 // Entry point
-void onTimer()
+
+image *logo;
+int dx, dy, x, y;
+void logoAnimation()
 {
-    Log.v(kernel_tag, "On Timer");
+    drawImage(logo, x, y);
+
+    if(x < 5 || (x + logo->w) > (fbuf_info->width - 10))
+    {
+        dx *= -1;
+    }
+
+    if(y < 5 || (y + logo->h) > (fbuf_info->height - 10))
+    {
+        dy *= -1;
+    }
+
+    x += dx;
+    y += dy;
+
+    repaintScreen();
 }
 
 extern "C" void _start(void)
@@ -51,8 +69,13 @@ extern "C" void _start(void)
 
     kernel::load_drivers();
 
-    image *icon = loadImage("/logo.nic");
-    drawImage(icon, (fbuf_info->width - icon->w)/ 2, (fbuf_info->height - icon->h)/ 2);
+    logo = loadImage("/logo.nic");
+    x = (fbuf_info->width - logo->w)/ 2;
+    y = (fbuf_info->height - logo->h)/ 2;
+    dx = 5;
+    dy = 5;
+
+    register_timer(&logoAnimation, 50);
     
     repaintScreen();
     bsp_done();

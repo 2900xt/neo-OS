@@ -21,6 +21,8 @@ uint64_t framebufferSize;
 void repaintScreen()
 {
     memcpy(g_framebuffer1, g_framebuffer2, framebufferSize);
+    fillRect(0, 0, {45, 45, 45}, fbuf_info->width, fbuf_info->height);
+    fillRect(5, 5, {0, 0, 0}, fbuf_info->width - 10, fbuf_info->height - 10);
 }
 
 limine::limine_framebuffer *fbuf_info;
