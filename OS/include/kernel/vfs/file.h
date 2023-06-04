@@ -1,6 +1,5 @@
 #pragma once
 #include <stdlib/string.h>
-#include "drivers/fs/fat/fat.h"
 #include "drivers/disk/disk_driver.h"
 #include <types.h>
 
@@ -31,7 +30,7 @@ enum file_permissions : uint8_t
 
 enum filesystem_id : uint64_t 
 {
-    FAT32    = 0xFA5432,
+    FAT32    = 0xF32,
 };
 
 struct fsinfo_t
@@ -39,6 +38,7 @@ struct fsinfo_t
     uint64_t drive_number;
     uint64_t volume_number;
     uint64_t filesystem_id;
+    uint64_t first_cluster;
 };
 
 struct File 
@@ -49,24 +49,30 @@ struct File
     uint8_t filetype;
     uint8_t permissions;
     uint64_t file_size;
+    
+    uint16_t    last_write_time;
+    uint16_t    last_write_date;
+    uint16_t    time_created;
+    uint16_t    date_created;
+    uint16_t    last_access_date;
 
-// Parent Dir
+    /* Parent Dir */
     File *parent;
 
-// Contemporary Dir
+    /* Contemporary Dir */
     File *next;
     File *prev;
 
-// Child directoriess
+    /* Child directoriess */
     File *child;
 
-    fsinfo_t fsinfo; 
+    /* Disk information */
+    fsinfo_t fsinfo;
 };
 
 void mount_root(DISK::rw_disk_t *disk, uint64_t partition, filesystem_id fs);
-FS::FATPartition *get_root_part();
 File *get_root();
-File* open(const char *filepath);
+File *open(const char *filepath);
 void read(File *file, void *buffer);
 
 }

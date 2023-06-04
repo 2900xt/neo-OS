@@ -5,6 +5,7 @@
 #include <config.h>
 #include <limine/limine.h>
 #include <stdlib/stdlib.h>
+#include <stdlib/lock.h>
 #include <drivers/serial/serial.h>
 
 static volatile limine::limine_terminal_request terminal_request = {LIMINE_TERMINAL_REQUEST, 0};
@@ -31,113 +32,129 @@ void tty_init(void)
     serial_output = SERIAL_OUTPUT_ENABLE;
 }
 
-void puts(const char *src){
+void puts(const char *src)
+{
     write(console, src, strlen(src));
 }
 
 //Print unicode-16
-void puts_16(const char *src)
+void puts_16(uint16_t *src)
 {
-    while(*src != '\0')
+    while(*src++)
     {
-        putc(*src);
-        src += 2;
+        putc(*((char*)src));
+        src++;
     }
 }
 
-void putc(char c){
+void putc(char c)
+{
     write(console, &c, 1);
-    if(serial_output && c == '\n') {
+    if(c == '\n') 
+    {
         putc('\r');
     }
 }
 
-static void klogvf(const char* fmt, va_list args){
+static struct klog_state_t
+{
+    void       *token;
+    uint64_t    num;
+    double      dec;
 
-    int currentCharacter = 0;
-    bool argFound = false;
+    int         current;
+    bool        argFound;
+    spinlock_t  lock = false;
+} klog_state;
 
-    char* str;
-    uint64_t num;
-    double dec;
+static void klogvf(const char* fmt, va_list args)
+{
+    acquire_spinlock(&klog_state.lock);
 
+    klog_state.current = 0;
+    klog_state.argFound = false;
 
-    while(fmt[currentCharacter] != '\0'){
+    while(fmt[klog_state.current] != '\0')
+    {
     
-        if(fmt[currentCharacter] != '%'){
-            putc(fmt[currentCharacter++]);
+        if(fmt[klog_state.current] != '%')
+        {
+            putc(fmt[klog_state.current++]);
             continue;
         }
 
-        switch(fmt[currentCharacter + 1])
+        switch(fmt[klog_state.current + 1])
         {
             case 'c':   //Char
             case 'C':
-                argFound = true;
-                num = va_arg(args, int);
-                putc(num);
+                klog_state.argFound = true;
+                klog_state.num = va_arg(args, int);
+                putc(klog_state.num);
                 break;
             case 's':   //String
             case 'S':
-                argFound = true;
-                str = va_arg(args, char*);
-                puts(str);
+                klog_state.argFound = true;
+                klog_state.token = va_arg(args, void*);
+                puts((char*)klog_state.token);
                 break;
             case 'u':   //Unsigned Integer
             case 'U':
-                argFound = true;
-                num = va_arg(args, uint64_t);
-                str = utoa(num, 10);
-                puts(str);
+                klog_state.argFound = true;
+                klog_state.num = va_arg(args, uint64_t);
+                klog_state.token = utoa(klog_state.num, 10);
+                puts((char*)klog_state.token);
                 break;
             case 'd':
             case 'D':   //Signed integer
-                argFound = true;
-                num = va_arg(args, int64_t);
-                str = itoa(num, 10);
-                puts(str);
+                klog_state.argFound = true;
+                klog_state.num = va_arg(args, int64_t);
+                klog_state.token = itoa(klog_state.num, 10);
+                puts((char*)klog_state.token);
                 break;
             case 'x':   //Hexadecimal unsigned int
             case 'X':
-                argFound = true;
-                num = va_arg(args, uint64_t);
-                str = utoa(num, 16);
-                puts(str);
+                klog_state.argFound = true;
+                klog_state.num = va_arg(args, uint64_t);
+                klog_state.token = utoa(klog_state.num, 16);
+                puts((char*)klog_state.token);
                 break;
             case 'b':   //Binary
             case 'B':
-                argFound = true;
-                num = va_arg(args, uint64_t);
-                str = utoa(num, 2);
-                puts(str);
+                klog_state.argFound = true;
+                klog_state.num = va_arg(args, uint64_t);
+                klog_state.token = utoa(klog_state.num, 2);
+                puts((char*)klog_state.token);
                 break;
             case 'l':
-            case 'L':
-                str = va_arg(args, char*);
-                puts_16(str);
-                argFound = true;
+            case 'L':   //UTF-16 string
+                klog_state.token = va_arg(args, uint16_t*);
+                puts_16((uint16_t*)klog_state.token);
+                klog_state.argFound = true;
                 break;
             case 'f':
             case 'F':
-                dec = va_arg(args, double);
-                str = dtoa(dec, 5);
-                argFound = true;
+                klog_state.dec = va_arg(args, double);
+                klog_state.token = dtoa(klog_state.dec, 5);
+                klog_state.argFound = true;
 
-                puts(str);
+                puts((char*)klog_state.token);
 
-                delete[] str;
+                kfree(klog_state.token);
                 break;
             default:
-                argFound = false;
+                klog_state.argFound = false;
         }
 
-        if(argFound){
-            currentCharacter += 2;
+        if(klog_state.argFound)
+        {
+            klog_state.current += 2;
             continue;
         }
 
-        currentCharacter++;
+        klog_state.current++;
     }
+
+    release_spinlock(&klog_state.lock);
 }
 
 }

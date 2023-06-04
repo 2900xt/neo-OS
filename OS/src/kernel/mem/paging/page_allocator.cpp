@@ -4,6 +4,7 @@
 #include <types.h>
 #include <kernel/mem/paging.h>
 #include <kernel/mem/mem.h>
+#include <stdlib/lock.h>
 
 
 static volatile limine::limine_memmap_request memmap_request = {LIMINE_MEMMAP_REQUEST, 0};
@@ -18,8 +19,11 @@ static page_list_entry_t page_list_head;
 
 static constexpr uint64_t page_sz = 0x1000;
 
+static spinlock_t pa_lock = SPIN_UNLOCKED;
+
 void initialize_page_allocator()
 {
+    acquire_spinlock(&pa_lock);
     memory_entries = memmap_request.response->entries;
     page_list_entry_t *current_page_entry = &page_list_head;
     for(int i = 0; i < memmap_request.response->entry_count; i++)
@@ -33,10 +37,13 @@ void initialize_page_allocator()
         current_page_entry->next->prev = current_page_entry;
         current_page_entry = current_page_entry->next;
     }
+
+    release_spinlock(&pa_lock);
 }
 
 void *allocate_pages(uint64_t requested_count)
 {
+    acquire_spinlock(&pa_lock);
     for(page_list_entry_t *current_page_entry = &page_list_head; current_page_entry != NULL; current_page_entry = current_page_entry->next)
     {
         if(current_page_entry->memory.type == FREE)                     //We can only give FREE memory regions
@@ -44,6 +51,7 @@ void *allocate_pages(uint64_t requested_count)
             if(current_page_entry->memory.size == requested_count)      //No need to insert a page
             {
                 current_page_entry->memory.type = USED;
+                release_spinlock(&pa_lock);
                 return (void*)current_page_entry->memory.start;
             }
             if(current_page_entry->memory.size > requested_count)       //Insert a new page in between the list
@@ -62,11 +70,13 @@ void *allocate_pages(uint64_t requested_count)
                 new_entry->memory.start = current_page_entry->memory.start + current_page_entry->memory.size * page_sz;
                 new_entry->memory.type = USED;
 
+                release_spinlock(&pa_lock);
                 return (void*)new_entry->memory.start;
             }
         }
     }
-
+    
+    release_spinlock(&pa_lock); 
     return NULL;
 }
 
@@ -90,6 +100,7 @@ void combine_segments(page_list_entry_t *a, page_list_entry_t *b)
 
 void free_pages(void *page)
 {
+    acquire_spinlock(&pa_lock);
     uint64_t start_addr = (uint64_t)page;
     assert(start_addr % page_sz == 0);
 
@@ -102,6 +113,7 @@ void free_pages(void *page)
             if(current_page_entry->memory.type != USED) 
             {
                 Log.w(page_allocator_tag, "Asking to free an unused page!");
+                release_spinlock(&pa_lock);
                 return;
             }
             page_entry = current_page_entry;
@@ -116,7 +128,8 @@ void free_pages(void *page)
     if(page_entry->prev->memory.type == FREE)
     {
         combine_segments(page_entry, page_entry->prev);
-    } 
+    }
+    release_spinlock(&pa_lock);
 }
 
 };

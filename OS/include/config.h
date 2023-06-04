@@ -1,4 +1,4 @@
-#define SERIAL_OUTPUT_ENABLE 1
+#define SERIAL_OUTPUT_ENABLE 0
 
 namespace kernel
 {

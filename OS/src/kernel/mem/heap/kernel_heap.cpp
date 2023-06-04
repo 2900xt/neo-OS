@@ -4,9 +4,9 @@
 #include "types.h"
 #include <stdlib/stdlib.h>
 #include <kernel/mem/mem.h>
+#include <stdlib/lock.h>
 
 static volatile limine::limine_hhdm_request hhdm_request = {LIMINE_HHDM_REQUEST, 0};
-
 static const char * heap_tag = "Kernel Heap";
 
 uint64_t getHHDM(void) { return hhdm_request.response->offset; }
@@ -21,12 +21,15 @@ enum MEMORY_TYPES { FREE = 0, USED = 1, BORDER = 2 };
 //TODO : Move the heap into a dynamically allocated page
 //TODO : Fix bug with bitmap overwriting the memory
 
-void heapInit(void) {
+spinlock_t heap_lock = SPIN_UNLOCKED;
+
+void heapInit(void) 
+{
   // Heap offset = Higher half address + offset + bitmap size(blkcount)
 
-  heapOffset = getHHDM() + 0x100000;
+  heapOffset = getHHDM() + 0x10000;
 
-  // Bitmap is gonna be located at the start of the heap, with the bitmap being
+  // Bitmap is to be located at the start of the heap, with the bitmap being
   // the size of the heap block count
 
   memoryBitmap = (uint8_t *)heapOffset;
@@ -35,8 +38,9 @@ void heapInit(void) {
   heapOffset += heapBlksize;
 }
 
-void *kmalloc(uint64_t size) {
-
+void *kmalloc(uint64_t size) 
+{
+  acquire_spinlock(&heap_lock);
   // Convert Bytes into heap blocks
 
   uint16_t remainder = size % heapBlksize;
@@ -79,7 +83,8 @@ void *kmalloc(uint64_t size) {
   }
 
   // Not enough memory
-
+  release_spinlock(&heap_lock);
+  Log.e(heap_tag, "Requested size exceeds remaining heap size");
   return NULL;
 
 blockFound:
@@ -105,6 +110,7 @@ blockFound:
 
   memoryAddr += currentIndex * heapBlksize;
 
+  release_spinlock(&heap_lock);
   return (void *)memoryAddr;
 }
 
@@ -122,6 +128,7 @@ void *kcalloc(uint64_t count, uint64_t size) {
 
 void kfree(void *ptr) {
 
+  acquire_spinlock(&heap_lock);
   // Get the index into the bitmap
 
   uint64_t bitmapIndex = (uint64_t)ptr - heapOffset;
@@ -155,11 +162,13 @@ void kfree(void *ptr) {
     memoryBitmap[bitmapIndex] = FREE;
   }
 
+  release_spinlock(&heap_lock);
   return;
 
 ERROR:
 
   Log.e(heap_tag, "Invalid Heap Pointer: %x", ptr);
+  release_spinlock(&heap_lock);
 }
 
 void *krealloc(void *old_ptr, uint64_t size) {

@@ -15,28 +15,12 @@ void evaluateMADTEntry(ACPI::MADT_ENTRY_HDR* const tableEntry)
 {
     switch (tableEntry->entryType)
     {
-        case 0: //Processor local APIC
+        case 0:     //Processor local APIC
             local_apics[lapicCount] = (LAPIC_ENTRY*)tableEntry;
-
-            Log.v(
-            kernel_tag,
-            "LAPIC found -> PID: %u APIC ID: %u",
-            local_apics[lapicCount]->processor_id,
-            local_apics[lapicCount]->apic_id
-            );
-
             lapicCount++;
             break;
-        case 1:
+        case 1:     //External IO-APIC
             ioapic = (IOAPIC_ENTRY*)tableEntry;
-
-            Log.v(
-            kernel_tag,
-            "IOAPIC found -> addr 0x%x ID: %u",
-            ioapic->ioapic_base,
-            ioapic->ioapic_id
-            );
-
             break;
         default:
             break;

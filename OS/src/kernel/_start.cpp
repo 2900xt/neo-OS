@@ -13,9 +13,7 @@
 #include <kernel/smp.h>
 #include <config.h>
 
-extern "C" void __cxa_pure_virtual() { while (1); }
-
-const char * kernel_tag = "NEO-OS Kernel";
+const char * kernel_tag = "Kernel";
 
 void bsp_done(void)
 {
@@ -25,29 +23,6 @@ void bsp_done(void)
     }
 }
 
-// Entry point
-
-image *logo;
-int dx, dy, x, y;
-void logoAnimation()
-{
-    drawImage(logo, x, y);
-
-    if(x < 5 || (x + logo->w) > (fbuf_info->width - 10))
-    {
-        dx *= -1;
-    }
-
-    if(y < 5 || (y + logo->h) > (fbuf_info->height - 10))
-    {
-        dy *= -1;
-    }
-
-    x += dx;
-    y += dy;
-
-    repaintScreen();
-}
 
 extern "C" void _start(void)
 {
@@ -61,7 +36,7 @@ extern "C" void _start(void)
 
     kernel::initialize_page_allocator();
 
-    Log.v("Kernel", "Starting Neo-OS:");
+    Log.v(kernel_tag, "Starting Neo-OS:");
     
     fbuf_init();
 
@@ -69,16 +44,5 @@ extern "C" void _start(void)
 
     kernel::load_drivers();
 
-    logo = loadImage("/logo.nic");
-    x = (fbuf_info->width - logo->w)/ 2;
-    y = (fbuf_info->height - logo->h)/ 2;
-    dx = 5;
-    dy = 5;
-
-    register_timer(&logoAnimation, 50);
-    
-    repaintScreen();
     bsp_done();
 }
-
-

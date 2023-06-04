@@ -3,7 +3,8 @@
 
 //Misc memory functionss
 
-void memset_64(void* _addr, uint64_t num, uint64_t value){
+void memset_64(void* _addr, uint64_t num, uint64_t value)
+{
 
     //Round up!
 
@@ -22,7 +23,8 @@ void memset_64(void* _addr, uint64_t num, uint64_t value){
     }
 }
 
-void memset_8(void* _addr, uint64_t num, uint8_t value){
+void memset_8(void* _addr, uint64_t num, uint8_t value)
+{
     uint8_t* addr = (uint8_t*)_addr;
 
     for(int i = 0; i < num; i++){
@@ -30,11 +32,13 @@ void memset_8(void* _addr, uint64_t num, uint8_t value){
     }
 }
 
-void memcpy(void* _destination, const void* _src, uint64_t num){
+void memcpy(void* _destination, const void* _src, uint64_t num)
+{
     uint8_t* destPtr = (uint8_t*)_destination;
     uint8_t* srcPtr = (uint8_t*)_src;
 
-    for(int i = 0; i < num; i++){
+    for(int i = 0; i < num; i++)
+    {
         destPtr[i] = srcPtr[i];
     }
 }

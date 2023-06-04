@@ -9,11 +9,14 @@
 #include <types.h>
 #include <drivers/fs/fat/fat.h>
 #include <drivers/disk/disk_driver.h>
+#include <kernel/vfs/file.h>
 
 namespace FS 
 {
 
 static const char * fat_driver_tag = "FAT Driver";
+static constexpr int MAX_FILENAME_LENGTH = 11;
+
 
 static bios_param_block *read_bpb(DISK::rw_disk_t *device, int partition)
 {
@@ -23,8 +26,6 @@ static bios_param_block *read_bpb(DISK::rw_disk_t *device, int partition)
     DISK::read(device, lba, 1, data);
     return data;
 }
-
-#define MAX_FILENAME_LENGTH 11
 
 void format_filename(const char *src, char *dest)
 {
@@ -283,6 +284,62 @@ FATPartition::~FATPartition()
     kernel::free_pages(fat);
     kernel::free_pages(bpb);
     kernel::free_pages(root_dir);
+}
+
+void FATPartition::convert_to_vfs(VFS::File *out, fat_dir_entry* in)
+{
+    out->file_size = in->file_size;
+    out->last_write_time = in->last_write_time;
+    out->last_write_date = in->last_access_date;
+    out->time_created = in->time_created;
+    out->date_created = in->date_created;
+    out->last_access_date = in->last_access_date;
+
+    out->fsinfo.drive_number = this->dev->disk_number;
+    out->fsinfo.filesystem_id = VFS::FAT32;
+    out->fsinfo.volume_number = this->parition;
+    out->fsinfo.first_cluster = (in->first_cluster_h << 16) | (in->first_cluster_l);
+}
+
+VFS::File *FATPartition::mount_fs()
+{
+    /* Create the root file */
+    VFS::File *root = new VFS::File;
+
+    root->fsinfo.drive_number = this->dev->disk_number;
+    root->fsinfo.filesystem_id = VFS::FAT32;
+    root->fsinfo.volume_number = this->parition;
+
+    /* Iterate through root directory */
+    VFS::File *current_child;
+    fat_dir_entry *current_file = this->root_dir;
+    while (true) 
+    {
+        if((uint8_t)current_file->dir_name[0] == 0xE5 || current_file->dir_attrib == 0x0F)      //Unused entry  or Long file name
+        {
+            current_file++;
+            continue;
+        }
+
+        if(current_file->dir_name[0] == 0x00)                                                   //Reaced end of directory
+        {
+            break;
+        }
+
+        VFS::File *prev = current_child;
+        current_child  = new VFS::File;
+        current_child->prev = prev;
+        if(prev != NULL)
+        {
+            prev->next = current_child;
+        }
+
+        convert_to_vfs(current_child, current_file);
+
+        current_file ++;
+    }
+
+    root->child = current_child;
 }
 
 }

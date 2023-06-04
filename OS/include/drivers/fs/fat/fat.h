@@ -1,7 +1,7 @@
-
 #pragma once
 #include "drivers/disk/ahci/ahci.h"
 #include "drivers/disk/disk_driver.h"
+#include <kernel/vfs/file.h>
 #include <types.h>
 
 namespace FS
@@ -99,14 +99,13 @@ class FATPartition
 public:
 
     FATPartition(DISK::rw_disk_t *dev, int parition);
-
     ~FATPartition();
-
     void *read_file(const char *filename);
     void *read_entry(fat_dir_entry *file);
     fat_dir_entry *get_file(const char *filepath);
-
     void create_file(const char *parent_dir_path, const char *filename, uint8_t attrib);
+    void convert_to_vfs(VFS::File *out, fat_dir_entry* in);
+    VFS::File *mount_fs();
 
 private:
 

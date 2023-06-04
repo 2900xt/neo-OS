@@ -5,11 +5,9 @@
 namespace ACPI 
 {
 
-volatile struct limine::limine_rsdp_request const rsdp_request = { LIMINE_RSDP_REQUEST, 0 };
+volatile struct limine::limine_rsdp_request rsdp_request = { LIMINE_RSDP_REQUEST, 0};
 
-RSDPDescriptor* rsdp;
-
-void const* fadt;
+static RSDPDescriptor* rsdp;
 
 RSDPDescriptor* getRSDP(void)
 {
@@ -18,11 +16,6 @@ RSDPDescriptor* getRSDP(void)
     }
 
     rsdp = (RSDPDescriptor*)rsdp_request.response->address;
-
-    Log.d(
-        kernel_tag,
-        "RSDP at -> 0x%x", rsdp);
-
     return rsdp;
 }
 
@@ -35,7 +28,7 @@ void* findACPITable(const char* signature)
     const int entryCount = (xsdt->hdr.length - sizeof(xsdt->hdr)) / 8;
 
     for(int i = 0; i < entryCount; i++){
-      SDT_HEADER *const h = (SDT_HEADER*) xsdt->ptr[i];
+        SDT_HEADER *const h = (SDT_HEADER*) xsdt->ptr[i];
         if(std::strcmp(h->signature, signature, len)){         
            return (void*)h; 
         }

@@ -11,15 +11,16 @@ namespace std
 extern limine::limine_terminal* console;
 extern limine::limine_terminal_write write;
 void        puts(const char*);
-void        puts_16(const char*);
+void        puts_16(uint16_t*);
 void        putc(char);
-void        tty_init(void);
+void        tty_init(void);;
 
 [[gnu::deprecated]]
 inline void klogf(...)
 {
     return;
 }
+
 }
 
 //Serial Kernel Logger
