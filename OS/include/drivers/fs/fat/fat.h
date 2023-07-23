@@ -7,7 +7,7 @@
 namespace FS
 {
 
-enum class F32_ATTRIB : uint8_t
+enum F32_ATTRIB : uint8_t
 {
     READ_ONLY   = 0x1,  //Writes to this file should fail
     HIDDEN      = 0x2,  //Normal directory listings shouldn't show this file
@@ -100,23 +100,21 @@ public:
 
     FATPartition(DISK::rw_disk_t *dev, int parition);
     ~FATPartition();
-    void *read_file(const char *filename);
+
+
     void *read_entry(fat_dir_entry *file);
-    fat_dir_entry *get_file(const char *filepath);
-    void create_file(const char *parent_dir_path, const char *filename, uint8_t attrib);
-    void convert_to_vfs(VFS::File *out, fat_dir_entry* in);
     VFS::File *mount_fs();
 
 private:
 
-
     uint32_t get_next_cluster(int current_cluster);
-
     fat_dir_entry *search_dir(fat_dir_entry *first_entry, const char *filename);
-
     int format_path(const char *_filepath, char **filepath);
-
     fat_dir_entry *get_directory(const char *filepath);
+    void convert_to_vfs(VFS::File *out, fat_dir_entry* in);
+    fat_dir_entry *get_file(const char *filepath);
+
+    void mount_dir(fat_dir_entry *first_entry, VFS::File *parent);
 };
 
 

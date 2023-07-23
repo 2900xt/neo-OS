@@ -17,6 +17,27 @@ namespace FS
 static const char * fat_driver_tag = "FAT Driver";
 static constexpr int MAX_FILENAME_LENGTH = 11;
 
+struct long_file_name
+{
+    /*The order of this entry in the sequence of long file names*/
+    uint8_t index;
+
+    uint16_t data1[5];
+
+    /* Always equal to 0x0F */
+    uint8_t attrib;
+
+    uint8_t entry_type;
+
+    uint8_t checksum;
+
+    uint16_t data2[6];
+
+    uint16_t zero;
+
+    uint16_t data3[2];
+}__attribute__((packed));
+
 
 static bios_param_block *read_bpb(DISK::rw_disk_t *device, int partition)
 {
@@ -188,47 +209,6 @@ fat_dir_entry *FATPartition::get_file(const char *filepath)
     return current_entry;
 }
 
-void *FATPartition::read_file(const char *filepath)
-{
-    fat_dir_entry *file = get_file(filepath);
-
-    if(!file) 
-    {
-        Log.e(fat_driver_tag, "File Does Not Exist! %s\n", filepath);
-        return NULL;
-    }
-
-    void *buf = read_entry(file);
-
-    if(!buf)
-    {
-        Log.e(fat_driver_tag, "File Read Error! %s", filepath);
-        return NULL;
-    }
-
-    return buf;
-}
-
-void FATPartition::create_file(const char *parent_dir_path, const char *filename, uint8_t attrib)
-{
-    fat_dir_entry *parent_dir = get_file(parent_dir_path);
-    parent_dir = (fat_dir_entry*)read_entry(parent_dir);
-    
-    //Go to the end of the parent dir
-    while(parent_dir->dir_name[0] != 0x00)
-    {
-        parent_dir++;
-    }
-
-    char *fmt_filename = new char[MAX_FILENAME_LENGTH];
-
-    //Create a new entry
-    parent_dir->dir_attrib = attrib;
-
-    delete[] fmt_filename;
-    
-}
-
 FATPartition::FATPartition(DISK::rw_disk_t *dev, int partition)
 {
     this->dev = dev;
@@ -258,7 +238,7 @@ FATPartition::FATPartition(DISK::rw_disk_t *dev, int partition)
 
     //Read the root directory
     root_dir = (fat_dir_entry*)kernel::allocate_pages(5);
-    mmap(root_dir, root_dir);
+    kernel::map_pages((uint64_t)root_dir, (uint64_t)root_dir, 5);
     fat_dir_entry *buf = root_dir;
     uint32_t current_cluster = firstDataSector;
     rootDirSize = 0;
@@ -301,18 +281,11 @@ void FATPartition::convert_to_vfs(VFS::File *out, fat_dir_entry* in)
     out->fsinfo.first_cluster = (in->first_cluster_h << 16) | (in->first_cluster_l);
 }
 
-VFS::File *FATPartition::mount_fs()
+void FATPartition::mount_dir(fat_dir_entry *first_entry, VFS::File *parent)
 {
-    /* Create the root file */
-    VFS::File *root = new VFS::File;
-
-    root->fsinfo.drive_number = this->dev->disk_number;
-    root->fsinfo.filesystem_id = VFS::FAT32;
-    root->fsinfo.volume_number = this->parition;
-
-    /* Iterate through root directory */
+    /* Iterate through directory */
     VFS::File *current_child;
-    fat_dir_entry *current_file = this->root_dir;
+    fat_dir_entry *current_file = first_entry;
     while (true) 
     {
         if((uint8_t)current_file->dir_name[0] == 0xE5 || current_file->dir_attrib == 0x0F)      //Unused entry  or Long file name
@@ -326,20 +299,53 @@ VFS::File *FATPartition::mount_fs()
             break;
         }
 
+        Log.v("VFS", "Mounting file: %s", current_file->dir_name);
+        if(
+            std::strcmp(current_file->dir_name, ". ", 2) || 
+            std::strcmp(current_file->dir_name, ".. ", 3)
+        )
+        {
+            current_file++;
+            continue;
+        }
+        
+
         VFS::File *prev = current_child;
         current_child  = new VFS::File;
+        convert_to_vfs(current_child, current_file);
+        current_child->parent = parent;
         current_child->prev = prev;
         if(prev != NULL)
         {
-            prev->next = current_child;
+            //sprev->next= current_child;
         }
 
-        convert_to_vfs(current_child, current_file);
+        if (current_file->dir_attrib & F32_ATTRIB::DIRECTORY)
+        {
+            /*Recursively mount directories*/
+            fat_dir_entry *first_entry = (fat_dir_entry*)this->read_entry(current_file);
+            mount_dir(first_entry, current_child);
+            kernel::free_pages(first_entry);
+        }
 
-        current_file ++;
+
+        current_file++;
     }
 
-    root->child = current_child;
+    parent->child = current_child;
+}
+
+VFS::File *FATPartition::mount_fs()
+{
+    /* Create the root file */
+    VFS::File *root = new VFS::File;
+
+    root->fsinfo.drive_number = this->dev->disk_number;
+    root->fsinfo.filesystem_id = VFS::FAT32;
+    root->fsinfo.volume_number = this->parition;
+
+    mount_dir(root_dir, root);
+    return root;
 }
 
 }
