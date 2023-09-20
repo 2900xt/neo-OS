@@ -13,15 +13,11 @@ namespace VFS
 
 static const char * vfs_tag = "VFS";
 static File *root;
+static 
+
 void mount_root(DISK::rw_disk_t *disk, uint64_t partition, filesystem_id fs)
 {
-    if(fs != FAT32)
-    {
-        Log.e(vfs_tag, "Unable to mount non FAT32 media as root partition");
-        return;
-    }
-    FS::FATPartition *root_part = new FS::FATPartition(disk, partition);
-    root = root_part->mount_fs();
+
 }
 
 File *get_root()
@@ -34,15 +30,14 @@ File* open(const char *filepath)
 
 }
 
-const char* get_file_path(File *file)
-{
-
-}
-
 void read(File *file, void *buffer)
 {
     
 }
 
+const char* get_file_path(File *file)
+{
+
+}
 
 }

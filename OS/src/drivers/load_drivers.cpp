@@ -14,7 +14,6 @@ void load_drivers()
 
     PCI::enumerate_pci();
     DISK::ahci_init();
-    VFS::mount_root(DISK::disks[0], 0, VFS::FAT32);
 }
 
 }

@@ -76,6 +76,27 @@ struct fat_dir_entry
 
 }__attribute__((packed));
 
+struct long_file_name
+{
+    /*The order of this entry in the sequence of long file names*/
+    uint8_t index;
+
+    uint16_t data1[5];
+
+    /* Always equal to 0x0F */
+    uint8_t attrib;
+
+    uint8_t entry_type;
+
+    uint8_t checksum;
+
+    uint16_t data2[6];
+
+    uint16_t zero;
+
+    uint16_t data3[2];
+}__attribute__((packed));
+
 class FATPartition
 {
 
