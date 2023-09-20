@@ -4,6 +4,8 @@
 #include <kernel/x64/intr/apic.h>
 #include <kernel/smp.h>
 
+namespace kernel {
+
 volatile limine::limine_smp_request smp_request = {LIMINE_SMP_REQUEST, 0};
 
 const char * kernel_scheduler_tag = "Scheduler";
@@ -43,4 +45,13 @@ void cpu_jump_to(uint8_t pid, void *addr)
     }
 
     Log.e(kernel_scheduler_tag, "Unable to find CPU #%u!", pid);
+}
+
+
+void panic()
+{
+    asm("cli");
+    asm("hlt");
+}
+
 }

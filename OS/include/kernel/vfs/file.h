@@ -70,6 +70,7 @@ struct File
     fsinfo_t fsinfo;
 };
 
+void vfs_init();
 void mount_root(DISK::rw_disk_t *disk, uint64_t partition, filesystem_id fs);
 File *get_root();
 File *open(const char *filepath);

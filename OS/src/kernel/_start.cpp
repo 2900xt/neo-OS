@@ -24,6 +24,7 @@ void bsp_done(void)
 }
 
 
+
 extern "C" void _start(void)
 {
     std::tty_init();
@@ -38,9 +39,9 @@ extern "C" void _start(void)
 
     Log.v(kernel_tag, "Starting Neo-OS:");
     
-    fbuf_init();
+    VGA::fbuf_init();
 
-    smp_init();
+    kernel::smp_init();
 
     kernel::load_drivers();
 

@@ -17,6 +17,7 @@ override CROSSFLAGS +=   \
 	-fno-exceptions      \
 	-ffreestanding       \
 	-fno-stack-protector \
+	-fpermissive		 \
 	-fno-stack-check     \
 	-fno-lto             \
 	-fno-pie             \

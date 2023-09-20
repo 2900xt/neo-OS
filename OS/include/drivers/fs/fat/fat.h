@@ -59,6 +59,21 @@ struct bios_param_block
 
 }__attribute__((packed));
 
+#define FSINFO_SIGNATURE_1 0x41615252
+#define FSINFO_SIGNATURE_2 0x61417272
+#define FSINFO_SIGNATURE_3 0xAA550000
+
+struct fsinfo_fat32
+{
+    uint32_t signature_1;
+    uint8_t  rsv0[480];
+    uint32_t signature_2;
+    uint32_t free_cluster_count;
+    uint32_t cluster_search_start;
+    uint8_t  rsv1[12];
+    uint32_t signature_3;
+}__attribute__((packed));
+
 struct fat_dir_entry
 {
     char        dir_name[11];
@@ -97,47 +112,29 @@ struct long_file_name
     uint16_t data3[2];
 }__attribute__((packed));
 
-class FATPartition
+struct FAT_partition
 {
 
+    //Read this to get access to root dir
     fat_dir_entry *root_dir;
-    bios_param_block *bpb;
 
+    //Data Structures
+    bios_param_block *bpb;
+    fsinfo_fat32 *fsinfo;
     uint32_t *fat;
 
-    uint32_t sectorCount;
-    uint32_t fatSize;
-    uint32_t firstDataSector;
-    uint32_t firstFatSector;
-    uint32_t totalDataSectors;
-    uint32_t totalClusters;
-    uint32_t firstSector;
-    uint32_t rootDirSize;
+    uint32_t total_sectors;
+    uint32_t fat_size;
+    uint32_t first_data_sector;
+    uint32_t first_fat_sector;
+    uint32_t data_sectors;
+    uint32_t total_clusters;
 
     DISK::rw_disk_t *dev;
-    int parition;
-
-public:
-
-    FATPartition(DISK::rw_disk_t *dev, int parition);
-    ~FATPartition();
-
-
-    void *read_entry(fat_dir_entry *file);
-    VFS::File *mount_fs();
-
-private:
-
-    uint32_t get_next_cluster(int current_cluster);
-    fat_dir_entry *search_dir(fat_dir_entry *first_entry, const char *filename);
-    int format_path(const char *_filepath, char **filepath);
-    fat_dir_entry *get_directory(const char *filepath);
-    void convert_to_vfs(VFS::File *out, fat_dir_entry* in);
-    fat_dir_entry *get_file(const char *filepath);
-
-    void mount_dir(fat_dir_entry *first_entry, VFS::File *parent);
+    int partition;
 };
 
 
+FAT_partition* mount_part(DISK::rw_disk_t *device, int partition, VFS::File* root);
 
 }

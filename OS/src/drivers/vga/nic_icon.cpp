@@ -6,11 +6,13 @@
 #include <kernel/mem/mem.h>
 #include <drivers/vga/vga.h>    
 
+namespace VGA {
+
 extern uint32_t *g_framebuffer2;
 
-const char * nic_driver_tag = "NIC Image Driver";
+static const char * nic_driver_tag = "NIC Image Driver";
 
-void drawImage(const image *img, int x, int y)
+void drawImage(const nic_image *img, int x, int y)
 {
     uint32_t where;
     uint32_t ptr = 0;
@@ -32,10 +34,10 @@ void drawImage(const image *img, int x, int y)
     }
 }
 
-const char * NIC_SIGNATURE = "NIC-1.0";
+static const char * NIC_SIGNATURE = "NIC-1.0";
 
 
-image *loadImage(const char *filepath)
+nic_image *loadImage(const char *filepath)
 {
     VFS::File *fp = VFS::open(filepath);
     if(fp == NULL)
@@ -44,7 +46,7 @@ image *loadImage(const char *filepath)
     }
 
     int pages = fp->file_size / 0x1000 + 1;
-    image *buffer = (image*)kernel::allocate_pages(pages);
+    nic_image *buffer = (nic_image*)kernel::allocate_pages(pages);
     kernel::map_pages((uint64_t)buffer, (uint64_t)buffer, pages);
     VFS::read(fp, buffer);
 
@@ -57,7 +59,9 @@ image *loadImage(const char *filepath)
     return buffer;
 }
 
-void closeImage(image *img)
+void closeImage(nic_image *img)
 {
     kernel::free_pages(img);
+}
+
 }

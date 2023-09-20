@@ -14,6 +14,7 @@ void load_drivers()
 
     PCI::enumerate_pci();
     DISK::ahci_init();
+    VFS::vfs_init();
 }
 
 }

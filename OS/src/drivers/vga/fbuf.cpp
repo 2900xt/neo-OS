@@ -9,6 +9,9 @@
 #include <kernel/mem/mem.h>
 #include <kernel/vfs/file.h>
 
+namespace VGA
+{
+
 volatile limine::limine_framebuffer_request fbuf_req = {LIMINE_FRAMEBUFFER_REQUEST, 0};
 
 uint32_t *g_framebuffer1;
@@ -55,4 +58,6 @@ void fbuf_init(void)
     g_framebuffer2 = (uint32_t*)kernel::allocate_pages(framebufferSize / 0x1000  + 1);
 
     kernel::map_pages((uint64_t)g_framebuffer2, (uint64_t)g_framebuffer2, framebufferSize / 0x1000  + 1);
+}
+
 }

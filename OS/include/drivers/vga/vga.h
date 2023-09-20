@@ -4,6 +4,7 @@
 #include <limine/limine.h>
 #include <types.h>
 
+namespace VGA {
 extern limine::limine_framebuffer *fbuf_info;
 
 class Color
@@ -39,7 +40,7 @@ protected:
     uint32_t rgb;
 };
 
-struct image 
+struct nic_image 
 {
     char signature[7];
     uint32_t w, h;
@@ -55,7 +56,9 @@ void fbuf_init(void);
 void repaintScreen();
 
 void fillRect(int x, int y, Color c, uint32_t w, uint32_t h);
-void drawImage(const image *img, int x, int y);
-image *loadImage(const char *filepath);
+void drawImage(const nic_image *img, int x, int y);
+nic_image *loadImage(const char *filepath);
+
+}
 
 #endif
