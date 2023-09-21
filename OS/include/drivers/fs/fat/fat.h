@@ -116,18 +116,18 @@ struct FAT_partition
 {
 
     //Read this to get access to root dir
-    fat_dir_entry *root_dir;
+    fat_dir_entry root_dir;
 
     //Data Structures
     bios_param_block *bpb;
     fsinfo_fat32 *fsinfo;
     uint32_t *fat;
 
+    uint32_t first_sector;
     uint32_t total_sectors;
     uint32_t fat_size;
     uint32_t first_data_sector;
     uint32_t first_fat_sector;
-    uint32_t data_sectors;
     uint32_t total_clusters;
 
     DISK::rw_disk_t *dev;
@@ -136,5 +136,7 @@ struct FAT_partition
 
 
 FAT_partition* mount_part(DISK::rw_disk_t *device, int partition, VFS::File* root);
+fat_dir_entry* get_file_entry(FAT_partition* partition, std::string* filepath);
+void* read_cluster_chain(FS::FAT_partition* partition, fat_dir_entry* file_entry);
 
 }

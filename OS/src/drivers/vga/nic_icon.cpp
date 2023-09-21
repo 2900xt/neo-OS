@@ -11,9 +11,16 @@ namespace VGA {
 extern uint32_t *g_framebuffer2;
 
 static const char * nic_driver_tag = "NIC Image Driver";
+static const char * NIC_SIGNATURE = "NIC-1.0";
 
-void drawImage(const nic_image *img, int x, int y)
+void drawImage(nic_image *img, int x, int y)
 {
+     if(!std::strcmp(img->signature, NIC_SIGNATURE, 7))
+    {
+        Log.e(nic_driver_tag, "Invalid NIC File Signature: %s", img->signature);
+        return;
+    }
+
     uint32_t where;
     uint32_t ptr = 0;
     for (int i =  y; i < y + img->h; i++)
@@ -34,30 +41,6 @@ void drawImage(const nic_image *img, int x, int y)
     }
 }
 
-static const char * NIC_SIGNATURE = "NIC-1.0";
-
-
-nic_image *loadImage(const char *filepath)
-{
-    VFS::File *fp = VFS::open(filepath);
-    if(fp == NULL)
-    {
-        return NULL;
-    }
-
-    int pages = fp->file_size / 0x1000 + 1;
-    nic_image *buffer = (nic_image*)kernel::allocate_pages(pages);
-    kernel::map_pages((uint64_t)buffer, (uint64_t)buffer, pages);
-    VFS::read(fp, buffer);
-
-    if(!std::strcmp(buffer->signature, NIC_SIGNATURE, 7))
-    {
-        Log.e(nic_driver_tag, "Invalid NIC File Signature: %ss", buffer);
-        return NULL;
-    }
-
-    return buffer;
-}
 
 void closeImage(nic_image *img)
 {

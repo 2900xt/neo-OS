@@ -30,15 +30,11 @@ public:
 
     string(const char *data)
     {
-        this->data = (char*)data;
         this->size = strlen(data);
-        this->max_size = size;
-    }
+        this->data = new char[size];
 
-    string(const char *data, size_t size)
-    {
-        this->data = (char*)data;
-        this->size = strlen(data);
+        std::strcpy(this->data, data);
+
         this->max_size = size;
     }
 
@@ -63,6 +59,14 @@ public:
         this->size = 0;
         this->max_size = 10;
         this->data = new char[max_size];
+    }
+
+    ~string()
+    {
+        if(this->data != NULL)
+        {
+            delete[] this->data;
+        }
     }
 
     size_t length()
@@ -104,6 +108,47 @@ public:
     {
         assert(ind < size && ind >= 0);
         data[ind] = c;
+    }
+
+    void append(char c)
+    {
+        if(size >= max_size - 1)
+        {
+            resize(max_size + 10);
+        }
+        
+        data[size++] = c;
+        data[size] = '\0';
+    }
+
+    string** split(char c, int* count)
+    {
+        //get number of ocurrences
+        *count = 0;
+        for(int i = 0; i < size; i++)
+        {
+            if(data[i] == c) (*count)++;
+        }
+
+        (*count)++;
+
+        string **out = new string*[*count];
+        int outIndex = 0;
+        out[outIndex] = new string;
+
+        for(int i = 0; i < size; i++)
+        {
+            if(data[i] == c)
+            {
+                i++;
+                outIndex++;
+                out[outIndex] = new string;
+            }
+
+            out[outIndex]->append(data[i]);
+        }
+
+        return out;
     }
 
 };

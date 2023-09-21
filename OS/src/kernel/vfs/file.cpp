@@ -12,23 +12,19 @@
 namespace VFS 
 {
 
-static const char * vfs_tag = "VFS";
-static File *root;
+static const char *vfs_tag = "VFS";
+static File* root;
 static FS::FAT_partition *root_part;
 
-void mount_root(DISK::rw_disk_t *disk, uint64_t partition, filesystem_id fs)
+void mount_root(DISK::rw_disk_t *disk, uint64_t partition)
 {
-    switch(fs)
-    {
-        case FAT32:
-            root_part = FS::mount_part(disk, partition, root);
-    }
+    root_part = FS::mount_part(disk, partition, root);
 }
 
 void vfs_init()
 {
     root = new File;
-    mount_root(DISK::disks[0], 0, FAT32);
+    mount_root(DISK::disks[0], 0);
 
     if(root_part == NULL)
     {
@@ -37,24 +33,31 @@ void vfs_init()
     }
 }
 
-File *get_root()
+File* get_root()
 {
     return root;
 }
 
-File* open(const char *filepath)
+void open(File* file, std::string* filepath)
 {
-    return NULL;
+    int count;
+
+    FS::fat_dir_entry *entry = FS::get_file_entry(root_part, filepath);
+
+    file->fat_entry = entry;
+    file->filename = std::string(*filepath->split('/', &count)[count - 1]);
+    file->filesize = entry->file_size;
 }
 
-void read(File *file, void *buffer)
+void* read(File* file)
 {
-    
+    return read_cluster_chain(root_part, (FS::fat_dir_entry*)file->fat_entry);
 }
 
-const char* get_file_path(File *file)
+void close(File* file)
 {
-    return NULL;
+    kfree(file->fat_entry);
 }
+
 
 }

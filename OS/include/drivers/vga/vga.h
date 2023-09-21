@@ -56,7 +56,7 @@ void fbuf_init(void);
 void repaintScreen();
 
 void fillRect(int x, int y, Color c, uint32_t w, uint32_t h);
-void drawImage(const nic_image *img, int x, int y);
+void drawImage(nic_image *img, int x, int y);
 nic_image *loadImage(const char *filepath);
 
 }
