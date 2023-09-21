@@ -46,40 +46,8 @@ extern "C" void _start(void)
 
     kernel::load_drivers();
 
-    std::string path {"/bin/font.psf"};
-    VFS::File* font_file = new VFS::File;
-    VFS::open(font_file, &path);
-    uint8_t* buffer = (uint8_t*)VFS::read(font_file);
-
-    PSF_header_t* hdr = (PSF_header_t*)buffer;
-    uint8_t* bitmap = buffer + hdr->header_sz;
-
-    VGA::Color fg {255, 255, 255};
-    VGA::Color bg {50, 50, 50};
-
-    uint8_t* glyph = ('A' * hdr->glyph_size) + bitmap;
-
-    for(int y = 0; y < hdr->height; y++)
-    {
-        for(int x = 0; x < hdr->width; x++)
-        {
-            if(*glyph & (1 << x))
-            {
-                VGA::putpixel(x, y, fg);
-            }
-            else 
-            {
-                VGA::putpixel(x, y, bg);
-            }
-        }
-
-        glyph += hdr->width / 8 + 1;
-        if(hdr->width % 8 == 0)
-        {
-            glyph--;
-        }
-    }
-
+    VGA::initialize_font();
+    VGA::putstring(0, 0, "Hello, World!");
     VGA::repaintScreen();
 
     bsp_done();

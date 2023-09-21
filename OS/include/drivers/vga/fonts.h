@@ -1,7 +1,11 @@
 #pragma once
 #include <types.h>
+#include <drivers/vga/vga.h>
 
 #define PSF_FONT_MAGIC 0x864AB572
+
+namespace VGA
+{
 
 struct PSF_header_t
 {
@@ -15,3 +19,11 @@ struct PSF_header_t
     uint32_t width;
 }__attribute__((packed));
 
+
+void initialize_font();
+void putstring(int x, int y, const char* data);
+void putchar(int x, int y, char ascii);
+void set_background(VGA::Color new_bg);
+void set_foreground(VGA::Color new_fg);
+
+}
