@@ -121,6 +121,24 @@ public:
         data[size] = '\0';
     }
 
+    void append(std::string& str)
+    {
+        if(max_size - 1 <= size + str.size)
+        {
+            resize(str.size + size + 10);
+        }
+        
+        for(int i = size; i < str.size + size; i++)
+        {
+            //Log.e("s", "c:%d", data[i]);
+            data[i] = str.at(i - size);
+        }
+
+        size += str.size;
+
+        data[size] = '\0';
+    }
+
     string** split(char c, int* count)
     {
         //get number of ocurrences

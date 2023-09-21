@@ -59,6 +59,13 @@ static inline uint64_t rdmsr(uint64_t msr)
 	return ((uint64_t)high << 32) | low;
 }
 
+static inline uint64_t read_flags()
+{
+    uint64_t flags;
+    asm("pushf; pop %%rbx; mov %%rbx, %0" : "=a"(flags));
+    return flags;
+}
+
 uint64_t readCR3(void);
 extern "C" void enableSSE(void);
 #define IO_WAIT() outb(0x80, 0)

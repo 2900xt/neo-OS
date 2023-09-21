@@ -5,6 +5,7 @@
 #include "stdlib/stdio.h"
 #include <drivers/pci/pci.h>
 #include <drivers/disk/ahci/ahci.h>
+#include <drivers/vga/fonts.h>
 
 namespace kernel
 {
@@ -15,6 +16,7 @@ void load_drivers()
     PCI::enumerate_pci();
     DISK::ahci_init();
     VFS::vfs_init();
+    VGA::initialize_font();
 }
 
 }

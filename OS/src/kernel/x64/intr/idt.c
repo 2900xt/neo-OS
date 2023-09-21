@@ -12,7 +12,6 @@ namespace kernel
 
 #define stop() for(;;)
 
-
 constexpr uint8_t INTERRUPT = 0x8E;
 constexpr uint8_t EXCEPTION = 0x8F;
 
@@ -135,6 +134,8 @@ __attribute__ ((interrupt)) void timer_handler (interruptFrame* frame)
 
 __attribute__ ((interrupt)) void spurious_isr (interruptFrame* frame)
 {
+    Log.e("K", "L");
+    apicSendEOI();
     return; //iretq
 }
 
@@ -180,6 +181,7 @@ void fillIDT(void){
     for(int i = 32; i < 256; i++){
         setIDTEntry(i, (void*)exc1, EXCEPTION);
     }
+
 
     setIDTEntry(0x20, (void*)timer_handler, INTERRUPT);
     setIDTEntry(0x27, (void*)spurious_isr, INTERRUPT);
