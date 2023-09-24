@@ -21,9 +21,10 @@ struct PSF_header_t
 
 
 void initialize_font();
-void putstring(int x, int y, const char* data);
+void putstring(const char* data);
 void putchar(int x, int y, char ascii);
 void set_background(VGA::Color new_bg);
 void set_foreground(VGA::Color new_fg);
+void scroll_up();
 
 }

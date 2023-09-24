@@ -5,7 +5,6 @@
 
 void memset_64(void* _addr, uint64_t num, uint64_t value)
 {
-
     //Round up!
 
     if(num % 8 != 0){

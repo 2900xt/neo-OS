@@ -37,16 +37,6 @@ void puts(const char *src)
     write(console, src, strlen(src));
 }
 
-//Print unicode-16
-void puts_16(uint16_t *src)
-{
-    while(*src++)
-    {
-        putc(*((char*)src));
-        src++;
-    }
-}
-
 void putc(char c)
 {
     write(console, &c, 1);
@@ -55,6 +45,17 @@ void putc(char c)
         putc('\r');
     }
 }
+
+//Print unicode-16
+void puts_16(uint16_t *src)
+{
+    while(*src++)
+    {
+        putc((char)*src);
+        src++;
+    }
+}
+
 
 static struct klog_state_t
 {

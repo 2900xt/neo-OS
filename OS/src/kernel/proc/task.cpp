@@ -1,6 +1,9 @@
+#include "kernel/mem/mem.h"
+#include "types.h"
 #include <kernel/proc/proc.h>
 #include <kernel/x64/io.h>
 #include <kernel/mem/paging.h>
+#include <stdlib/stdlib.h>
 
 process_t* task_list[100];
 stream *kernel_stdout, *kernel_stdin;
@@ -41,10 +44,44 @@ void stream_write(stream* ostream, std::string* data)
 {
     acquire_spinlock(&ostream->rw_lock);
 
-    ostream->data = new std::string(*data);
+    if(ostream->data == NULL)
+    {
+        ostream->data = new std::string();
+    }
+    
+    ostream->data->append(*data);
+
     ostream->ack_update = true;
 
     release_spinlock(&ostream->rw_lock);
+}
+
+void stream_write(stream* ostream, char data)
+{
+    acquire_spinlock(&ostream->rw_lock);
+
+    if(ostream->data == NULL)
+    {
+        ostream->data = new std::string();
+    }
+    
+    ostream->data->append(data);
+
+    ostream->ack_update = true;
+
+    release_spinlock(&ostream->rw_lock);
+
+}
+
+void stream_flush(stream* stream)
+{
+    acquire_spinlock(&stream->rw_lock);
+
+    kfree(stream->data);
+    stream->data = NULL;
+    stream->ack_update = false;
+
+    release_spinlock(&stream->rw_lock);
 }
 
 std::string* stream_read(stream* istream)
@@ -53,7 +90,15 @@ std::string* stream_read(stream* istream)
 
     acquire_spinlock(&istream->rw_lock);
 
-    data = new std::string(*istream->data);
+    if(istream->data == NULL)
+    {
+        data = new std::string();
+    }
+    else 
+    {
+        data = new std::string(*istream->data);
+    }
+
     istream->ack_update = false;
 
     release_spinlock(&istream->rw_lock);

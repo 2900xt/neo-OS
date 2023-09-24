@@ -24,8 +24,11 @@ uint64_t framebufferSize;
 void repaintScreen()
 {
     memcpy(g_framebuffer1, g_framebuffer2, framebufferSize);
-    fillRect(0, 0, {45, 45, 45}, fbuf_info->width, fbuf_info->height);
-    fillRect(5, 5, {0, 0, 0}, fbuf_info->width - 10, fbuf_info->height - 10);
+}
+
+void clearScreen()
+{
+    memset_8(g_framebuffer2, framebufferSize, 0);
 }
 
 limine::limine_framebuffer *fbuf_info;
@@ -53,11 +56,12 @@ void fillRect(int x, int y, Color c, uint32_t w, uint32_t h)
 void fbuf_init(void)
 {
     fbuf_info = fbuf_req.response->framebuffers[0];
-    framebufferSize =  fbuf_info->width * fbuf_info->bpp / 8.0 + fbuf_info->height * fbuf_info->pitch;
+    framebufferSize = fbuf_info->width + fbuf_info->height * fbuf_info->pitch;
+    Log.v("Framebuffer", "sz:0x%x\n", framebufferSize);
     g_framebuffer1 = (uint32_t*)fbuf_info->address;
     g_framebuffer2 = (uint32_t*)kernel::allocate_pages(framebufferSize / 0x1000  + 1);
 
-    kernel::map_pages((uint64_t)g_framebuffer2, (uint64_t)g_framebuffer2, framebufferSize / 0x1000  + 1);
+    kernel::map_pages((uint64_t)g_framebuffer2, (uint64_t)g_framebuffer2, framebufferSize/ 0x1000  + 1);
 }
 
 }

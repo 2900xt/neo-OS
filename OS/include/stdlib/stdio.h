@@ -10,9 +10,6 @@ namespace std
 
 extern limine::limine_terminal* console;
 extern limine::limine_terminal_write write;
-void        puts(const char*);
-void        puts_16(uint16_t*);
-void        putc(char);
 void        tty_init(void);;
 
 [[gnu::deprecated]]
@@ -21,6 +18,9 @@ inline void klogf(...)
     return;
 }
 
+void update_terminal();
+
+void printf(const char* fmt, ...);
 }
 
 //Serial Kernel Logger
@@ -33,6 +33,7 @@ class Logger
     void w(const char * tag, const char * fmt, ...);
     void e(const char * tag, const char * fmt, ...);
 };
+
 
 extern const char * kernel_tag;
 extern Logger Log;
