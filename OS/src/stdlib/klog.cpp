@@ -155,7 +155,7 @@ static void klogvf(const char* fmt, va_list args)
         klog_state.current++;
     }
 
-    release_spinlock(&klog_state.lock);
+    release_spinlock(klog_state.lock);
 }
 
 }

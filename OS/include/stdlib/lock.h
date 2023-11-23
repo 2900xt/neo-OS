@@ -11,7 +11,4 @@ inline void acquire_spinlock(spinlock_t *lock)
     *lock = SPIN_LOCKED;
 }
 
-inline void release_spinlock(spinlock_t *lock)
-{
-    *lock = SPIN_UNLOCKED;
-}
+#define release_spinlock(lock) lock = SPIN_UNLOCKED;

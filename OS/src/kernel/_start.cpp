@@ -23,9 +23,8 @@ void bsp_done(void)
     int i = 0;
     for (;;)
     {
-        std::printf("HELLO\n", i++);
+        std::printf("HELLO\n");
         std::update_terminal();
-        //call_timers();
     }
 }
 
@@ -49,6 +48,10 @@ extern "C" void _start(void)
 
     kernel::load_drivers();
     kernel_stdout = new stream;
+    
+    std::printf("HELLO\n");
+    std::printf("HELLO\n");
+    std::printf("HELLO\n");
 
     bsp_done();
 }

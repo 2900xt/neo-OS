@@ -83,7 +83,7 @@ void *kmalloc(uint64_t size)
   }
 
   // Not enough memory
-  release_spinlock(&heap_lock);
+  release_spinlock(heap_lock);
   Log.e(heap_tag, "Requested size exceeds remaining heap size");
   return NULL;
 
@@ -110,7 +110,7 @@ blockFound:
 
   memoryAddr += currentIndex * heapBlksize;
 
-  release_spinlock(&heap_lock);
+  release_spinlock(heap_lock);
   return (void *)memoryAddr;
 }
 
@@ -162,13 +162,13 @@ void kfree(void *ptr) {
     memoryBitmap[bitmapIndex] = FREE;
   }
 
-  release_spinlock(&heap_lock);
+  release_spinlock(heap_lock);
   return;
 
 ERROR:
 
   Log.e(heap_tag, "Invalid Heap Pointer: %x", ptr);
-  release_spinlock(&heap_lock);
+  release_spinlock(heap_lock);
 }
 
 void *krealloc(void *old_ptr, uint64_t size) {

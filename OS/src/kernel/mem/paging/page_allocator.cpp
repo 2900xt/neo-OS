@@ -38,7 +38,7 @@ void initialize_page_allocator()
         current_page_entry = current_page_entry->next;
     }
 
-    release_spinlock(&pa_lock);
+    release_spinlock(pa_lock);
 }
 
 void *allocate_pages(uint64_t requested_count)
@@ -51,7 +51,7 @@ void *allocate_pages(uint64_t requested_count)
             if(current_page_entry->memory.size == requested_count)      //No need to insert a page
             {
                 current_page_entry->memory.type = USED;
-                release_spinlock(&pa_lock);
+                release_spinlock(pa_lock);
                 return (void*)current_page_entry->memory.start;
             }
             if(current_page_entry->memory.size > requested_count)       //Insert a new page in between the list
@@ -70,13 +70,13 @@ void *allocate_pages(uint64_t requested_count)
                 new_entry->memory.start = current_page_entry->memory.start + current_page_entry->memory.size * page_sz;
                 new_entry->memory.type = USED;
 
-                release_spinlock(&pa_lock);
+                release_spinlock(pa_lock);
                 return (void*)new_entry->memory.start;
             }
         }
     }
     
-    release_spinlock(&pa_lock); 
+    release_spinlock(pa_lock); 
     return NULL;
 }
 
@@ -113,7 +113,7 @@ void free_pages(void *page)
             if(current_page_entry->memory.type != USED) 
             {
                 Log.w(page_allocator_tag, "Asking to free an unused page!");
-                release_spinlock(&pa_lock);
+                release_spinlock(pa_lock);
                 return;
             }
             page_entry = current_page_entry;
@@ -129,7 +129,7 @@ void free_pages(void *page)
     {
         combine_segments(page_entry, page_entry->prev);
     }
-    release_spinlock(&pa_lock);
+    release_spinlock(pa_lock);
 }
 
 };

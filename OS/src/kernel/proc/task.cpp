@@ -53,7 +53,7 @@ void stream_write(stream* ostream, std::string* data)
 
     ostream->ack_update = true;
 
-    release_spinlock(&ostream->rw_lock);
+    release_spinlock(ostream->rw_lock);
 }
 
 void stream_write(stream* ostream, char data)
@@ -69,7 +69,7 @@ void stream_write(stream* ostream, char data)
 
     ostream->ack_update = true;
 
-    release_spinlock(&ostream->rw_lock);
+    release_spinlock(ostream->rw_lock);
 
 }
 
@@ -81,7 +81,7 @@ void stream_flush(stream* stream)
     stream->data = NULL;
     stream->ack_update = false;
 
-    release_spinlock(&stream->rw_lock);
+    release_spinlock(stream->rw_lock);
 }
 
 std::string* stream_read(stream* istream)
@@ -101,7 +101,7 @@ std::string* stream_read(stream* istream)
 
     istream->ack_update = false;
 
-    release_spinlock(&istream->rw_lock);
+    release_spinlock(istream->rw_lock);
 
     return data;
 }

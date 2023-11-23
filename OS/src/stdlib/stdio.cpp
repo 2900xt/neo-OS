@@ -116,15 +116,15 @@ void printf(const char* fmt, ...)
 
         current++;
     }
-
+    
     va_end(args);
-    release_spinlock(&lock);
+    release_spinlock(lock);
 
 }
 
 void update_terminal()
 {
-    if(kernel_stdout->ack_update)
+    //if(kernel_stdout->ack_update)
     {
         std::string *data = stream_read(kernel_stdout);
         VGA::putstring(data->c_str());
