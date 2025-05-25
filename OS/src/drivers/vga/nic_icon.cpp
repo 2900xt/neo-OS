@@ -1,50 +1,50 @@
 #include "kernel/mem/paging.h"
 #include "kernel/vfs/file.h"
-#include "stdlib/stdio.h"
-#include "stdlib/string.h"
+#include <kernel/kernel.h>
+#include <stdlib/stdlib.h>
 #include <types.h>
 #include <kernel/mem/mem.h>
-#include <drivers/vga/vga.h>    
+#include <drivers/vga/vga.h>
 
-namespace VGA {
-
-extern uint32_t *g_framebuffer2;
-
-static const char * nic_driver_tag = "NIC Image Driver";
-static const char * NIC_SIGNATURE = "NIC-1.0";
-
-void drawImage(nic_image *img, int x, int y)
+namespace vga
 {
-     if(!std::strcmp(img->signature, NIC_SIGNATURE, 7))
-    {
-        Log.e(nic_driver_tag, "Invalid NIC File Signature: %s", img->signature);
-        return;
-    }
 
-    uint32_t where;
-    uint32_t ptr = 0;
-    for (int i =  y; i < y + img->h; i++)
+    extern uint32_t *g_framebuffer2;
+
+    static const char *nic_driver_tag = "NIC Image Driver";
+    static const char *NIC_SIGNATURE = "NIC-1.0";
+
+    void drawImage(nic_image *img, int x, int y)
     {
-        where = x + i * fbuf_info->pitch / 4;
-        for (int j = x; j < x + img->w; j++)
+        if (!stdlib::strcmp(img->signature, NIC_SIGNATURE, 7))
         {
-            int rgba = img->data[ptr];
+            log::e(nic_driver_tag, "Invalid NIC File Signature: %s", img->signature);
+            return;
+        }
 
-            if(rgba & 0xFF)
+        uint32_t where;
+        uint32_t ptr = 0;
+        for (int i = y; i < y + img->h; i++)
+        {
+            where = x + i * fbuf_info->pitch / 4;
+            for (int j = x; j < x + img->w; j++)
             {
-                g_framebuffer2[where] = rgba;
+                int rgba = img->data[ptr];
+
+                if (rgba & 0xFF)
+                {
+                    g_framebuffer2[where] = rgba;
+                }
+
+                ptr++;
+                where++;
             }
-            
-            ptr++;
-            where++;
         }
     }
-}
 
-
-void closeImage(nic_image *img)
-{
-    kernel::free_pages(img);
-}
+    void closeImage(nic_image *img)
+    {
+        kernel::free_pages(img);
+    }
 
 }

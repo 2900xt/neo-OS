@@ -1,107 +1,106 @@
-#include "kernel/mem/mem.h"
-#include "types.h"
-#include <kernel/proc/proc.h>
-#include <kernel/x64/io.h>
-#include <kernel/mem/paging.h>
+#include <kernel/kernel.h>
 #include <stdlib/stdlib.h>
 
-process_t* task_list[100];
-stream *kernel_stdout, *kernel_stdin;
-
-process_t* create_task(proc_main main)
+namespace kernel
 {
-    process_t* proc = new process_t;
-    
-    uint64_t pid = 0;
-    while(task_list[pid++] != NULL);
-    proc->pid = pid - 1;
-    task_list[proc->pid] = proc;
+    process_t *task_list[100];
+    stream *kernel_stdout, *kernel_stdin;
 
-    proc->exited = false;
-    proc->started = false;
-
-    return proc;
-}
-
-void yeild(process_t* proc, int exit_code)
-{
-    uint64_t pid = 99;
-    for(;pid >= 0; pid++)
+    process_t *create_task(proc_main main)
     {
-        if(task_list[pid] != NULL && task_list[pid] != proc && !task_list[pid]->started)
+        process_t *proc = new process_t;
+
+        uint64_t pid = 0;
+        while (task_list[pid++] != NULL)
+            ;
+        proc->pid = pid - 1;
+        task_list[proc->pid] = proc;
+
+        proc->exited = false;
+        proc->started = false;
+
+        return proc;
+    }
+
+    void yeild(process_t *proc, int exit_code)
+    {
+        uint64_t pid = 99;
+        for (; pid >= 0; pid++)
         {
-            break;
+            if (task_list[pid] != NULL && task_list[pid] != proc && !task_list[pid]->started)
+            {
+                break;
+            }
         }
+
+        proc->exit_code = exit_code;
+        proc->exited = true;
+        task_list[pid]->started = true;
+        ((proc_main)task_list[pid]->main)(task_list[pid]);
     }
 
-    proc->exit_code = exit_code;
-    proc->exited = true;
-    task_list[pid]->started = true;
-    ((proc_main)task_list[pid]->main)(task_list[pid]);
-}
-
-void stream_write(stream* ostream, std::string* data)
-{
-    acquire_spinlock(&ostream->rw_lock);
-
-    if(ostream->data == NULL)
+    void stream_write(stream *ostream, stdlib::string *data)
     {
-        ostream->data = new std::string();
+        stdlib::acquire_spinlock(&ostream->rw_lock);
+
+        if (ostream->data == NULL)
+        {
+            ostream->data = new stdlib::string();
+        }
+
+        ostream->data->append(*data);
+
+        ostream->ack_update = true;
+
+        stdlib::release_spinlock(&ostream->rw_lock);
     }
-    
-    ostream->data->append(*data);
 
-    ostream->ack_update = true;
-
-    release_spinlock(ostream->rw_lock);
-}
-
-void stream_write(stream* ostream, char data)
-{
-    acquire_spinlock(&ostream->rw_lock);
-
-    if(ostream->data == NULL)
+    void stream_write(stream *ostream, char data)
     {
-        ostream->data = new std::string();
+        stdlib::acquire_spinlock(&ostream->rw_lock);
+
+        if (ostream->data == NULL)
+        {
+            ostream->data = new stdlib::string();
+        }
+
+        ostream->data->append(data);
+
+        ostream->ack_update = true;
+
+        stdlib::release_spinlock(&ostream->rw_lock);
     }
-    
-    ostream->data->append(data);
 
-    ostream->ack_update = true;
-
-    release_spinlock(ostream->rw_lock);
-
-}
-
-void stream_flush(stream* stream)
-{
-    acquire_spinlock(&stream->rw_lock);
-
-    kfree(stream->data);
-    stream->data = NULL;
-    stream->ack_update = false;
-
-    release_spinlock(stream->rw_lock);
-}
-
-std::string* stream_read(stream* istream)
-{
-    std::string* data;
-
-    acquire_spinlock(&istream->rw_lock);
-
-    if(istream->data == NULL)
+    void stream_flush(stream *stream)
     {
-        data = new std::string();
+        stdlib::acquire_spinlock(&stream->rw_lock);
+
+        kfree(stream->data);
+        stream->data = NULL;
+        stream->ack_update = false;
+
+        stdlib::release_spinlock(&stream->rw_lock);
     }
-    else 
+
+    stdlib::string *stream_read(stream *istream)
     {
-        data = new std::string(*istream->data);
+        stdlib::string *data;
+
+        stdlib::acquire_spinlock(&istream->rw_lock);
+
+        if (istream->data == NULL)
+        {
+            data = new stdlib::string();
+        }
+        else
+        {
+            data = new stdlib::string(*istream->data);
+        }
+
+        istream->ack_update = false;
+
+        stdlib::release_spinlock(&istream->rw_lock);
+
+        return data;
     }
-
-    istream->ack_update = false;
-
-    release_spinlock(istream->rw_lock);
-
-    return data;
 }

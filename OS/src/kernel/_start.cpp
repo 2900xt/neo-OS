@@ -1,57 +1,46 @@
-#include "drivers/vga/fonts.h"
-#include "drivers/vga/vga.h"
-#include "kernel/vfs/file.h"
-#include "kernel/mem/paging.h"
-#include "stdlib/stdio.h"
-#include "stdlib/string.h"
-#include "stdlib/timer.h"
-#include "types.h"
-#include <limine/limine.h>
+#include <drivers/vga/fonts.h>
+#include <drivers/vga/vga.h>
 #include <stdlib/stdlib.h>
-#include <kernel/x64/io.h>
-#include <kernel/x64/intr/idt.h>
-#include <kernel/mem/mem.h>
-#include <kernel/smp.h>
-#include <config.h>
-#include <kernel/proc/stream.h>
+#include <limine/limine.h>
+#include <kernel/kernel.h>
 
-const char * kernel_tag = "Kernel";
-extern stream *kernel_stdout, *kernel_stdin;
-
-void bsp_done(void)
+namespace kernel
 {
-    int i = 0;
-    for (;;)
+    const char *kernel_tag = "Kernel";
+    extern stream *kernel_stdout, *kernel_stdin;
+
+    void bsp_done(void)
     {
-        std::printf("HELLO\n");
-        std::update_terminal();
+        for (;;)
+        {
+            kernel::printf("HELLO\n");
+            kernel::update_terminal();
+        }
     }
-}
 
-extern "C" void _start(void)
-{
-    std::tty_init();
-    
-    kernel::enableSSE();
+    extern "C" void _start(void)
+    {
+        kernel::tty_init();
 
-    kernel::fillIDT();
+        kernel::enableSSE();
 
-    heapInit();
+        kernel::fillIDT();
 
-    kernel::initialize_page_allocator();
+        kernel::heapInit();
 
-    Log.v(kernel_tag, "Starting Neo-OS:");
-    
-    VGA::fbuf_init();
+        kernel::initialize_page_allocator();
 
-    kernel::smp_init();
+        log::v(kernel_tag, "Starting Neo-OS:");
 
-    kernel::load_drivers();
-    kernel_stdout = new stream;
-    
-    std::printf("HELLO\n");
-    std::printf("HELLO\n");
-    std::printf("HELLO\n");
+        vga::fbuf_init();
 
-    bsp_done();
+        kernel::smp_init();
+
+        kernel::load_drivers();
+        kernel_stdout = new kernel::stream();
+
+        kernel::printf("HELLO\n");
+
+        bsp_done();
+    }
 }

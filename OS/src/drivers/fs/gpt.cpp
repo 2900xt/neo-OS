@@ -1,19 +1,20 @@
 #include "drivers/fs/gpt.h"
 #include "kernel/mem/paging.h"
-#include "stdlib/stdio.h"
-#include <types.h>
+#include <kernel/kernel.h>
+#include <stdlib/stdlib.h>
 
-namespace FS 
+namespace filesystem
 {
 
-bool cmp_guid(guid_t a, guid_t b)
-{
-    for(int i = 0; i < 8; i++)
+    bool cmp_guid(guid_t a, guid_t b)
     {
-        if(a[i] != b[i]) return false;
-    }
+        for (int i = 0; i < 8; i++)
+        {
+            if (a[i] != b[i])
+                return false;
+        }
 
-    return true;
-}
+        return true;
+    }
 
 }

@@ -1,8 +1,12 @@
-#include <stdlib/stdio.h>
+#include <kernel/io/log.h>
+#include <kernel/kernel.h>
 
-
-void assert_fail(const char *assertion, const char *file, unsigned int line)
+namespace stdlib
 {
-    Log.e(kernel_tag, "Assertion Failed -> %s: in file %s, line %u", assertion , file, line);
-    for(;;);
+    void assert_fail(const char *assertion, const char *file, unsigned int line)
+    {
+        log::e(kernel::kernel_tag, "Assertion Failed -> %s: in file %s, line %u", assertion, file, line);
+        for (;;)
+            ;
+    }
 }

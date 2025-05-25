@@ -1,5 +1,5 @@
 #include <stdlib/math.h>
-namespace std
+namespace stdlib
 {
 
 double fabs (double x)
@@ -7,7 +7,7 @@ double fabs (double x)
     return (x < 0 ? -x : x);
 }
 
-const static double epsilon = 0.00001;
+const static double epsilon = 1e-6;
 
 double sqrt (double x)
 {

@@ -2,7 +2,7 @@
 #include "drivers/fs/fat/fat.h"
 #include "kernel/mem/paging.h"
 #include "kernel/vfs/file.h"
-#include "stdlib/stdio.h"
+#include <kernel/kernel.h>
 #include <drivers/pci/pci.h>
 #include <drivers/disk/ahci/ahci.h>
 #include <drivers/vga/fonts.h>
@@ -10,13 +10,13 @@
 namespace kernel
 {
 
-void load_drivers()
-{
+    void load_drivers()
+    {
 
-    PCI::enumerate_pci();
-    DISK::ahci_init();
-    VFS::vfs_init();
-    VGA::initialize_font();
-}
+        pci::enumerate_pci();
+        disk::ahci_init();
+        kernel::vfs_init();
+        vga::initialize_font();
+    }
 
 }

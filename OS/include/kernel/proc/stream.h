@@ -2,14 +2,17 @@
 
 #include "stdlib/lock.h"
 #include "stdlib/string.h"
-struct stream
+namespace kernel
 {
-    std::string* data;
-    spinlock_t rw_lock;
-    bool ack_update;
-};
+    struct stream
+    {
+        stdlib::string *data;
+        stdlib::spinlock_t rw_lock;
+        bool ack_update;
+    };
 
-void stream_flush(stream* stream);
-void stream_write(stream* ostream, char data);
-std::string* stream_read(stream* istream);
-void stream_write(stream* ostream, std::string* data);
+    void stream_flush(stream *stream);
+    void stream_write(stream *ostream, char data);
+    stdlib::string *stream_read(stream *istream);
+    void stream_write(stream *ostream, stdlib::string *data);
+}

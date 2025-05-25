@@ -3,7 +3,7 @@
 #include <types.h>
 #include <stdlib/stdlib.h>
 
-namespace std
+namespace stdlib
 {
 
 class bitmap
