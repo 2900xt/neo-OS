@@ -183,11 +183,14 @@ namespace kernel
 
         cpuFreq *= 16 * 100;
         cpuFreq /= 16;
-        cpuFreq /= 1000;
+        // cpuFreq /= 1000;
+
+        log::d(lapic_tag, "CPU frequency: %d MHz", (cpuFreq / 1000));
 
         apicWriteRegister(TIMER_INITIAL_COUNT_REG, cpuFreq);
         apicWriteRegister(TIMER_LVT_ENTRY, 32 | 0x20000);
         apicWriteRegister(TIMER_DIVIDE_CONFIG_REG, 0x3);
+        log::d(lapic_tag, "APIC timer initialized");
     }
 
 }

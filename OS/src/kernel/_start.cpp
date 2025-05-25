@@ -11,35 +11,30 @@ namespace kernel
 
     void bsp_done(void)
     {
-        for (;;)
+        while (true)
         {
-            kernel::printf("HELLO\n");
-            kernel::update_terminal();
+            asm volatile("hlt");
         }
+
+        __builtin_unreachable();
     }
 
     extern "C" void _start(void)
     {
         kernel::tty_init();
-
         kernel::enableSSE();
-
         kernel::fillIDT();
-
         kernel::heapInit();
+
+        log::v(kernel_tag, "Starting Neo-OS");
 
         kernel::initialize_page_allocator();
 
-        log::v(kernel_tag, "Starting Neo-OS:");
-
         vga::fbuf_init();
 
-        kernel::smp_init();
-
         kernel::load_drivers();
-        kernel_stdout = new kernel::stream();
 
-        kernel::printf("HELLO\n");
+        kernel::smp_init();
 
         bsp_done();
     }

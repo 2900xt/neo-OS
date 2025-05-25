@@ -13,6 +13,7 @@ namespace kernel
     {
         kernel::initAPIC(smp_request.response->bsp_lapic_id);
         log::d(kernel_scheduler_tag, "%u CPU cores detected", smp_request.response->cpu_count);
+
         for (int i = 1; i < smp_request.response->cpu_count; i++)
         {
             cpu_jump_to(i, (void *)mt_begin);
