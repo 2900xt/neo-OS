@@ -6,7 +6,6 @@
 
 namespace stdlib
 {
-
     size_t strlen(const char *);
     char *itoa(int64_t val, uint8_t radix);
     char *utoa(uint64_t val, uint8_t radix);
@@ -23,7 +22,7 @@ namespace stdlib
     {
         char *data;
         size_t size;
-        size_t max_size;
+        size_t max_capacity;
 
     public:
         string(const char *data)
@@ -33,21 +32,21 @@ namespace stdlib
 
             stdlib::strcpy(this->data, data);
 
-            this->max_size = size;
+            this->max_capacity = size;
         }
 
         string(size_t size)
         {
             this->size = 0;
-            this->max_size = size;
-            this->data = new char[max_size];
+            this->max_capacity = size;
+            this->data = new char[max_capacity];
         }
 
         string(string &other)
         {
             this->size = other.size;
-            this->max_size = other.max_size;
-            this->data = new char[max_size];
+            this->max_capacity = other.max_capacity;
+            this->data = new char[max_capacity];
 
             strcpy(data, other.c_str());
         }
@@ -55,8 +54,8 @@ namespace stdlib
         string()
         {
             this->size = 0;
-            this->max_size = 10;
-            this->data = new char[max_size];
+            this->max_capacity = 10;
+            this->data = new char[max_capacity];
         }
 
         ~string()
@@ -74,7 +73,7 @@ namespace stdlib
 
         size_t capacity()
         {
-            return max_size;
+            return max_capacity;
         }
 
         char *c_str()
@@ -89,14 +88,23 @@ namespace stdlib
 
         void resize(size_t requested)
         {
-            this->max_size = requested;
+            this->max_capacity = requested;
 
             char *newData = new char[requested];
             strcpy(newData, data);
+
+            delete[] data;
+
             this->data = newData;
         }
 
-        char at(size_t ind)
+        char &at(size_t ind)
+        {
+            assert(ind < size && ind >= 0);
+            return data[ind];
+        }
+
+        char &operator[](size_t ind)
         {
             assert(ind < size && ind >= 0);
             return data[ind];
@@ -108,11 +116,11 @@ namespace stdlib
             data[ind] = c;
         }
 
-        void append(char c)
+        void push_back(char c)
         {
-            if (size >= max_size - 1)
+            if (size >= max_capacity - 1)
             {
-                resize(max_size + 10);
+                resize(max_capacity * 2);
             }
 
             data[size++] = c;
@@ -121,14 +129,13 @@ namespace stdlib
 
         void append(stdlib::string &str)
         {
-            if (max_size - 1 <= size + str.size)
+            if (max_capacity - 1 <= size + str.size)
             {
-                resize(str.size + size + 10);
+                resize(str.size + size * 2);
             }
 
             for (int i = size; i < str.size + size; i++)
             {
-                // log.e("s", "c:%d", data[i]);
                 data[i] = str.at(i - size);
             }
 
@@ -162,7 +169,7 @@ namespace stdlib
                     out[outIndex] = new string;
                 }
 
-                out[outIndex]->append(data[i]);
+                out[outIndex]->push_back(data[i]);
             }
 
             return out;

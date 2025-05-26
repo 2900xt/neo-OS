@@ -21,6 +21,7 @@ namespace vga
 
     void initialize_font();
     void putstring(const char *data, int x, int y);
+    void putstring(const char *data);
     void putchar(int x, int y, char ascii);
     void set_background(vga::Color new_bg);
     void set_foreground(vga::Color new_fg);

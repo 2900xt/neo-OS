@@ -5,7 +5,7 @@
 namespace vga
 {
     extern PSF_header_t *font_hdr;
-    int terminal_x = 0, terminal_y = 0;
+    int terminal_x = 0, terminal_y = 170;
 }
 
 namespace kernel

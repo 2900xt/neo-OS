@@ -64,7 +64,7 @@ namespace kernel
             ostream->data = new stdlib::string();
         }
 
-        ostream->data->append(data);
+        ostream->data->push_back(data);
 
         ostream->ack_update = true;
 

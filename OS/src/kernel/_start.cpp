@@ -3,6 +3,7 @@
 #include <stdlib/stdlib.h>
 #include <limine/limine.h>
 #include <kernel/kernel.h>
+#include <drivers/ps2/ps2.h>
 
 namespace kernel
 {
@@ -19,7 +20,6 @@ namespace kernel
         vga::drawImage(logo, 0, 0, 150, 150);
 
         vga::putstring("Welcome to neo OS!", 0, 155);
-        vga::repaintScreen();
     }
 
     extern "C" void _start(void)
@@ -36,6 +36,11 @@ namespace kernel
 
         while (true)
         {
+            kernel::sleep(20);
+            stdlib::update_timers();
+            stdlib::call_timers();
+            kernel::getNextChar();
+            vga::repaintScreen();
             asm volatile("hlt");
         }
 
