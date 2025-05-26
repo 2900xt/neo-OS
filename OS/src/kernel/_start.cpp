@@ -9,14 +9,17 @@ namespace kernel
     const char *kernel_tag = "Kernel";
     extern stream *kernel_stdout, *kernel_stdin;
 
-    void bsp_done(void)
+    void splash_screen(void)
     {
-        while (true)
-        {
-            asm volatile("hlt");
-        }
+        File logo_file;
+        stdlib::string logo_path = "/bin/logo.nic";
+        kernel::open(&logo_file, &logo_path);
 
-        __builtin_unreachable();
+        vga::nic_image *logo = (vga::nic_image *)kernel::read(&logo_file);
+        vga::drawImage(logo, 0, 0, 150, 150);
+
+        vga::putstring("Welcome to neo OS!", 0, 155);
+        vga::repaintScreen();
     }
 
     extern "C" void _start(void)
@@ -25,17 +28,17 @@ namespace kernel
         kernel::enableSSE();
         kernel::fillIDT();
         kernel::heapInit();
-
-        log::v(kernel_tag, "Starting Neo-OS");
-
         kernel::initialize_page_allocator();
-
-        vga::fbuf_init();
-
+        vga::framebuffer_init();
         kernel::load_drivers();
-
         kernel::smp_init();
+        kernel::splash_screen();
 
-        bsp_done();
+        while (true)
+        {
+            asm volatile("hlt");
+        }
+
+        __builtin_unreachable();
     }
 }

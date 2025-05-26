@@ -68,6 +68,28 @@ namespace vga
 
     extern int terminal_x, terminal_y;
 
+    void putstring(const char *data, int x, int y)
+    {
+        while (*data != '\0')
+        {
+            if (x >= vga::fbuf_info->width || *data == '\n')
+            {
+                y += vga::font_hdr->height;
+                x = 0;
+            }
+
+            if (*data == '\n')
+            {
+                data++;
+                continue;
+            }
+
+            putchar(x, y, *data);
+            x += font_hdr->width;
+            data++;
+        }
+    }
+
     void putstring(const char *data)
     {
         while (*data != '\0')

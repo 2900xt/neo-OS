@@ -123,7 +123,7 @@ namespace kernel
         if (kernel_stdout->ack_update)
         {
             stdlib::string *data = kernel::stream_read(kernel_stdout);
-            vga::putstring(data->c_str());
+            vga::putstring(data->c_str(), vga::terminal_x, vga::terminal_y);
             vga::repaintScreen();
             kernel::stream_flush(kernel_stdout);
         }

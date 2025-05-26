@@ -12,7 +12,6 @@ namespace kernel
 
     void load_drivers()
     {
-
         pci::enumerate_pci();
         disk::ahci_init();
         kernel::vfs_init();

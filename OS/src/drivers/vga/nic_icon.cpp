@@ -8,13 +8,12 @@
 
 namespace vga
 {
-
     extern uint32_t *g_framebuffer2;
 
     static const char *nic_driver_tag = "NIC Image Driver";
     static const char *NIC_SIGNATURE = "NIC-1.0";
 
-    void drawImage(nic_image *img, int x, int y)
+    void drawImage(nic_image *img, int x, int y, int w, int h)
     {
         if (!stdlib::strcmp(img->signature, NIC_SIGNATURE, 7))
         {
@@ -23,20 +22,19 @@ namespace vga
         }
 
         uint32_t where;
-        uint32_t ptr = 0;
-        for (int i = y; i < y + img->h; i++)
+        for (int i = 0; i < h; i++)
         {
-            where = x + i * fbuf_info->pitch / 4;
-            for (int j = x; j < x + img->w; j++)
+            where = x + (i + y) * fbuf_info->pitch / 4;
+            for (int j = 0; j < w; j++)
             {
-                int rgba = img->data[ptr];
+                int I = (i * img->h) / h;
+                int J = (j * img->w) / w;
+                int rgba = img->data[I * img->w + J];
 
                 if (rgba & 0xFF)
                 {
                     g_framebuffer2[where] = rgba;
                 }
-
-                ptr++;
                 where++;
             }
         }

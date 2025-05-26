@@ -21,19 +21,36 @@ namespace kernel
             return;
         }
 
-        write = (SERIAL_OUTPUT_ENABLE ? (limine::limine_terminal_write)serial::serial_write : terminal_request.response->write);
-        console = (SERIAL_OUTPUT_ENABLE ? NULL : terminal_request.response->terminals[0]);
+        write = terminal_request.response->write;
+        console = terminal_request.response->terminals[0];
         serial_output = SERIAL_OUTPUT_ENABLE;
     }
 
     void puts(const char *src)
     {
-        write(console, src, stdlib::strlen(src));
+        if (serial_output)
+        {
+            serial::serial_write(console, src, stdlib::strlen(src));
+        }
+
+        // Terminal output is deprecated for logging
+        // write(console, src, stdlib::strlen(src));
     }
+
+    static char buffer[2];
 
     void putc(char c)
     {
-        write(console, &c, 1);
+        buffer[0] = c;
+        buffer[1] = '\0';
+
+        if (serial_output)
+        {
+            serial::serial_write(console, buffer, 2);
+        }
+
+        // Terminal output is deprecated for logging
+        // write(console, buffer, 2);
         if (c == '\n')
         {
             putc('\r');

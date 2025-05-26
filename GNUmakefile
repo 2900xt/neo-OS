@@ -10,7 +10,7 @@ run-serial: all
 .PHONY: run
 run: all
 	@echo Running Image...
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4
+	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 -serial stdio 2> /dev/null
 
 .PHONY: run-bin
 run-bin:

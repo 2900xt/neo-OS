@@ -53,14 +53,13 @@ namespace vga
     void drawMouse(uint64_t x, uint64_t y);
     void setBackgroundColor(Color c);
     Color *getBackgroundColor(void);
-    void fbuf_init(void);
+    void framebuffer_init(void);
     void repaintScreen();
     void clearScreen();
 
     void fillRect(int x, int y, Color c, uint32_t w, uint32_t h);
     void putpixel(int x, int y, Color c);
-    void drawImage(nic_image *img, int x, int y);
-    nic_image *loadImage(const char *filepath);
+    void drawImage(nic_image *img, int x, int y, int w, int h);
 
 }
 

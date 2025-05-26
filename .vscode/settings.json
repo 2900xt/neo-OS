@@ -40,6 +40,13 @@
   ],
   "C_Cpp_Runner.useAddressSanitizer": false,
   "files.associations": {
-    "iosfwd": "cpp"
+    "iosfwd": "cpp",
+    "compare": "c",
+    "cstdint": "c",
+    "array": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "ranges": "cpp",
+    "span": "cpp"
   }
 }

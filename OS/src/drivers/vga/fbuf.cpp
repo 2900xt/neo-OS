@@ -53,11 +53,11 @@ namespace vga
         }
     }
 
-    void fbuf_init(void)
+    void framebuffer_init(void)
     {
         fbuf_info = fbuf_req.response->framebuffers[0];
         framebufferSize = fbuf_info->width + fbuf_info->height * fbuf_info->pitch;
-        log::v("Framebuffer", "sz:0x%x\n", framebufferSize);
+        log::v("Framebuffer", "Width: %d, Height: %d, Pitch: %d", fbuf_info->width, fbuf_info->height, fbuf_info->pitch);
         g_framebuffer1 = (uint32_t *)fbuf_info->address;
         g_framebuffer2 = (uint32_t *)kernel::allocate_pages(framebufferSize / 0x1000 + 1);
 
