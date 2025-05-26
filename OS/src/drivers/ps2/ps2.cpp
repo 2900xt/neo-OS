@@ -6,11 +6,26 @@
 
 namespace ps2
 {
-    const char ScanCodeLookupTable[] = {
+
+    enum PS2_KEYBOARD_CODES : uint8_t
+    {
+        KEY_ESC_PRESS = 0x01,
+        KEY_ENTER_PRESS = 0x1C,
+        KEY_LCTRL_PRESS = 0x1D,
+        KEY_LSHIFT_PRESS = 0x2A,
+        KEY_RSHIFT_PRESS = 0x36,
+        KEY_LALT_PRESS = 0x38,
+        KEY_CAPS_PRESS = 0x3A,
+        KEY_CAPS_RELEASE = 0xBA,
+        KEY_LSHIFT_RELEASE = 0xAA,
+        KEY_RSHIFT_RELEASE = 0xB6,
+    };
+
+    const uint8_t ScanCodeLookupTable[] = {
         0, 0, '1', '2',
         '3', '4', '5', '6',
         '7', '8', '9', '0',
-        '-', '=', 0, '\t',
+        '-', '=', '\b', '\t',
         'q', 'w', 'e', 'r',
         't', 'y', 'u', 'i',
         'o', 'p', '[', ']',
@@ -21,6 +36,23 @@ namespace ps2
         'z', 'x', 'c', 'v',
         'b', 'n', 'm', ',',
         '.', '/', 0, '*',
+        0, ' '};
+
+    const uint8_t ScanCodeLookupTableShift[] = {
+        0, 0, '!', '@',
+        '#', '$', '%', '^',
+        '&', '*', '(', ')',
+        '_', '+', '\b', '\t',
+        'Q', 'W', 'E', 'R',
+        'T', 'Y', 'U', 'I',
+        'O', 'P', '{', '}',
+        '\n', 0, 'A', 'S',
+        'D', 'F', 'G', 'H',
+        'J', 'K', 'L', ':',
+        '"', '~', 0, '|',
+        'Z', 'X', 'C', 'V',
+        'B', 'N', 'M', '<',
+        '>', '?', 0, '*',
         0, ' '};
 
     uint8_t lastKey = 0;
@@ -48,9 +80,19 @@ namespace ps2
         }
 
         uint8_t code = kernel::inb(0x60);
+
+        if (code == KEY_LSHIFT_PRESS || code == KEY_RSHIFT_PRESS)
+        {
+            shiftBit = true;
+        }
+        else if (code == KEY_LSHIFT_RELEASE || code == KEY_RSHIFT_RELEASE)
+        {
+            shiftBit = false;
+        }
+
         if (code < 59)
         {
-            lastKey = (!shiftBit ? ScanCodeLookupTable[code] : (ScanCodeLookupTable[code] - 32));
+            lastKey = (!shiftBit ? ScanCodeLookupTable[code] : ScanCodeLookupTableShift[code]);
             // log::e("PS/2 Driver", "Key pressed: %c", lastKey);
             return true;
         }

@@ -36,11 +36,12 @@ namespace kernel
 
         while (true)
         {
-            kernel::sleep(20);
-            stdlib::update_timers();
+            kernel::sleep(5);
             stdlib::call_timers();
-            kernel::getNextChar();
-            vga::repaintScreen();
+            kernel::pollNextChar();
+
+            if (vga::g_framebuffer_dirty)
+                vga::repaintScreen();
             asm volatile("hlt");
         }
 

@@ -16,6 +16,7 @@ namespace vga
 
     uint32_t *g_framebuffer1;
     uint32_t *g_framebuffer2;
+    bool g_framebuffer_dirty = false;
 
     uint64_t framebufferSize;
 
@@ -24,11 +25,13 @@ namespace vga
     void repaintScreen()
     {
         kernel::memcpy(g_framebuffer1, g_framebuffer2, framebufferSize);
+        g_framebuffer_dirty = false;
     }
 
     void clearScreen()
     {
         kernel::memset_8(g_framebuffer2, framebufferSize, 0);
+        g_framebuffer_dirty = true;
     }
 
     limine::limine_framebuffer *fbuf_info;
@@ -37,6 +40,7 @@ namespace vga
     {
         uint32_t where = x + y * fbuf_info->pitch / 4;
         g_framebuffer2[where] = c.getRGB();
+        g_framebuffer_dirty = true;
     }
 
     void fillRect(int x, int y, Color c, uint32_t w, uint32_t h)
@@ -51,6 +55,7 @@ namespace vga
                 where++;
             }
         }
+        g_framebuffer_dirty = true;
     }
 
     void framebuffer_init(void)
@@ -62,6 +67,7 @@ namespace vga
         g_framebuffer2 = (uint32_t *)kernel::allocate_pages(framebufferSize / 0x1000 + 1);
 
         kernel::map_pages((uint64_t)g_framebuffer2, (uint64_t)g_framebuffer2, framebufferSize / 0x1000 + 1);
+        g_framebuffer_dirty = true;
     }
 
 }

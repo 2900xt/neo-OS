@@ -5,7 +5,7 @@
 
 namespace kernel
 {
-    char getNextChar();
+    char pollNextChar();
     void getNextLine(stdlib::string *output);
 }
 

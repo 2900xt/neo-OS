@@ -49,6 +49,7 @@ namespace vga
     } __attribute__((packed));
 
     extern limine::limine_framebuffer *fbuf_info;
+    extern bool g_framebuffer_dirty;
 
     void drawMouse(uint64_t x, uint64_t y);
     void setBackgroundColor(Color c);

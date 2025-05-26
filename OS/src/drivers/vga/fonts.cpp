@@ -90,12 +90,18 @@ namespace vga
         }
     }
 
+    void draw_cursor()
+    {
+        vga::fillRect(terminal_x, terminal_y, {255, 255, 255}, font_hdr->width, font_hdr->height);
+    }
+
     void putstring(const char *data)
     {
         while (*data != '\0')
         {
             if (terminal_x >= vga::fbuf_info->width || *data == '\n')
             {
+                vga::fillRect(terminal_x, terminal_y, {0, 0, 0}, font_hdr->width, font_hdr->height);
                 terminal_y += vga::font_hdr->height;
                 terminal_x = 0;
 
@@ -111,10 +117,32 @@ namespace vga
                 continue;
             }
 
+            if (*data == '\t')
+            {
+                terminal_x += (font_hdr->width * 4) - (terminal_x % (font_hdr->width * 4));
+                data++;
+                continue;
+            }
+
+            if (*data == '\b')
+            {
+                if (terminal_x > 0)
+                {
+                    vga::fillRect(terminal_x, terminal_y, {0, 0, 0}, font_hdr->width, font_hdr->height);
+                    vga::putchar(terminal_x - font_hdr->width, terminal_y, ' ');
+                    terminal_x -= font_hdr->width;
+                }
+
+                data++;
+                continue;
+            }
+
             putchar(terminal_x, terminal_y, *data);
             terminal_x += font_hdr->width;
             data++;
         }
+
+        draw_cursor();
     }
 
     extern uint32_t *g_framebuffer2;
