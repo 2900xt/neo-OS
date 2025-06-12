@@ -32,7 +32,9 @@ namespace kernel
         vga::framebuffer_init();
         kernel::load_drivers();
         kernel::smp_init();
+        
         kernel::splash_screen();
+        kernel::terminal_init();
 
         while (true)
         {

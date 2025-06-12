@@ -13,7 +13,8 @@
 #include <kernel/x64/intr/idt.h>
 #include <kernel/x64/intr/apic.h>
 #include <kernel/x64/io.h>
-#include <kernel/io/scan.h>
+#include <kernel/io/scan.h> 
+#include <kernel/io/terminal.h>
 
 namespace kernel
 {

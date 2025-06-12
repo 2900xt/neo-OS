@@ -20,7 +20,7 @@ namespace kernel
             char buf[2];
             buf[0] = ps2::lastKey;
             buf[1] = '\0';
-            vga::putstring(buf);
+            terminal_puts(buf);
         }
 
         return ps2::lastKey;

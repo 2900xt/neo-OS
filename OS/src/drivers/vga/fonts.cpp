@@ -66,8 +66,6 @@ namespace vga
         }
     }
 
-    extern int terminal_x, terminal_y;
-
     void putstring(const char *data, int x, int y)
     {
         while (*data != '\0')
@@ -88,74 +86,5 @@ namespace vga
             x += font_hdr->width;
             data++;
         }
-    }
-
-    void draw_cursor()
-    {
-        vga::fillRect(terminal_x, terminal_y, {255, 255, 255}, font_hdr->width, font_hdr->height);
-    }
-
-    void putstring(const char *data)
-    {
-        while (*data != '\0')
-        {
-            if (terminal_x >= vga::fbuf_info->width || *data == '\n')
-            {
-                vga::fillRect(terminal_x, terminal_y, {0, 0, 0}, font_hdr->width, font_hdr->height);
-                terminal_y += vga::font_hdr->height;
-                terminal_x = 0;
-
-                if (terminal_y >= vga::fbuf_info->height)
-                {
-                    vga::scroll_up();
-                }
-            }
-
-            if (*data == '\n')
-            {
-                data++;
-                continue;
-            }
-
-            if (*data == '\t')
-            {
-                terminal_x += (font_hdr->width * 4) - (terminal_x % (font_hdr->width * 4));
-                data++;
-                continue;
-            }
-
-            if (*data == '\b')
-            {
-                if (terminal_x > 0)
-                {
-                    vga::fillRect(terminal_x, terminal_y, {0, 0, 0}, font_hdr->width, font_hdr->height);
-                    vga::putchar(terminal_x - font_hdr->width, terminal_y, ' ');
-                    terminal_x -= font_hdr->width;
-                }
-
-                data++;
-                continue;
-            }
-
-            putchar(terminal_x, terminal_y, *data);
-            terminal_x += font_hdr->width;
-            data++;
-        }
-
-        draw_cursor();
-    }
-
-    extern uint32_t *g_framebuffer2;
-    extern uint64_t framebufferSize;
-
-    void scroll_up()
-    {
-        uint64_t size_of_row = (fbuf_info->pitch * font_hdr->height) / 4;
-        for (int i = 0; i < framebufferSize - size_of_row; i++)
-        {
-            g_framebuffer2[i] = g_framebuffer2[i + size_of_row];
-        }
-
-        fillRect(0, fbuf_info->height - font_hdr->height, {0, 0, 0}, fbuf_info->width, font_hdr->height);
     }
 }
