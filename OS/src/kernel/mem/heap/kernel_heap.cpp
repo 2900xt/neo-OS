@@ -17,7 +17,7 @@ namespace kernel
 
     uint64_t getHHDM(void) { return hhdm_request.response->offset; }
     uint64_t heapOffset;
-    uint64_t heapBlkcount = 16 * 10;
+    uint64_t heapBlkcount = 16 * 100;
     uint64_t heapBlksize = 256; // Heap is 10 pages long initially
     HEAP_MEMORY_TYPES *memoryBitmap;
 
@@ -38,11 +38,17 @@ namespace kernel
         memoryBitmap = (HEAP_MEMORY_TYPES *)heapOffset;
         memoryBitmap[0] = HEAP_MEMORY_TYPES::BORDER;
 
-        heapOffset += heapBlksize;
+        heapOffset += heapBlkcount * sizeof(HEAP_MEMORY_TYPES);
     }
 
     void *kmalloc(uint64_t size)
     {
+        // Handle zero-size allocation
+        if (size == 0)
+        {
+            return NULL;
+        }
+
         stdlib::acquire_spinlock(&heap_lock);
         // Convert Bytes into heap blocks
 
@@ -53,7 +59,6 @@ namespace kernel
             size += heapBlksize;
         }
         size /= heapBlksize;
-        size++;
 
         // Scan through the memory blocks until we find a free one that is greater
         // than or equal to the size
@@ -70,9 +75,7 @@ namespace kernel
             switch ((HEAP_MEMORY_TYPES)currentEntry)
             {
             case HEAP_MEMORY_TYPES::BORDER:
-                freeBlocksFound = 1;
-                if (freeBlocksFound == size)
-                    goto blockFound;
+                freeBlocksFound = 0;
                 break;
             case HEAP_MEMORY_TYPES::FREE:
                 freeBlocksFound++;
@@ -81,7 +84,9 @@ namespace kernel
                 break;
             case HEAP_MEMORY_TYPES::USED:
                 freeBlocksFound = 0;
+                break;
             default:
+                freeBlocksFound = 0;
                 break;
             }
 
@@ -90,7 +95,7 @@ namespace kernel
 
         // Not enough memory
         stdlib::release_spinlock(&heap_lock);
-        log::e(heap_tag, "Requested size exceeds remaining heap size");
+        log::e(heap_tag, "Requested size (0x%x) exceeds remaining heap size", size);
         return NULL;
 
     blockFound:
@@ -99,7 +104,7 @@ namespace kernel
 
         int borderIndex = currentIndex;
 
-        currentIndex -= freeBlocksFound - 2;
+        currentIndex -= freeBlocksFound - 1;
 
         while (currentIndex < borderIndex)
         {
@@ -109,7 +114,7 @@ namespace kernel
 
         memoryBitmap[currentIndex] = HEAP_MEMORY_TYPES::BORDER;
 
-        currentIndex -= freeBlocksFound - 2;
+        currentIndex -= freeBlocksFound - 1;
 
         // Return the actual address on the heap
 
@@ -123,8 +128,21 @@ namespace kernel
 
     void *kcalloc(uint64_t count, uint64_t size)
     {
+        // Handle potential overflow
+        if (count != 0 && size > UINT64_MAX / count)
+        {
+            return NULL;
+        }
+        
         uint64_t totalSize = count * size;
         void *retPtr = kmalloc(totalSize);
+        
+        // Check if allocation succeeded
+        if (retPtr == NULL)
+        {
+            return NULL;
+        }
+        
         if (size % 64 == 0)
         {
             memset_64(retPtr, totalSize, 0);
@@ -139,13 +157,18 @@ namespace kernel
 
     void kfree(void *ptr)
     {
+        // Handle null pointer
+        if (ptr == NULL)
+        {
+            return;
+        }
 
         stdlib::acquire_spinlock(&heap_lock);
         // Get the index into the bitmap
 
         uint64_t bitmapIndex = (uint64_t)ptr - heapOffset;
         if ((bitmapIndex % heapBlksize != 0) ||
-            (((uint64_t)ptr > heapOffset + heapBlkcount * heapBlksize) &&
+            (((uint64_t)ptr > heapOffset + heapBlkcount * heapBlksize) ||
              ((uint64_t)ptr < heapOffset)))
         {
             goto ERROR;
@@ -163,7 +186,8 @@ namespace kernel
 
         bitmapIndex++;
 
-        while (memoryBitmap[bitmapIndex] != HEAP_MEMORY_TYPES::BORDER &&
+        while (bitmapIndex < heapBlkcount &&
+               memoryBitmap[bitmapIndex] != HEAP_MEMORY_TYPES::BORDER &&
                memoryBitmap[bitmapIndex] == HEAP_MEMORY_TYPES::USED)
         {
             memoryBitmap[bitmapIndex] = HEAP_MEMORY_TYPES::FREE;
@@ -172,7 +196,9 @@ namespace kernel
 
         // Free the border if there is no used memory on the other side
 
-        if (memoryBitmap[bitmapIndex] == HEAP_MEMORY_TYPES::BORDER &&
+        if (bitmapIndex < heapBlkcount &&
+            memoryBitmap[bitmapIndex] == HEAP_MEMORY_TYPES::BORDER &&
+            bitmapIndex + 1 < heapBlkcount &&
             memoryBitmap[bitmapIndex + 1] == HEAP_MEMORY_TYPES::FREE)
         {
             memoryBitmap[bitmapIndex] = HEAP_MEMORY_TYPES::FREE;
@@ -189,7 +215,24 @@ namespace kernel
 
     void *krealloc(void *old_ptr, uint64_t size)
     {
-        // round up size to heapblksize
+        if (old_ptr == NULL)
+        {
+            return kmalloc(size);
+        }
+
+        uint64_t bitmapIndex = (uint64_t)old_ptr - heapOffset;
+        bitmapIndex /= heapBlksize;
+        bitmapIndex--;
+
+        uint64_t old_size = 0;
+        uint64_t temp_index = bitmapIndex + 1;
+        while (temp_index < heapBlkcount &&
+               memoryBitmap[temp_index] != HEAP_MEMORY_TYPES::BORDER &&
+               memoryBitmap[temp_index] == HEAP_MEMORY_TYPES::USED)
+        {
+            old_size += heapBlksize;
+            temp_index++;
+        }
 
         uint16_t remainder = size % heapBlksize;
         size -= remainder;
@@ -198,9 +241,19 @@ namespace kernel
             size += heapBlksize;
         }
 
-        // return new pointer
+        if (size <= old_size)
+        {
+            return old_ptr;
+        }
 
-        void *new_ptr = kcalloc(1, size);
+        void *new_ptr = kmalloc(size);
+        if (new_ptr == NULL)
+        {
+            return NULL;
+        }
+
+        // Copy old data to new location
+        memcpy(new_ptr, old_ptr, old_size);
 
         kfree(old_ptr);
 

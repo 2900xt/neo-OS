@@ -38,10 +38,30 @@ namespace kernel
         vga::fillRect(x, y, {255, 255, 255}, vga::font_hdr->width, vga::font_hdr->height);
     }
 
+    void run_command(const char *command)
+    {
+        stdlib::string command_str(command);
+        int count;
+        stdlib::string** sp = command_str.split(' ', &count);
+        if (sp[0] == "help")
+        {
+            terminal_puts("Available commands:\n");
+            terminal_puts("help - Show this help message\n");
+            terminal_puts("clear - Clear the screen\n");
+            terminal_puts("exit - Exit the shell\n");
+        }
+        else {
+            terminal_puts("Command not found\n");
+        }
+    }
+
     void terminal_putc(char src, bool is_input = false)
     {
         switch (src)
         {
+            case '\r':
+            case '\0':
+                break;
             case '\n':
                 //remove cursor
                 draw_character(terminal_x, terminal_y, ' ');
@@ -51,6 +71,12 @@ namespace kernel
 
                 //draw cursor
                 draw_cursor(terminal_x, terminal_y);
+
+                if(is_input)
+                {
+                    run_command(input_buffer);
+                }
+
                 break;
             case '\t':
                 //remove cursor

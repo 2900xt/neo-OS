@@ -10,18 +10,6 @@ namespace kernel
     const char *kernel_tag = "Kernel";
     extern stream *kernel_stdout, *kernel_stdin;
 
-    void splash_screen(void)
-    {
-        File logo_file;
-        stdlib::string logo_path = "/bin/logo.nic";
-        kernel::open(&logo_file, &logo_path);
-
-        vga::nic_image *logo = (vga::nic_image *)kernel::read(&logo_file);
-        vga::drawImage(logo, 0, 0, 150, 150);
-
-        vga::putstring("Welcome to neo OS!", 0, 155);
-    }
-
     extern "C" void _start(void)
     {
         kernel::tty_init();
@@ -33,8 +21,8 @@ namespace kernel
         kernel::load_drivers();
         kernel::smp_init();
         
-        kernel::splash_screen();
         kernel::terminal_init();
+        kernel::terminal_puts("Welcome to neo OS!");
 
         while (true)
         {
