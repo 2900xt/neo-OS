@@ -22,6 +22,7 @@ namespace kernel
         kernel::smp_init();
         
         kernel::terminal_init();
+        kernel::login_init();
 
         while (true)
         {

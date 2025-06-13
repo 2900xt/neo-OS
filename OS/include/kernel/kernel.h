@@ -19,6 +19,12 @@
 namespace kernel
 {
     void load_drivers();
+    void login_init();
+    bool login_check();
+    void login_prompt(bool failed = false);
+    void terminal_clear();    
+    void print_prompt();
+    void clear_input_buffer();
 }
 
 #endif

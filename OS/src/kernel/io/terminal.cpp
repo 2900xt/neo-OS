@@ -9,6 +9,7 @@ namespace vga
 
 namespace kernel
 {
+    extern bool logged_in;
     int terminal_cols;
     int terminal_rows;
     int terminal_x = 0, terminal_y = 0;
@@ -45,8 +46,31 @@ namespace kernel
             vga::Color(150, 150, 150).getRGB(), vga::Color(255, 255, 255).getRGB());
     }
 
+    void clear_input_buffer()
+    {
+        for (int i = 0; i < input_pos; i++)
+        {
+            input_buffer[i] = '\0';
+        }
+        input_pos = 0;
+    }
+
+    void terminal_clear()
+    {
+        terminal_x = 0;
+        terminal_y = 0;
+        vga::clearScreen();
+        clear_input_buffer();
+    }
+
     void run_command(const char *command)
     {
+        if (!kernel::logged_in)
+        {
+            kernel::login_check();
+            return;
+        }
+
         stdlib::string command_str(command);
         int count;
         stdlib::string** sp = command_str.split(' ', &count);
@@ -56,19 +80,23 @@ namespace kernel
             terminal_puts("Available commands:\n");
             terminal_puts("help - Show this help message\n");
             terminal_puts("clear - Clear the screen\n");
-            terminal_puts("exit - Exit the shell\n");
+            terminal_puts("exit - Exit the terminal and logout\n");
         }
-        else {
+        else if (stdlib::strcmp(sp[0]->c_str(), "clear"))
+        {
+            terminal_clear();
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "exit"))
+        {
+            kernel::login_init();
+            return;
+        }
+        else 
+        {
             terminal_puts("Command not found\n");
         }
 
-        //clear buffer
-        for (int i = 0; i < input_pos; i++)
-        {
-            input_buffer[i] = ' ';
-        }
-        input_pos = 0;
-        input_buffer[input_pos] = '\0';
+        clear_input_buffer();
         print_prompt();
     }
 
