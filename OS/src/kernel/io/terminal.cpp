@@ -38,12 +38,20 @@ namespace kernel
         vga::fillRect(x, y, {255, 255, 255}, vga::font_hdr->width, vga::font_hdr->height);
     }
 
+    void print_prompt()
+    {
+        kernel::printf("%pROOT@NEO-OS%p/%p$%p", 
+            vga::Color(0, 255, 0).getRGB(), vga::Color(0, 0, 255).getRGB(), 
+            vga::Color(150, 150, 150).getRGB(), vga::Color(255, 255, 255).getRGB());
+    }
+
     void run_command(const char *command)
     {
         stdlib::string command_str(command);
         int count;
         stdlib::string** sp = command_str.split(' ', &count);
-        if (sp[0] == "help")
+        //log::d(kernel_tag, "Command: %d", count);
+        if (stdlib::strcmp(sp[0]->c_str(), "help"))
         {
             terminal_puts("Available commands:\n");
             terminal_puts("help - Show this help message\n");
@@ -53,6 +61,15 @@ namespace kernel
         else {
             terminal_puts("Command not found\n");
         }
+
+        //clear buffer
+        for (int i = 0; i < input_pos; i++)
+        {
+            input_buffer[i] = ' ';
+        }
+        input_pos = 0;
+        input_buffer[input_pos] = '\0';
+        print_prompt();
     }
 
     void terminal_putc(char src, bool is_input = false)
@@ -100,6 +117,14 @@ namespace kernel
 
                 break;
             case '\b':
+                if (is_input)
+                {
+                    if (input_pos == 0) break;
+
+                    input_pos--;
+                    input_buffer[input_pos] = '\0';
+                }
+                
                 if (terminal_x > 0)
                 {
                     //remove cursor
@@ -109,12 +134,6 @@ namespace kernel
 
                     //draw cursor
                     draw_cursor(terminal_x, terminal_y);
-
-                    if (is_input)
-                    {
-                        input_pos--;
-                        input_buffer[input_pos] = '\0';
-                    }
                 }
                 break;
             default:
@@ -140,6 +159,10 @@ namespace kernel
         terminal_cols = vga::fbuf_info->width / vga::font_hdr->width;
         terminal_rows = vga::fbuf_info->height / vga::font_hdr->height;
         input_buffer = (char*)kernel::kmalloc(terminal_cols * terminal_rows + 69);
+
+        kernel::terminal_puts("Welcome to neo OS!\n");
+        kernel::terminal_puts("Type 'help' for available commands\n");
+        print_prompt();
     }
 
     void *token;
@@ -150,7 +173,9 @@ namespace kernel
 
     void printf(const char *fmt, ...)
     {
+        //log::d(kernel_tag, "Printing: %s", fmt);
         stdlib::acquire_spinlock(&lock);
+        current = 0;
         va_list args;
         va_start(args, fmt);
 
@@ -214,6 +239,12 @@ namespace kernel
                 terminal_puts((char *)token);
 
                 kernel::kfree(token);
+                break;
+            case 'p':
+                // color
+                num = va_arg(args, uint32_t);
+                vga::set_foreground(vga::Color(num));
+                argFound = true;
                 break;
             default:
                 argFound = false;

@@ -22,7 +22,6 @@ namespace kernel
         kernel::smp_init();
         
         kernel::terminal_init();
-        kernel::terminal_puts("Welcome to neo OS!");
 
         while (true)
         {

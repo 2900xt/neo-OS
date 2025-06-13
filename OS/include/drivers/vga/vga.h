@@ -16,6 +16,11 @@ namespace vga
             rgb = (b << fbuf_info->blue_mask_shift) | (g << fbuf_info->green_mask_shift) | (r << fbuf_info->red_mask_shift);
         }
 
+        Color(uint32_t rgb)
+        {
+            this->rgb = rgb;
+        }
+
         Color(Color const &other)
         {
             rgb = other.rgb;
