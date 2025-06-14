@@ -17,7 +17,7 @@ namespace kernel
 
     uint64_t getHHDM(void) { return hhdm_request.response->offset; }
     uint64_t heapOffset;
-    uint64_t heapBlkcount = 16 * 100;
+    uint64_t heapBlkcount = 16 * 1000;
     uint64_t heapBlksize = 256; // Heap is 10 pages long initially
     HEAP_MEMORY_TYPES *memoryBitmap;
 

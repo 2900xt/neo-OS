@@ -93,7 +93,7 @@ namespace filesystem
         return copy;
     }
 
-    static void print_directory_contents(FAT_partition *partition, fat_dir_entry *directory)
+    void print_directory_contents(FAT_partition *partition, fat_dir_entry *directory)
     {
         void *buffer = read_cluster_chain(partition, directory);
         fat_dir_entry *current_entry = (fat_dir_entry *)buffer;
@@ -198,6 +198,11 @@ namespace filesystem
         {
             const char *fat_filename = filename_to_fat(*path[i]);
             current_dir = search_directory(partition, current_dir, fat_filename);
+            if (current_dir == NULL)
+            {
+                log::e(fat_driver_tag, "(hd%d, gpt%d): Directory not found: %s", partition->dev->disk_number, partition->partition, filepath->c_str());
+                return NULL;
+            }
         }
 
         return current_dir;
@@ -264,9 +269,10 @@ namespace filesystem
         print_file_info(&partition->root_dir);
         print_directory_contents(partition, &partition->root_dir);
 
-        stdlib::string path{"/bin/kernel.elf"};
+        folder->fat_entry = &partition->root_dir;
+        folder->filename = stdlib::string("/");
+        folder->filesize = partition->root_dir.file_size;
 
-        get_file_entry(partition, &path);
         return partition;
     }
 

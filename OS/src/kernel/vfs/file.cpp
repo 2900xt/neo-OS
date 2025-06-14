@@ -6,7 +6,7 @@ namespace kernel
 {
     static const char *vfs_tag = "VFS";
     static File *root;
-    static filesystem::FAT_partition *root_part;
+    filesystem::FAT_partition *root_part;
 
     void mount_root(disk::rw_disk_t *disk, uint64_t partition)
     {
@@ -30,15 +30,27 @@ namespace kernel
         return root;
     }
 
-    void open(File *file, stdlib::string *filepath)
+    int open(File *file, stdlib::string *filepath)
     {
         int count;
 
-        filesystem::fat_dir_entry *entry = filesystem::get_file_entry(root_part, filepath);
+        filesystem::fat_dir_entry *entry;
+        if (filepath->c_str()[0] == '/' && filepath->c_str()[1] == '\0')
+            entry = (filesystem::fat_dir_entry *)root->fat_entry;
+        else
+            entry = filesystem::get_file_entry(root_part, filepath);
+
+        if (entry == NULL)
+        {
+            log::e(vfs_tag, "File not found: %s", filepath->c_str());
+            return -1;
+        }
 
         file->fat_entry = entry;
         file->filename = stdlib::string(*filepath->split('/', &count)[count - 1]);
         file->filesize = entry->file_size;
+
+        return 0;
     }
 
     void *read(File *file)

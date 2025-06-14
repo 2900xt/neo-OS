@@ -20,7 +20,7 @@ namespace kernel
     void vfs_init();
     void mount_root(disk::rw_disk_t *disk, uint64_t partition);
     File *get_root();
-    void open(File *file, stdlib::string *filepath);
+    int open(File *file, stdlib::string *filepath);
     void close(File *file);
     void *read(File *file);
 

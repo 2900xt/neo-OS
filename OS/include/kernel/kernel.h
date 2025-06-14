@@ -25,6 +25,8 @@ namespace kernel
     void terminal_clear();    
     void print_prompt();
     void clear_input_buffer();
+    void list_files(const char *path);
+    void print_file_contents(const char *path);
 }
 
 #endif
