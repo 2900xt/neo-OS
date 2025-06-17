@@ -21,6 +21,7 @@ namespace pci
         "AMD",
         "NVIDIA",
         "QEMU",
+        "Realtek",
     };
 
     device_t **pci_devices;
@@ -44,6 +45,16 @@ namespace pci
                 return "SMBus Controller";
             }
         }
+        case 0x10EC:
+        {
+            switch (device_id)
+            {
+                case 0x8139:
+                    return "RTL8139 Network Controller";
+                case 0x8169:
+                    return "RTL8169 Network Controller";
+            }
+        }
         }
 
         return stdlib::itoa(device_id, 16);
@@ -61,6 +72,8 @@ namespace pci
             return vendor_ids[2];
         case 0x1234:
             return vendor_ids[3];
+        case 0x10EC:
+            return vendor_ids[4];
         default:
             return stdlib::itoa(vendor_id, 16);
         }
@@ -102,6 +115,7 @@ namespace pci
 
         log::d(pci_tag, "PCI device found: %s %s", getVendorString(pci_func->vendor_id), getDeviceName(pci_func->vendor_id, pci_func->device_id));
 
+        // Only enumerate single function devices
         if ((dev->hdr.header_type & 0xF) == 0x0)
         {
             pci_devices[pci_devices_index++] = dev;

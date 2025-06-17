@@ -6,6 +6,7 @@
 #include <drivers/pci/pci.h>
 #include <drivers/disk/ahci/ahci.h>
 #include <drivers/vga/fonts.h>
+#include <drivers/network/rtl8139.h>
 
 namespace kernel
 {
@@ -16,6 +17,7 @@ namespace kernel
         disk::ahci_init();
         kernel::vfs_init();
         vga::initialize_font();
+        network::rtl8139_init();
     }
 
 }

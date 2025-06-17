@@ -1,20 +1,19 @@
 .PHONY: all
 all: os-img
 
-.PHONY: run-serial
-run-serial: all 
-	@echo Running Image...
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 -serial stdio -display none 2> /dev/null
-	clear
-
 .PHONY: run
 run: all
 	@echo Running Image...
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 -serial stdio 2> /dev/null
-
-.PHONY: run-bin
-run-bin:
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf-x64/OVMF.fd -drive format=raw,file=neo-OS.hdd -smp cpus=4 
+	qemu-system-x86_64\
+	 -M q35\
+	 -m 2G\
+	 -bios ovmf-x64/OVMF.fd\
+	 -drive format=raw,file=neo-OS.hdd\
+	 -smp cpus=4\
+	 -serial stdio\
+	 -netdev user,id=n0\
+	 -device rtl8139,netdev=n0\
+	 2> /dev/null 
 
 .PHONY:
 kernel:

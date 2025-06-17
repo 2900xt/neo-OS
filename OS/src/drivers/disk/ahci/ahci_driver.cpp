@@ -30,14 +30,6 @@ namespace disk
         this->interface.disk_number = port_num;
         this->interface.driver = this;
         this->interface.type = diskTypes::AHCI;
-        /*
-        char *new_filename = (char*)kcalloc(1, 4);
-        stdlib::strcpy(new_filename, "hd");
-        stdlib::strcat(new_filename, stdlib::itoa(hd_cnt++, 10));
-        VFS::file_t* block = VFS::get_root()->get_subdir("dev")->create_child(new_filename, VFS::DEVICE);
-        block->file_data = (void*)this->get_interface();
-        block->permissions = 0xFF;
-        */
         disk::disks[disk::disk_count++] = this->get_interface();
 
         // Stop the port from doing any commands
