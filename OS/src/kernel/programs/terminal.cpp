@@ -3,10 +3,20 @@
 #include <drivers/vga/fonts.h>
 #include <drivers/fs/fat/fat.h>
 
+// External variable declarations for system info
+extern uint64_t millis_since_boot;
+
 namespace vga
 {
     extern PSF_header_t *font_hdr;
+    extern limine::limine_framebuffer *fbuf_info;
 }
+
+// External declarations for system information
+extern volatile limine::limine_smp_request smp_request;
+extern uint64_t heapBlkcount;
+extern uint64_t heapBlksize;
+
 
 namespace kernel
 {
@@ -17,7 +27,6 @@ namespace kernel
     stdlib::spinlock_t lock = stdlib::SPIN_UNLOCKED;
     char* input_buffer;
     int input_pos = 0;
-
     void draw_character(int x, int y, char c, bool is_input = false)
     {
         int vga_x = x * vga::font_hdr->width;
@@ -82,6 +91,9 @@ namespace kernel
             terminal_puts("help - Show this help message\n");
             terminal_puts("clear - Clear the screen\n");
             terminal_puts("exit - Exit the terminal and logout\n");
+            terminal_puts("fetch - Display system information\n");
+            terminal_puts("ls [path] - List files in directory\n");
+            terminal_puts("cat [file] - Display file contents\n");
         }
         else if (stdlib::strcmp(sp[0]->c_str(), "clear"))
         {
@@ -100,6 +112,10 @@ namespace kernel
         {
             kernel::print_file_contents(sp[1]->c_str());
         }
+        else if (stdlib::strcmp(sp[0]->c_str(), "fetch"))
+        {
+            display_fetch();
+        }
         else 
         {
             terminal_puts("Command not found\n");
@@ -109,7 +125,7 @@ namespace kernel
         print_prompt();
     }
 
-    void terminal_putc(char src, bool is_input = false)
+    void terminal_putc(char src, bool is_input)
     {
         switch (src)
         {

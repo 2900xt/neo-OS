@@ -27,6 +27,7 @@ namespace kernel
     void clear_input_buffer();
     void list_files(const char *path);
     void print_file_contents(const char *path);
+    void display_fetch();
 }
 
 #endif
