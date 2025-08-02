@@ -10,6 +10,7 @@ namespace vga
 {
     extern PSF_header_t *font_hdr;
     extern limine::limine_framebuffer *fbuf_info;
+    extern vga::Color fg;
 }
 
 // External declarations for system information
@@ -46,7 +47,7 @@ namespace kernel
         x *= vga::font_hdr->width;
         y *= vga::font_hdr->height;
 
-        vga::fillRect(x, y, {255, 255, 255}, vga::font_hdr->width, vga::font_hdr->height);
+        vga::fillRect(x, y, vga::fg, vga::font_hdr->width, vga::font_hdr->height);
     }
 
     void print_prompt()
@@ -293,12 +294,17 @@ namespace kernel
 
                 kernel::kfree(token);
                 break;
-            case 'p':
-                // color
+            case 'p': // color
                 num = va_arg(args, uint32_t);
                 vga::set_foreground(vga::Color(num));
                 argFound = true;
                 break;
+            case 'a': // block
+                draw_cursor(terminal_x, terminal_y);
+                terminal_x++;
+                argFound = true;
+                break;
+
             default:
                 argFound = false;
             }

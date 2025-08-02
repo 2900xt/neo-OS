@@ -11,12 +11,12 @@ extern PSF_header_t *font_hdr;
 extern limine::limine_framebuffer *fbuf_info;
 } // namespace vga
 
+namespace kernel {
 // External declarations for system information
 extern volatile limine::limine_smp_request smp_request;
 extern uint64_t heapBlkcount;
 extern uint64_t heapBlksize;
 
-namespace kernel {
 void display_fetch() {
   // Display neo-OS ASCII art and system info
   terminal_puts("\n");
@@ -90,17 +90,17 @@ void display_fetch() {
   // Color blocks for terminal colors demonstration
   kernel::printf("%pColors:%p ", vga::Color(255, 100, 100).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p█%p", vga::Color(255, 0, 0).getRGB(),
+  kernel::printf("%p%a%p", vga::Color(255, 0, 0).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p█%p", vga::Color(0, 255, 0).getRGB(),
+  kernel::printf("%p%a%p", vga::Color(0, 255, 0).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p█%p", vga::Color(0, 0, 255).getRGB(),
+  kernel::printf("%p%a%p", vga::Color(0, 0, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p█%p", vga::Color(255, 255, 0).getRGB(),
+  kernel::printf("%p%a%p", vga::Color(255, 255, 0).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p█%p", vga::Color(255, 0, 255).getRGB(),
+  kernel::printf("%p%a%p", vga::Color(255, 0, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p█%p", vga::Color(0, 255, 255).getRGB(),
+  kernel::printf("%p%a%p", vga::Color(0, 255, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
   terminal_puts("\n\n");
 }
