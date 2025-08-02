@@ -46,3 +46,6 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 2. build the toolchain with "./toolchain.sh"
 2. execute "make run"
 
+## previous iterations (all failed)
+[Open-OS](https://github.com/2900xt/open-OS)
+[T-DOS](https://github.com/2900xt/T-dos)
