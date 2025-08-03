@@ -21,27 +21,27 @@ void display_fetch() {
   // Display neo-OS ASCII art and system info
   terminal_puts("\n");
 
-  // Simple ASCII art for neo-OS
-  kernel::printf("%p      ___  ___         %p\n",
+  // Enhanced ASCII art logo for neo-OS (ASCII only)
+  kernel::printf("%p    ####   ##  ######   #######           #######   ######    %p\n",
                  vga::Color(0, 255, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p     |   \\/   |        %p\n",
-                 vga::Color(0, 255, 255).getRGB(),
+  kernel::printf("%p    ## ##  ##  ##       ##   ##  ######   ##   ##  ##         %p\n",
+                 vga::Color(0, 220, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p     | |\\/| | ___     %p\n",
-                 vga::Color(0, 255, 255).getRGB(),
+  kernel::printf("%p    ##  ## ##  ####     ##   ##           ##   ##   #####     %p\n",
+                 vga::Color(0, 180, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p     | |  | |/ _ \\    %p\n",
-                 vga::Color(0, 255, 255).getRGB(),
+  kernel::printf("%p    ##   ####  ##       ##   ##           ##   ##       ##    %p\n",
+                 vga::Color(0, 140, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p     | |  | |  __/    %p\n",
-                 vga::Color(0, 255, 255).getRGB(),
+  kernel::printf("%p    ##    ###  ######   #######           #######   ######    %p\n",
+                 vga::Color(0, 100, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p     |_|  |_|\\___|    %p\n",
-                 vga::Color(0, 255, 255).getRGB(),
+  kernel::printf("%p                                                               %p\n",
+                 vga::Color(0, 80, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
-  kernel::printf("%p        neo-OS        %p\n",
-                 vga::Color(0, 255, 255).getRGB(),
+  kernel::printf("%p           -= Next Generation Operating System =-            %p\n",
+                 vga::Color(100, 150, 255).getRGB(),
                  vga::Color(255, 255, 255).getRGB());
   terminal_puts("\n");
 
@@ -68,13 +68,27 @@ void display_fetch() {
   kernel::printf("%pMemory:%p %u MB heap allocated\n",
                  vga::Color(255, 100, 100).getRGB(),
                  vga::Color(255, 255, 255).getRGB(), total_heap_mb);
-
   // Display resolution
   if (vga::fbuf_info != nullptr) {
     kernel::printf("%pResolution:%p %ux%u\n",
                    vga::Color(255, 100, 100).getRGB(),
                    vga::Color(255, 255, 255).getRGB(), vga::fbuf_info->width,
                    vga::fbuf_info->height);
+  }
+
+  // Font information
+  if (vga::font_hdr != nullptr) {
+    kernel::printf("%pFont:%p PSF %ux%u (%u glyphs, %u bytes/glyph)\n",
+                   vga::Color(255, 100, 100).getRGB(),
+                   vga::Color(255, 255, 255).getRGB(),
+                   vga::font_hdr->width,
+                   vga::font_hdr->height,
+                   vga::font_hdr->glyph_count,
+                   vga::font_hdr->glyph_size);
+  } else {
+    kernel::printf("%pFont:%p Unknown\n",
+                   vga::Color(255, 100, 100).getRGB(),
+                   vga::Color(255, 255, 255).getRGB());
   }
 
   // Uptime

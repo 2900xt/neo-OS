@@ -54,12 +54,13 @@ namespace kernel
             return;
         }
 
-        current_entry = (fat_dir_entry *)kernel::read(&file);
-        if ((current_entry->dir_attrib & DIRECTORY) != DIRECTORY)
+        if (!file.is_dir)
         {
             printf("Not a directory: %s\n", path);
             return;
         }
+
+        current_entry = (fat_dir_entry *)kernel::read(&file);
         
         void *buffer = current_entry;
         while (true)
@@ -75,7 +76,7 @@ namespace kernel
         }
         printf("\n");
 
-        kernel::free_pages(buffer);
+        if (!file.is_root) kernel::free_pages(buffer);
         kernel::close(&file);
     }
 

@@ -35,10 +35,14 @@ namespace kernel
         int count;
 
         filesystem::fat_dir_entry *entry;
-        if (filepath->c_str()[0] == '/' && filepath->c_str()[1] == '\0')
+        if (filepath->c_str()[0] == '/' && filepath->c_str()[1] == '\0') {
+            file->is_root = true;
             entry = (filesystem::fat_dir_entry *)root->fat_entry;
-        else
+        }
+        else {
+            file->is_root = false;
             entry = filesystem::get_file_entry(root_part, filepath);
+        }
 
         if (entry == NULL)
         {
@@ -49,6 +53,8 @@ namespace kernel
         file->fat_entry = entry;
         file->filename = stdlib::string(*filepath->split('/', &count)[count - 1]);
         file->filesize = entry->file_size;
+
+        file->is_dir = (entry->dir_attrib & filesystem::DIRECTORY) || file->is_root;
 
         return 0;
     }

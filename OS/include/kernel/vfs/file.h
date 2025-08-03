@@ -15,6 +15,8 @@ namespace kernel
         stdlib::string filename;
         size_t filesize;
         void *fat_entry;
+        bool is_root;
+        bool is_dir;
     };
 
     void vfs_init();

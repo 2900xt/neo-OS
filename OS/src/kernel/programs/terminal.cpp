@@ -28,6 +28,148 @@ namespace kernel
     stdlib::spinlock_t lock = stdlib::SPIN_UNLOCKED;
     char* input_buffer;
     int input_pos = 0;
+    
+    // Current working directory (using char array to avoid constructor issues)
+    char current_working_directory[256] = "/";
+
+    // Helper function to resolve relative paths to absolute paths
+    stdlib::string resolve_path(const char* path_input)
+    {
+        if (path_input == nullptr || stdlib::strlen(path_input) == 0)
+        {
+            return stdlib::string(current_working_directory);
+        }
+        
+        // If path starts with '/', it's already absolute
+        if (path_input[0] == '/')
+        {
+            return stdlib::string(path_input);
+        }
+        
+        // Build absolute path from current directory and relative path
+        stdlib::string absolute_path(current_working_directory);
+        
+        // Add trailing slash if needed
+        if (absolute_path.c_str()[absolute_path.length() - 1] != '/')
+        {
+            absolute_path.push_back('/');
+        }
+        
+        // Append the relative path
+        stdlib::string relative(path_input);
+        absolute_path.append(relative);
+        
+        return absolute_path;
+    }
+
+    // Helper function to change directory
+    bool change_directory(const char* path)
+    {
+        // Handle special cases
+        if (path != nullptr && stdlib::strcmp(path, "."))
+        {
+            // Current directory - do nothing
+            return true;
+        }
+        
+        if (path != nullptr && stdlib::strcmp(path, ".."))
+        {
+            // Parent directory - go up one level
+            size_t len = stdlib::strlen(current_working_directory);
+            
+            // If we're at root, stay at root
+            if (len <= 1 || (len == 1 && current_working_directory[0] == '/'))
+            {
+                return false;
+            }
+            
+            // Find the last '/' and truncate there
+            for (int i = len - 1; i >= 0; i--)
+            {
+                if (current_working_directory[i] == '/')
+                {
+                    // If this is the root slash, keep it
+                    if (i == 0)
+                    {
+                        current_working_directory[1] = '\0';
+                    }
+                    else
+                    {
+                        current_working_directory[i] = '\0';
+                    }
+                    break;
+                }
+            }
+            return true;
+        }
+
+        if(path[0] == '/' && path[1] == '\0')
+        {
+            current_working_directory[0] = '/';
+            current_working_directory[1] = '\0';
+            return true;
+        }
+        
+        // Regular path - resolve and validate
+        stdlib::string abs_path = resolve_path(path);
+        
+        // Try to open the path to verify it exists and is a directory
+        File test_file;
+        int ret = kernel::open(&test_file, &abs_path);
+        
+        if (ret == -1)
+        {
+            return false; // Path doesn't exist
+        }
+        
+        if (!test_file.is_dir)
+        {
+            kernel::close(&test_file);
+            return false; // Path is not a directory
+        }
+        
+        kernel::close(&test_file);
+        
+        // Update current working directory
+        stdlib::strcpy(current_working_directory, abs_path.c_str());
+        return true;
+    }
+
+    void scroll_up()
+    {
+        // Get framebuffer information
+        uint32_t *framebuffer = vga::g_framebuffer2; // Use the working framebuffer
+        int width = vga::fbuf_info->width;
+        int height = vga::fbuf_info->height;
+        int pitch = vga::fbuf_info->pitch / 4; // Convert bytes to 32-bit pixels
+        int font_height = vga::font_hdr->height;
+        
+        // Copy each line up by font_height pixels
+        for (int y = font_height; y < height; y++)
+        {
+            int source_offset = y * pitch;
+            int dest_offset = (y - font_height) * pitch;
+            
+            for (int x = 0; x < width; x++)
+            {
+                framebuffer[dest_offset + x] = framebuffer[source_offset + x];
+            }
+        }
+        
+        // Clear the bottom line
+        for (int y = height - font_height; y < height; y++)
+        {
+            int offset = y * pitch;
+            for (int x = 0; x < width; x++)
+            {
+                framebuffer[offset + x] = vga::Color(0, 0, 0).getRGB(); // Black background
+            }
+        }
+        
+        // Mark framebuffer as dirty so it gets repainted
+        vga::g_framebuffer_dirty = true;
+    }
+
     void draw_character(int x, int y, char c, bool is_input = false)
     {
         int vga_x = x * vga::font_hdr->width;
@@ -52,9 +194,10 @@ namespace kernel
 
     void print_prompt()
     {
-        kernel::printf("%pROOT@NEO-OS%p/%p$%p", 
+        kernel::printf("%pROOT@NEO-OS%p:%p%s%p$%p ", 
             vga::Color(0, 255, 0).getRGB(), vga::Color(0, 0, 255).getRGB(), 
-            vga::Color(150, 150, 150).getRGB(), vga::Color(255, 255, 255).getRGB());
+            vga::Color(150, 150, 150).getRGB(), current_working_directory,
+            vga::Color(0, 0, 255).getRGB(), vga::Color(255, 255, 255).getRGB());
     }
 
     void clear_input_buffer()
@@ -95,6 +238,8 @@ namespace kernel
             terminal_puts("fetch - Display system information\n");
             terminal_puts("ls [path] - List files in directory\n");
             terminal_puts("cat [file] - Display file contents\n");
+            terminal_puts("pwd - Print current working directory\n");
+            terminal_puts("cd [path] - Change working directory\n");
         }
         else if (stdlib::strcmp(sp[0]->c_str(), "clear"))
         {
@@ -107,11 +252,35 @@ namespace kernel
         }
         else if (stdlib::strcmp(sp[0]->c_str(), "ls"))
         {
-            kernel::list_files(sp[1]->c_str());
+            // Use current directory if no path specified, otherwise resolve the path
+            const char* path = (count > 1) ? sp[1]->c_str() : nullptr;
+            stdlib::string resolved_path = resolve_path(path);
+            kernel::list_files(resolved_path.c_str());
         }
         else if (stdlib::strcmp(sp[0]->c_str(), "cat"))
         {
-            kernel::print_file_contents(sp[1]->c_str());
+            if (count < 2)
+            {
+                terminal_puts("cat: missing file argument\n");
+            }
+            else
+            {
+                stdlib::string resolved_path = resolve_path(sp[1]->c_str());
+                kernel::print_file_contents(resolved_path.c_str());
+            }
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "pwd"))
+        {
+            terminal_puts(current_working_directory);
+            terminal_puts("\n");
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "cd"))
+        {
+            const char* path = (count > 1) ? sp[1]->c_str() : "/";
+            if (!change_directory(path))
+            {
+                terminal_puts("cd: directory not found or not a directory\n");
+            }
         }
         else if (stdlib::strcmp(sp[0]->c_str(), "fetch"))
         {
@@ -137,8 +306,18 @@ namespace kernel
                 //remove cursor
                 draw_character(terminal_x, terminal_y, ' ');
 
-                terminal_y++;
-                terminal_x = 0;
+                // Check if we need to scroll
+                if (terminal_y >= terminal_rows - 1)
+                {
+                    scroll_up();
+                    // Stay at the bottom line
+                    terminal_x = 0;
+                }
+                else
+                {
+                    terminal_y++;
+                    terminal_x = 0;
+                }
 
                 //draw cursor
                 draw_cursor(terminal_x, terminal_y);
