@@ -4,6 +4,7 @@
 #include <limine/limine.h>
 #include <kernel/kernel.h>
 #include <drivers/ps2/ps2.h>
+#include <kernel/wm/window.h>
 
 namespace kernel
 {
@@ -21,17 +22,71 @@ namespace kernel
         kernel::load_drivers();
         kernel::smp_init();
         
-        kernel::terminal_init();
-        kernel::login_init();
+        wm::window_manager_init();
+        log::d("Startup", "Window manager initialized, creating terminal window...");
+        
+        // Debug: Check font status right before window creation
+        log::d("Startup", "Verifying font before window creation: font_hdr=%x", (uint64_t)vga::font_hdr);
+        if (vga::font_hdr) {
+            log::d("Startup", "Font details: width=%d, height=%d, magic=%x", 
+                   vga::font_hdr->width, vga::font_hdr->height, vga::font_hdr->magic);
+        } else {
+            log::e("Startup", "Font header is null!");
+        }
+        
+        // Create initial login window
+        wm::Window* login_window = wm::create_login_window(200, 150, 400, 200);
+        if (login_window)
+        {
+            log::d("Startup", "Login window created successfully");
+            wm::set_window_focus(login_window);
+        }
+        else
+        {
+            log::e("Startup", "Failed to create login window!");
+        }
 
+        static int main_loop_count = 0;
         while (true)
         {
             kernel::sleep(5);
             stdlib::call_timers();
-            kernel::pollNextChar();
+            
+            // Debug: Show main loop status
+            if (main_loop_count < 3)
+            {
+                //log::d("MainLoop", "Main loop iteration %d", main_loop_count);
+                main_loop_count++;
+            }
+            
+            // Handle keyboard input for window management
+            if (ps2::pollKeyInput())
+            {
+                // Check for Ctrl modifier
+                bool ctrl_pressed = false; // TODO: implement proper Ctrl detection
+                wm::handle_window_keyboard_input(ps2::lastKey, ps2::shiftBit, ctrl_pressed, false);
+            }
 
+            // Handle mouse input
+            /*if (ps2::pollMouseInput())
+            {
+                wm::handle_window_mouse_input(ps2::mouse_state.x, ps2::mouse_state.y, 
+                                            ps2::mouse_state.left_button, ps2::mouse_state.right_button);
+            }*/
+
+            // Render all windows
+            wm::render_all_windows();
+            
             if (vga::g_framebuffer_dirty)
+            {
+                //if (main_loop_count <= 3) log::d("MainLoop", "Repainting screen (dirty flag set)");
                 vga::repaintScreen();
+            }
+            else if (main_loop_count <= 3)
+            {
+                //log::d("MainLoop", "Screen not dirty, skipping repaint");
+            }
+            
             asm volatile("hlt");
         }
 

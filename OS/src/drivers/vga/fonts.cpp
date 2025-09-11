@@ -5,6 +5,7 @@
 #include <drivers/vga/fonts.h>
 #include <stdlib/string.h>
 #include <kernel/vfs/file.h>
+#include <kernel/kernel.h>
 
 namespace vga
 {
@@ -24,6 +25,11 @@ namespace vga
         uint8_t *buffer = (uint8_t *)kernel::read(font_file);
 
         font_hdr = (PSF_header_t *)buffer;
+        //log font header info for debugging
+        log::d("Font", "Font PSF Header (0x%x): magic=%x, version=%d, header_sz=%d, flags=%d, glyph_count=%d, glyph_size=%d, height=%d, width=%d",
+            (uint64_t)font_hdr, font_hdr->magic, font_hdr->version, font_hdr->header_sz, font_hdr->flags,
+            font_hdr->glyph_count, font_hdr->glyph_size, font_hdr->height, font_hdr->width);
+
         bitmap = buffer + font_hdr->header_sz;
 
         set_foreground({255, 255, 255});

@@ -3,6 +3,7 @@
 #include <drivers/vga/fonts.h>
 #include <drivers/vga/vga.h>
 #include <drivers/fs/fat/fat.h>
+#include <kernel/wm/window.h>
 
 using namespace filesystem;
 
@@ -42,6 +43,40 @@ namespace kernel
         printf("%p  ", vga::Color({255, 255, 255}).getRGB());
     }
 
+    void print_file_name(fat_dir_entry *entry, wm::Window* window)
+    {
+        if ((entry->dir_attrib & DIRECTORY) == DIRECTORY)
+        {
+            wm::terminal_window_printf(window, "%p",
+                   vga::Color({100, 200, 100}).getRGB());
+        }
+        else
+        {
+            wm::terminal_window_printf(window, "%p",
+                   vga::Color({100, 100, 200}).getRGB());
+        }
+
+        bool space = false, dot = false;
+        for (int i = 0; i < 11; i++)
+        {
+            if (entry->dir_name[i] == ' ')
+            {
+                space = true;
+                continue;
+            }
+
+            if (space && entry->dir_name[i] != ' ' && !dot)
+            {
+                wm::terminal_window_printf(window, ".");
+                dot = true;
+            }
+
+            wm::terminal_window_printf(window, "%c", entry->dir_name[i]);
+        }
+
+        wm::terminal_window_printf(window, "%p  ", vga::Color({255, 255, 255}).getRGB());
+    }
+
     void list_files(const char *path)
     {
         fat_dir_entry *current_entry;
@@ -75,6 +110,56 @@ namespace kernel
             current_entry++;
         }
         printf("\n");
+
+        if (!file.is_root) kernel::free_pages(buffer);
+        kernel::close(&file);
+    }
+
+    void list_files(const char *path, wm::Window* window)
+    {
+        fat_dir_entry *current_entry;
+        File file;
+        stdlib::string file_path = path;
+        int ret = kernel::open(&file, &file_path);
+        if (ret == -1)
+        {
+            wm::terminal_window_puts(window, "ls: cannot access '");
+            wm::terminal_window_puts(window, path);
+            wm::terminal_window_puts(window, "': No such file or directory\n");
+            return;
+        }
+
+        if (!file.is_dir)
+        {
+            wm::terminal_window_puts(window, "ls: '");
+            wm::terminal_window_puts(window, path);
+            wm::terminal_window_puts(window, "': Not a directory\n");
+            kernel::close(&file);
+            return;
+        }
+
+        current_entry = (fat_dir_entry *)kernel::read(&file);
+        
+        if (current_entry == nullptr)
+        {
+            wm::terminal_window_puts(window, "ls: error reading directory\n");
+            kernel::close(&file);
+            return;
+        }
+        
+        void *buffer = current_entry;
+        while (true)
+        {
+            if (current_entry->dir_name[0] == 0x00)
+                break;
+
+            if (!((uint8_t)current_entry->dir_name[0] == 0xE5 || current_entry->dir_attrib == LONG_NAME))
+            {
+                print_file_name(current_entry, window);
+            }
+            current_entry++;
+        }
+        wm::terminal_window_puts(window, "\n");
 
         if (!file.is_root) kernel::free_pages(buffer);
         kernel::close(&file);

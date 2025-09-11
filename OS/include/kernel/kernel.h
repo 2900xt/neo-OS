@@ -16,6 +16,11 @@
 #include <kernel/io/scan.h> 
 #include <kernel/io/terminal.h>
 
+// Forward declarations
+namespace wm {
+    struct Window;
+}
+
 namespace kernel
 {
     void load_drivers();
@@ -26,6 +31,7 @@ namespace kernel
     void print_prompt();
     void clear_input_buffer();
     void list_files(const char *path);
+    void list_files(const char *path, wm::Window* window);
     void print_file_contents(const char *path);
     void display_fetch();
 }

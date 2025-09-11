@@ -30,7 +30,9 @@ namespace kernel
     {
         // Heap offset = Higher half address + offset + bitmap size(blkcount)
 
-        heapOffset = getHHDM() + 0x10000;
+        // Ensure heap starts well above any low memory allocations (font at 0x77000)
+        // Start heap at 1MB (0x100000) to be safe
+        heapOffset = getHHDM() + 0x100000;
 
         // Bitmap is to be located at the start of the heap, with the bitmap being
         // the size of the heap block count
@@ -269,6 +271,11 @@ void *operator new(size_t size)
 void *operator new[](size_t size)
 {
     return kernel::kcalloc(1, size);
+}
+
+void operator delete(void *addr)
+{
+    kernel::kfree(addr);
 }
 
 void operator delete(void *addr, uint64_t)

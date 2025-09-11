@@ -3,6 +3,7 @@
 #include <drivers/vga/vga.h>
 #include <stdlib/stdlib.h>
 #include <kernel/kernel.h>
+#include <drivers/ps2/ps2.h>
 
 namespace ps2
 {
@@ -57,6 +58,11 @@ namespace ps2
 
     uint8_t lastKey = 0;
     bool shiftBit = false;
+    
+    // Mouse state
+    MouseState mouse_state = {0, 0, false, false, false, 0, 0};
+    static uint8_t mouse_packet[3];
+    static int mouse_packet_index = 0;
 
     enum PS2_REGS
     {
@@ -105,170 +111,118 @@ namespace ps2
         while (!(~kernel::inb(PS2_STATUS) & INPUT_ALLOWED))
             ;
     }
-
+    
     void waitForOutput(void)
     {
         while (!(kernel::inb(PS2_STATUS) & OUTPUT_ALLOWED))
             ;
     }
-
-    uint8_t mouseReadByte(void)
-    {
-        waitForOutput();
-        return kernel::inb(PS2_DATA);
-    }
-
-    uint8_t getMouseData(void)
-    {
-
-        waitForOutput();
-        return kernel::inb(PS2_DATA);
-    }
-
-    void mouseWriteByte(uint8_t cmd)
+    
+    void mouse_write(uint8_t data)
     {
         waitForInput();
         kernel::outb(PS2_CMD, 0xD4);
         waitForInput();
-        kernel::outb(PS2_DATA, cmd);
+        kernel::outb(PS2_DATA, data);
     }
-
-    void mouseINIT(void)
+    
+    uint8_t mouse_read()
     {
-
-        bool dualChannel = false;
-
-        kernel::outb(PS2_CMD, 0xAD); // Mask both PS/2 ports
-        kernel::outb(PS2_CMD, 0xA7);
-
-        kernel::inb(PS2_DATA); // Flush the PS/2 Buffer
-
+        waitForOutput();
+        return kernel::inb(PS2_DATA);
+    }
+    
+    void mouse_init()
+    {
+        // Enable auxiliary device (mouse)
+        waitForInput();
+        kernel::outb(PS2_CMD, 0xA8);
+        
+        // Enable mouse interrupts
+        waitForInput();
         kernel::outb(PS2_CMD, 0x20);
         waitForOutput();
-        uint8_t cc = kernel::inb(PS2_DATA);
-
-        if (cc & (1 << 5))
-        {
-            dualChannel = true;
-        }
-
-        cc = cc & (0b00111111);
-
+        uint8_t status = kernel::inb(PS2_DATA) | 2;
+        waitForInput();
         kernel::outb(PS2_CMD, 0x60);
         waitForInput();
-        kernel::outb(PS2_DATA, cc); // Set the controller-configuration byte
-
-        kernel::outb(PS2_CMD, 0xAA); // Perform the PS/2 self-test
-        waitForOutput();
-        if (kernel::inb(PS2_DATA) != 0x55)
-        {
-            goto testFailed;
+        kernel::outb(PS2_DATA, status);
+        
+        // Set mouse to use default settings
+        mouse_write(0xF6);
+        mouse_read(); // Read ACK
+        
+        // Enable mouse data reporting
+        mouse_write(0xF4);
+        mouse_read(); // Read ACK
+        
+        // Initialize mouse position to center of screen
+        if (vga::fbuf_info) {
+            mouse_state.x = vga::fbuf_info->width / 2;
+            mouse_state.y = vga::fbuf_info->height / 2;
         }
-
-        kernel::outb(PS2_CMD, 0xAB);
-        waitForOutput();
-        if (kernel::inb(PS2_DATA) == 0x00)
+        
+        log::d("PS/2", "Mouse initialized");
+    }
+    
+    bool pollMouseInput()
+    {
+        if (~kernel::inb(PS2_STATUS) & OUTPUT_ALLOWED)
         {
-            goto testFailed;
+            return false;
         }
-
-        if (dualChannel)
+        
+        // Check if data is from auxiliary device (mouse)
+        if (~kernel::inb(PS2_STATUS) & CONTROLLER_DATA)
         {
-            kernel::outb(PS2_CMD, 0xA9);
-            waitForOutput();
-            if (kernel::inb(PS2_DATA) != 0x00)
+            return false;
+        }
+        
+        uint8_t data = kernel::inb(PS2_DATA);
+        
+        // Collect 3-byte mouse packet
+        mouse_packet[mouse_packet_index] = data;
+        mouse_packet_index++;
+        
+        if (mouse_packet_index >= 3)
+        {
+            mouse_packet_index = 0;
+            
+            // Parse mouse packet
+            uint8_t flags = mouse_packet[0];
+            int8_t delta_x = mouse_packet[1];
+            int8_t delta_y = mouse_packet[2];
+            
+            // Check if packet is valid (bit 3 should be set)
+            if (!(flags & 0x08))
             {
-                goto testFailed;
+                return false;
             }
-            kernel::outb(PS2_CMD, 0xA8);
+            
+            // Update button states
+            mouse_state.left_button = flags & 0x01;
+            mouse_state.right_button = flags & 0x02;
+            mouse_state.middle_button = flags & 0x04;
+            
+            // Update deltas
+            mouse_state.delta_x = delta_x;
+            mouse_state.delta_y = -delta_y; // Invert Y for screen coordinates
+            
+            // Update absolute position with bounds checking
+            if (vga::fbuf_info) {
+                mouse_state.x += delta_x;
+                mouse_state.y += -delta_y; // Invert Y for screen coordinates
+                
+                // Clamp to screen bounds
+                if (mouse_state.x < 0) mouse_state.x = 0;
+                if (mouse_state.y < 0) mouse_state.y = 0;
+                if (mouse_state.x >= (int)vga::fbuf_info->width) mouse_state.x = vga::fbuf_info->width - 1;
+                if (mouse_state.y >= (int)vga::fbuf_info->height) mouse_state.y = vga::fbuf_info->height - 1;
+            }
+            
+            return true;
         }
-
-        kernel::outb(PS2_CMD, 0xAE);
-
-        kernel::outb(PS2_CMD, 0x20);
-        waitForOutput();
-        cc = kernel::inb(PS2_DATA);
-
-        cc = cc | 0b1;
-
-        kernel::outb(PS2_CMD, 0x60);
-        waitForInput();
-        kernel::outb(PS2_DATA, cc); // Set the controller-configuration byte
-
-        mouseWriteByte(0xF6);
-        mouseReadByte();
-
-        mouseWriteByte(0xF4);
-        mouseReadByte();
-
-        return;
-
-    testFailed:
-
-        log::e("PS/2 Driver", "Error initializing PS/2 port!\n");
-        return;
-    }
-
-    enum MOUSE_FLAGS
-    {
-        Y_OVERFLOW = (1 << 7),
-        X_OVERFLOW = (1 << 6),
-        Y_SIGN = (1 << 5),
-        X_SIGN = (1 << 4),
-        MIDDLE_BTN = (1 << 2),
-        RIGHT_BTN = (1 << 1),
-        LEFT_BTN = (1 << 0)
-    };
-
-    static int64_t mouse_X = 0, mouse_Y = 0;
-
-    void processMousePacket(void)
-    {
-        while (!(kernel::inb(PS2_STATUS) & (1 << 5)))
-            ;
-
-        int16_t bytes[3];
-        for (int i = 0; i < 3; i++)
-        {
-            bytes[i] = getMouseData();
-        }
-
-        bool xNegative = bytes[0] & X_SIGN;
-        bool yNegative = bytes[0] & Y_SIGN;
-
-        if (bytes[0] & Y_OVERFLOW || bytes[0] & X_OVERFLOW)
-            return;
-
-        if (!xNegative)
-        {
-            mouse_X += bytes[1];
-        }
-        else
-        {
-            bytes[1] = 256 - bytes[1];
-            mouse_X -= bytes[1];
-        }
-
-        if (!yNegative)
-        {
-            mouse_Y -= bytes[1];
-        }
-        else
-        {
-            bytes[2] = 256 - bytes[2];
-            mouse_Y += bytes[2];
-        }
-
-        if (mouse_X < 0)
-            mouse_X = 0;
-        if (mouse_X > vga::fbuf_info->width - 8)
-            mouse_X = vga::fbuf_info->width - 8;
-
-        if (mouse_Y < 0)
-            mouse_Y = 0;
-        if (mouse_Y > vga::fbuf_info->height - 8)
-            mouse_Y = vga::fbuf_info->height - 8;
-
-        // VGA::drawMouse(mouse_X, mouse_Y); UNIMPLEMENTED
+        
+        return false;
     }
 }
