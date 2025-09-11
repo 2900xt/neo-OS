@@ -17,10 +17,7 @@ namespace kernel
 
         if (outputEnabled)
         {
-            char buf[2];
-            buf[0] = ps2::lastKey;
-            buf[1] = '\0';
-            terminal_putc(buf[0], true);
+            terminal_putc(ps2::lastKey, true);
         }
 
         return ps2::lastKey;

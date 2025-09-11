@@ -18,7 +18,6 @@ extern volatile limine::limine_smp_request smp_request;
 extern uint64_t heapBlkcount;
 extern uint64_t heapBlksize;
 
-
 namespace kernel
 {
     extern bool logged_in;
