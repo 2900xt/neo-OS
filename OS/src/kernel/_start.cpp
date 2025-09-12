@@ -6,6 +6,9 @@
 #include <drivers/ps2/ps2.h>
 #include <kernel/wm/window.h>
 
+// External variable declaration
+extern uint64_t millis_since_boot;
+
 namespace kernel
 {
     const char *kernel_tag = "Kernel";
@@ -47,10 +50,40 @@ namespace kernel
         }
 
         static int main_loop_count = 0;
+        static uint64_t last_clock_update = 0;
+        static uint64_t last_snake_update = 0;
         while (true)
         {
             kernel::sleep(5);
             stdlib::call_timers();
+            
+            // Update clock windows every 1000ms (1 second)
+            if (millis_since_boot - last_clock_update >= 1000)
+            {
+                // Update all clock windows
+                for (int i = 0; i < wm::window_count; i++)
+                {
+                    if (wm::windows[i] && wm::windows[i]->type == wm::WINDOW_TYPE_CLOCK)
+                    {
+                        wm::update_clock_display(wm::windows[i]);
+                    }
+                }
+                last_clock_update = millis_since_boot;
+            }
+            
+            // Update snake games every 200ms
+            if (millis_since_boot - last_snake_update >= 200)
+            {
+                for (int i = 0; i < wm::window_count; i++)
+                {
+                    if (wm::windows[i] && wm::windows[i]->type == wm::WINDOW_TYPE_SNAKE)
+                    {
+                        wm::update_snake_game(wm::windows[i]);
+                        wm::render_snake_game(wm::windows[i]);
+                    }
+                }
+                last_snake_update = millis_since_boot;
+            }
             
             // Debug: Show main loop status
             if (main_loop_count < 3)
@@ -62,9 +95,18 @@ namespace kernel
             // Handle keyboard input for window management
             if (ps2::pollKeyInput())
             {
-                // Check for Ctrl modifier
-                bool ctrl_pressed = false; // TODO: implement proper Ctrl detection
-                wm::handle_window_keyboard_input(ps2::lastKey, ps2::shiftBit, ctrl_pressed, false);
+                // Check for special keys (arrow keys, function keys)
+                if (ps2::lastSpecialKey > 0)
+                {
+                    wm::handle_window_special_key(ps2::lastSpecialKey);
+                    ps2::lastSpecialKey = 0; // Reset special key
+                }
+                else if (ps2::lastKey > 0)
+                {
+                    // Check for Ctrl modifier
+                    bool ctrl_pressed = false; // TODO: implement proper Ctrl detection
+                    wm::handle_window_keyboard_input(ps2::lastKey, ps2::shiftBit, ctrl_pressed, false);
+                }
             }
 
             // Handle mouse input

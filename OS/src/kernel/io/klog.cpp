@@ -174,7 +174,7 @@ namespace kernel
 
 extern uint64_t millis_since_boot;
 
-static void log::v(const char *source, const char *fmt, ...)
+void log::v(const char *source, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -198,7 +198,7 @@ static void log::v(const char *source, const char *fmt, ...)
     va_end(args);
 }
 
-static void log::d(const char *source, const char *fmt, ...)
+void log::d(const char *source, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -221,7 +221,7 @@ static void log::d(const char *source, const char *fmt, ...)
     va_end(args);
 }
 
-static void log::w(const char *source, const char *fmt, ...)
+void log::w(const char *source, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -244,7 +244,7 @@ static void log::w(const char *source, const char *fmt, ...)
     va_end(args);
 }
 
-static void log::e(const char *source, const char *fmt, ...)
+void log::e(const char *source, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

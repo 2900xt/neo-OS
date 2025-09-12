@@ -17,9 +17,26 @@ namespace ps2
         KEY_RSHIFT_PRESS = 0x36,
         KEY_LALT_PRESS = 0x38,
         KEY_CAPS_PRESS = 0x3A,
+        KEY_F1_PRESS = 0x3B,
+        KEY_F2_PRESS = 0x3C,
+        KEY_F3_PRESS = 0x3D,
+        KEY_F4_PRESS = 0x3E,
+        KEY_F5_PRESS = 0x3F,
+        KEY_F6_PRESS = 0x40,
+        KEY_F7_PRESS = 0x41,
+        KEY_F8_PRESS = 0x42,
+        KEY_F9_PRESS = 0x43,
+        KEY_F10_PRESS = 0x44,
+        KEY_F11_PRESS = 0x57,
+        KEY_F12_PRESS = 0x58,
         KEY_CAPS_RELEASE = 0xBA,
         KEY_LSHIFT_RELEASE = 0xAA,
         KEY_RSHIFT_RELEASE = 0xB6,
+        // Extended codes (preceded by 0xE0)
+        KEY_UP_ARROW = 0x48,
+        KEY_DOWN_ARROW = 0x50,
+        KEY_LEFT_ARROW = 0x4B,
+        KEY_RIGHT_ARROW = 0x4D,
     };
 
     const uint8_t ScanCodeLookupTable[] = {
@@ -58,6 +75,8 @@ namespace ps2
 
     uint8_t lastKey = 0;
     bool shiftBit = false;
+    bool extendedKey = false;
+    uint8_t lastSpecialKey = 0;
     
     // Mouse state
     MouseState mouse_state = {0, 0, false, false, false, 0, 0};
@@ -86,19 +105,80 @@ namespace ps2
         }
 
         uint8_t code = kernel::inb(0x60);
+        
+        // Handle extended scancode prefix
+        if (code == 0xE0)
+        {
+            extendedKey = true;
+            return false;
+        }
 
+        // Handle shift keys
         if (code == KEY_LSHIFT_PRESS || code == KEY_RSHIFT_PRESS)
         {
             shiftBit = true;
+            extendedKey = false;
+            return false;
         }
         else if (code == KEY_LSHIFT_RELEASE || code == KEY_RSHIFT_RELEASE)
         {
             shiftBit = false;
+            extendedKey = false;
+            return false;
         }
 
+        // Handle extended keys (arrow keys)
+        if (extendedKey)
+        {
+            extendedKey = false;
+            switch (code)
+            {
+            case KEY_UP_ARROW:
+                lastSpecialKey = 1;
+                lastKey = 0;
+                return true;
+            case KEY_DOWN_ARROW:
+                lastSpecialKey = 2;
+                lastKey = 0;
+                return true;
+            case KEY_LEFT_ARROW:
+                lastSpecialKey = 3;
+                lastKey = 0;
+                return true;
+            case KEY_RIGHT_ARROW:
+                lastSpecialKey = 4;
+                lastKey = 0;
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        // Handle function keys
+        if (code >= KEY_F1_PRESS && code <= KEY_F10_PRESS)
+        {
+            lastSpecialKey = 10 + (code - KEY_F1_PRESS + 1); // F1=11, F2=12, etc.
+            lastKey = 0;
+            return true;
+        }
+        if (code == KEY_F11_PRESS)
+        {
+            lastSpecialKey = 21; // F11=21
+            lastKey = 0;
+            return true;
+        }
+        if (code == KEY_F12_PRESS)
+        {
+            lastSpecialKey = 22; // F12=22
+            lastKey = 0;
+            return true;
+        }
+
+        // Handle regular keys
         if (code < 59)
         {
             lastKey = (!shiftBit ? ScanCodeLookupTable[code] : ScanCodeLookupTableShift[code]);
+            lastSpecialKey = 0;
             // log::e("PS/2 Driver", "Key pressed: %c", lastKey);
             return true;
         }

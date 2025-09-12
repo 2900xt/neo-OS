@@ -2,6 +2,7 @@
 #include <drivers/vga/vga.h>
 #include <drivers/vga/fonts.h>
 #include <drivers/fs/fat/fat.h>
+#include <kernel/wm/window.h>
 
 // External variable declarations for system info
 extern uint64_t millis_since_boot;
@@ -239,6 +240,10 @@ namespace kernel
             terminal_puts("cat [file] - Display file contents\n");
             terminal_puts("pwd - Print current working directory\n");
             terminal_puts("cd [path] - Change working directory\n");
+            terminal_puts("open - Open a new terminal window\n");
+            terminal_puts("clock - Open a digital clock window\n");
+            terminal_puts("sysinfo - Open system information window\n");
+            terminal_puts("snake - Play the Snake game\n");
         }
         else if (stdlib::strcmp(sp[0]->c_str(), "clear"))
         {
@@ -284,6 +289,74 @@ namespace kernel
         else if (stdlib::strcmp(sp[0]->c_str(), "fetch"))
         {
             display_fetch();
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "open"))
+        {
+            terminal_puts("Creating new terminal window...\n");
+            // Create a new terminal window
+            int new_x = (wm::window_count * 30) % 400 + 50;
+            int new_y = (wm::window_count * 30) % 300 + 50;
+            wm::Window *new_terminal = wm::create_terminal_window(new_x, new_y, 600, 400);
+            if (new_terminal)
+            {
+                wm::set_window_focus(new_terminal);
+                terminal_puts("New terminal window opened!\n");
+            }
+            else
+            {
+                terminal_puts("Failed to create new terminal window\n");
+            }
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "clock"))
+        {
+            terminal_puts("Creating clock window...\n");
+            // Create a new clock window
+            int new_x = (wm::window_count * 20) % 300 + 100;
+            int new_y = (wm::window_count * 20) % 200 + 80;
+            wm::Window *clock_window = wm::create_clock_window(new_x, new_y, 220, 120);
+            if (clock_window)
+            {
+                wm::set_window_focus(clock_window);
+                terminal_puts("Digital clock window opened!\n");
+            }
+            else
+            {
+                terminal_puts("Failed to create clock window\n");
+            }
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "sysinfo"))
+        {
+            terminal_puts("Creating system info window...\n");
+            // Create a new system info window
+            int new_x = (wm::window_count * 25) % 250 + 50;
+            int new_y = (wm::window_count * 25) % 150 + 50;
+            wm::Window *sysinfo_window = wm::create_sysinfo_window(new_x, new_y, 400, 320);
+            if (sysinfo_window)
+            {
+                wm::set_window_focus(sysinfo_window);
+                terminal_puts("System information window opened!\n");
+            }
+            else
+            {
+                terminal_puts("Failed to create system info window\n");
+            }
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "snake"))
+        {
+            terminal_puts("Starting Snake game...\n");
+            // Create a new snake game window
+            int new_x = (wm::window_count * 30) % 200 + 50;
+            int new_y = (wm::window_count * 30) % 100 + 50;
+            wm::Window *snake_window = wm::create_snake_window(new_x, new_y, 300, 240);
+            if (snake_window)
+            {
+                wm::set_window_focus(snake_window);
+                terminal_puts("Snake game started! Use WASD keys to play.\n");
+            }
+            else
+            {
+                terminal_puts("Failed to create snake game window\n");
+            }
         }
         else 
         {

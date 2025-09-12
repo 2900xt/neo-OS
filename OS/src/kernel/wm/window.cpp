@@ -6,6 +6,7 @@
 #include <stdlib/string.h>
 #include <drivers/fs/fat/fat.h>
 #include <drivers/ps2/ps2.h>
+#include <drivers/rtc/rtc.h>
 
 
 // External variable declarations for system info
@@ -203,6 +204,41 @@ namespace wm
         window->focused = true;
     }
 
+    void bring_window_to_top(Window *window)
+    {
+        if (!window)
+            return;
+
+        // Find the window in the array
+        int window_index = -1;
+        for (int i = 0; i < window_count; i++)
+        {
+            if (windows[i] == window)
+            {
+                window_index = i;
+                break;
+            }
+        }
+
+        // If window not found, return
+        if (window_index == -1)
+            return;
+
+        // If window is already at the top, nothing to do
+        if (window_index == window_count - 1)
+            return;
+
+        // Move the window to the end of the array (top of z-order)
+        // Shift all windows after this one down by one position
+        for (int i = window_index; i < window_count - 1; i++)
+        {
+            windows[i] = windows[i + 1];
+        }
+
+        // Put the selected window at the top
+        windows[window_count - 1] = window;
+    }
+
     void window_putpixel(Window *window, int x, int y, vga::Color color)
     {
         if (!window || x < 0 || y < 0 || x >= (int)window->width || y >= (int)window->height)
@@ -305,12 +341,56 @@ namespace wm
         // Title bar
         vga::fillRect(window->x - 2, window->y - 20, vga::Color(64, 64, 64), window->width + 4, 18);
 
-        // Window title
+        // Window title with function key label
         if (vga::font_hdr && vga::font_hdr->width > 0)
         {
             int title_x = window->x;
             int title_y = window->y - 20;
-            for (int i = 0; window->title[i] != '\0' && i < 20; i++)
+            
+            // Find window index for function key label
+            int window_index = -1;
+            for (int i = 0; i < window_count; i++)
+            {
+                if (windows[i] == window)
+                {
+                    window_index = i;
+                    break;
+                }
+            }
+            
+            // Draw function key label if window index is valid (F1-F12)
+            if (window_index >= 0 && window_index < 12)
+            {
+                char f_key_label[8];
+                if (window_index < 9)
+                {
+                    f_key_label[0] = 'F';
+                    f_key_label[1] = '1' + window_index;
+                    f_key_label[2] = ':';
+                    f_key_label[3] = ' ';
+                    f_key_label[4] = '\0';
+                }
+                else
+                {
+                    f_key_label[0] = 'F';
+                    f_key_label[1] = '1';
+                    f_key_label[2] = '0' + (window_index - 9);
+                    f_key_label[3] = ':';
+                    f_key_label[4] = ' ';
+                    f_key_label[5] = '\0';
+                }
+                
+                // Draw function key label
+                int label_len = stdlib::strlen(f_key_label);
+                for (int i = 0; i < label_len; i++)
+                {
+                    vga::putchar(title_x + i * vga::font_hdr->width, title_y + 2, f_key_label[i]);
+                }
+                title_x += label_len * vga::font_hdr->width;
+            }
+            
+            // Draw window title
+            for (int i = 0; window->title[i] != '\0' && i < 15; i++)
             {
                 vga::putchar(title_x + i * vga::font_hdr->width, title_y + 2, window->title[i]);
             }
@@ -1049,6 +1129,15 @@ namespace wm
             terminal_window_puts(window, "pwd - Print current working directory\n");
             terminal_window_puts(window, "cd [path] - Change working directory\n");
             terminal_window_puts(window, "fetch - Display system information\n");
+            terminal_window_puts(window, "open - Open a new terminal window\n");
+            terminal_window_puts(window, "exit - Close this terminal window\n");
+            terminal_window_puts(window, "clock - Open a digital clock window\n");
+            terminal_window_puts(window, "sysinfo - Open system information window\n");
+            terminal_window_puts(window, "snake - Play the Snake game\n");
+            terminal_window_puts(window, "\nWindow controls:\n");
+            terminal_window_puts(window, "Arrow keys - Move active window\n");
+            terminal_window_puts(window, "F1-F11 - Switch to window by function key\n");
+            terminal_window_puts(window, "F12 - Close active window\n");
         }
         else if (stdlib::strcmp(sp[0]->c_str(), "clear"))
         {
@@ -1089,6 +1178,79 @@ namespace wm
         else if (stdlib::strcmp(sp[0]->c_str(), "fetch"))
         {
             terminal_window_display_fetch(window);
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "open"))
+        {
+            // Create a new terminal window
+            int new_x = (window_count * 30) % 400 + 50;
+            int new_y = (window_count * 30) % 300 + 50;
+            Window *new_terminal = create_terminal_window(new_x, new_y, 600, 400);
+            if (new_terminal)
+            {
+                set_window_focus(new_terminal);
+                terminal_window_puts(window, "New terminal window opened\n");
+            }
+            else
+            {
+                terminal_window_puts(window, "Failed to create new terminal window\n");
+            }
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "exit"))
+        {
+            // Close current terminal window
+            terminal_window_puts(window, "Closing terminal window...\n");
+            // Add a small delay to show the message
+            for (volatile int i = 0; i < 10000000; i++);
+            destroy_window(window);
+            return; // Important: return immediately since window is destroyed
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "clock"))
+        {
+            // Create a new clock window
+            int new_x = (window_count * 20) % 300 + 100;
+            int new_y = (window_count * 20) % 200 + 80;
+            Window *clock_window = create_clock_window(new_x, new_y, 220, 120);
+            if (clock_window)
+            {
+                set_window_focus(clock_window);
+                terminal_window_puts(window, "Digital clock window opened\n");
+            }
+            else
+            {
+                terminal_window_puts(window, "Failed to create clock window\n");
+            }
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "sysinfo"))
+        {
+            // Create a new system info window
+            int new_x = (window_count * 25) % 250 + 50;
+            int new_y = (window_count * 25) % 150 + 50;
+            Window *sysinfo_window = create_sysinfo_window(new_x, new_y, 400, 320);
+            if (sysinfo_window)
+            {
+                set_window_focus(sysinfo_window);
+                terminal_window_puts(window, "System information window opened\n");
+            }
+            else
+            {
+                terminal_window_puts(window, "Failed to create system info window\n");
+            }
+        }
+        else if (stdlib::strcmp(sp[0]->c_str(), "snake"))
+        {
+            // Create a new snake game window
+            int new_x = (window_count * 30) % 200 + 50;
+            int new_y = (window_count * 30) % 100 + 50;
+            Window *snake_window = create_snake_window(new_x, new_y, 300, 240);
+            if (snake_window)
+            {
+                set_window_focus(snake_window);
+                terminal_window_puts(window, "Snake game started! Use WASD keys.\n");
+            }
+            else
+            {
+                terminal_window_puts(window, "Failed to create snake game window\n");
+            }
         }
         else if (stdlib::strlen(sp[0]->c_str()) > 0)
         {
@@ -1252,6 +1414,790 @@ namespace wm
         terminal_window_puts(window, "\n");
     }
 
+    Window *create_clock_window(int x, int y, uint32_t width, uint32_t height)
+    {
+        log::d("WindowManager", "Creating clock window...");
+        Window *window = create_window(x, y, width, height, "Digital Clock");
+        if (!window)
+        {
+            log::e("WindowManager", "Failed to create base window for clock");
+            return nullptr;
+        }
+
+        window->type = WINDOW_TYPE_CLOCK;
+
+        // Clear window with black background
+        window_clear(window, vga::Color(0, 0, 0));
+
+        // Initial clock display update
+        update_clock_display(window);
+
+        log::d("WindowManager", "Clock window created successfully");
+        return window;
+    }
+
+    void update_clock_display(Window *window)
+    {
+        if (!window || window->type != WINDOW_TYPE_CLOCK)
+            return;
+
+        // Clear the window
+        window_clear(window, vga::Color(0, 0, 0));
+
+        // Get current time from RTC
+        rtc::DateTime dt = rtc::get_datetime();
+
+        // Format the time string manually
+        char time_str[16];
+        char date_str[16];
+        
+        // Format time as HH:MM:SS
+        time_str[0] = '0' + (dt.hour / 10);
+        time_str[1] = '0' + (dt.hour % 10);
+        time_str[2] = ':';
+        time_str[3] = '0' + (dt.minute / 10);
+        time_str[4] = '0' + (dt.minute % 10);
+        time_str[5] = ':';
+        time_str[6] = '0' + (dt.second / 10);
+        time_str[7] = '0' + (dt.second % 10);
+        time_str[8] = '\0';
+        
+        // Format date as MM/DD/YYYY
+        date_str[0] = '0' + (dt.month / 10);
+        date_str[1] = '0' + (dt.month % 10);
+        date_str[2] = '/';
+        date_str[3] = '0' + (dt.day / 10);
+        date_str[4] = '0' + (dt.day % 10);
+        date_str[5] = '/';
+        date_str[6] = '0' + ((dt.year / 1000) % 10);
+        date_str[7] = '0' + ((dt.year / 100) % 10);
+        date_str[8] = '0' + ((dt.year / 10) % 10);
+        date_str[9] = '0' + (dt.year % 10);
+        date_str[10] = '\0';
+
+        if (!vga::font_hdr || vga::font_hdr->width == 0 || vga::font_hdr->height == 0)
+            return;
+
+        // Calculate center position for time
+        int time_len = stdlib::strlen(time_str);
+        int date_len = stdlib::strlen(date_str);
+        int time_x = (window->width - (time_len * vga::font_hdr->width * 2)) / 2; // Double size
+        int date_x = (window->width - (date_len * vga::font_hdr->width)) / 2;
+        int time_y = (window->height - (vga::font_hdr->height * 3)) / 2; // Space for time and date
+        int date_y = time_y + vga::font_hdr->height * 2 + 10;
+
+        // Draw time in large font (2x scale)
+        for (int i = 0; i < time_len; i++)
+        {
+            for (int py = 0; py < vga::font_hdr->height * 2; py++)
+            {
+                for (int px = 0; px < vga::font_hdr->width * 2; px++)
+                {
+                    // Simple 2x scaling by reading original pixel
+                    int orig_x = px / 2;
+                    int orig_y = py / 2;
+                    
+                    // Get bitmap data
+                    uint8_t *bitmap = (uint8_t *)vga::font_hdr + vga::font_hdr->header_sz;
+                    uint8_t *glyph = (time_str[i] * vga::font_hdr->glyph_size) + bitmap;
+                    uint8_t *glyph_line = glyph + (orig_y * (vga::font_hdr->width / 8 + 1));
+                    if (vga::font_hdr->width % 8 == 0)
+                        glyph_line = glyph + (orig_y * (vga::font_hdr->width / 8));
+                    
+                    if (*glyph_line & (1 << (vga::font_hdr->width - orig_x - 1)))
+                    {
+                        window_putpixel(window, time_x + i * vga::font_hdr->width * 2 + px, 
+                                      time_y + py, vga::Color(0, 255, 255)); // Cyan
+                    }
+                }
+            }
+        }
+
+        // Draw date in normal size
+        for (int i = 0; i < date_len; i++)
+        {
+            window_putchar(window, date_x + i * vga::font_hdr->width, date_y, 
+                         date_str[i], vga::Color(255, 255, 255), vga::Color(0, 0, 0));
+        }
+
+        // Draw a border around the time display
+        vga::Color border_color = vga::Color(100, 100, 100);
+        window_fillrect(window, 10, 10, window->width - 20, 2, border_color); // Top
+        window_fillrect(window, 10, window->height - 12, window->width - 20, 2, border_color); // Bottom
+        window_fillrect(window, 10, 10, 2, window->height - 20, border_color); // Left
+        window_fillrect(window, window->width - 12, 10, 2, window->height - 20, border_color); // Right
+    }
+
+    Window *create_sysinfo_window(int x, int y, uint32_t width, uint32_t height)
+    {
+        log::d("WindowManager", "Creating system info window...");
+        Window *window = create_window(x, y, width, height, "neo-OS System Information");
+        if (!window)
+        {
+            log::e("WindowManager", "Failed to create base window for system info");
+            return nullptr;
+        }
+
+        window->type = WINDOW_TYPE_SYSINFO;
+
+        // Clear window with dark blue background
+        window_clear(window, vga::Color(20, 40, 80));
+
+        // Initial display render
+        render_sysinfo_display(window);
+
+        log::d("WindowManager", "System info window created successfully");
+        return window;
+    }
+
+    void draw_neo_logo(Window* window, int start_x, int start_y)
+    {
+        if (!window || !vga::font_hdr || vga::font_hdr->width == 0 || vga::font_hdr->height == 0)
+            return;
+
+        // neo-OS ASCII logo - smaller version for the window
+        const char* logo_lines[] = {
+            "   ####   ##  ######   #######",
+            "   ## ##  ##  ##       ##   ##",
+            "   ##  ## ##  ####     ##   ##", 
+            "   ##   ####  ##       ##   ##",
+            "   ##    ###  ######   #######",
+            "                              ",
+            "        #######   ######      ",
+            "        ##   ##  ##           ",
+            "        ##   ##   ####        ",
+            "        ##   ##       ##      ",
+            "        #######   ######      "
+        };
+        
+        int logo_height = 11;
+        vga::Color logo_color = vga::Color(0, 255, 255); // Cyan
+        
+        for (int i = 0; i < logo_height; i++)
+        {
+            int len = stdlib::strlen(logo_lines[i]);
+            for (int j = 0; j < len; j++)
+            {
+                if (logo_lines[i][j] != ' ')
+                {
+                    window_putchar(window, 
+                                 start_x + j * vga::font_hdr->width, 
+                                 start_y + i * vga::font_hdr->height,
+                                 logo_lines[i][j], 
+                                 logo_color, 
+                                 vga::Color(20, 40, 80));
+                }
+            }
+        }
+    }
+
+    void render_sysinfo_display(Window *window)
+    {
+        if (!window || window->type != WINDOW_TYPE_SYSINFO)
+            return;
+
+        if (!vga::font_hdr || vga::font_hdr->width == 0 || vga::font_hdr->height == 0)
+            return;
+
+        // Clear the window
+        window_clear(window, vga::Color(20, 40, 80));
+
+        int line_height = vga::font_hdr->height + 2;
+        int current_y = 10;
+        int left_column = 15;
+
+        // Draw neo-OS logo at top
+        draw_neo_logo(window, left_column, current_y);
+        current_y += (11 * vga::font_hdr->height) + 20; // Logo height + spacing
+
+        // Draw title
+        const char* title = "System Information";
+        vga::Color title_color = vga::Color(255, 255, 255);
+        for (int i = 0; title[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         title[i], title_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height + 10;
+
+        // System information sections
+        vga::Color value_color = vga::Color(255, 255, 255);
+        vga::Color section_color = vga::Color(255, 255, 0);
+
+        // Operating System section
+        const char* os_section = "Operating System:";
+        for (int i = 0; os_section[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         os_section[i], section_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height;
+
+        const char* os_name = "  Name: neo-OS v0.001A";
+        for (int i = 0; os_name[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         os_name[i], value_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height;
+
+        const char* os_arch = "  Architecture: x86_64";
+        for (int i = 0; os_arch[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         os_arch[i], value_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height + 5;
+
+        // Hardware section
+        const char* hw_section = "Hardware:";
+        for (int i = 0; hw_section[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         hw_section[i], section_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height;
+
+        // CPU Info
+        char cpu_info[64];
+        if (kernel::smp_request.response != nullptr)
+        {
+            // Format CPU info
+            const char* cpu_base = "  CPU: x86_64 (";
+            int pos = 0;
+            while (cpu_base[pos] != '\0') { cpu_info[pos] = cpu_base[pos]; pos++; }
+            
+            // Add core count
+            uint32_t cores = kernel::smp_request.response->cpu_count;
+            if (cores >= 10)
+            {
+                cpu_info[pos++] = '0' + (cores / 10);
+                cpu_info[pos++] = '0' + (cores % 10);
+            }
+            else
+            {
+                cpu_info[pos++] = '0' + cores;
+            }
+            
+            const char* cpu_end = " cores)";
+            int j = 0;
+            while (cpu_end[j] != '\0') { cpu_info[pos++] = cpu_end[j++]; }
+            cpu_info[pos] = '\0';
+        }
+        else
+        {
+            const char* cpu_unknown = "  CPU: Unknown";
+            int i = 0;
+            while (cpu_unknown[i] != '\0') { cpu_info[i] = cpu_unknown[i]; i++; }
+            cpu_info[i] = '\0';
+        }
+
+        for (int i = 0; cpu_info[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         cpu_info[i], value_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height;
+
+        // Memory Info
+        char mem_info[64];
+        uint64_t total_heap_mb = (kernel::heapBlkcount * kernel::heapBlksize) / (1024 * 1024);
+        const char* mem_base = "  Memory: ";
+        int pos = 0;
+        while (mem_base[pos] != '\0') { mem_info[pos] = mem_base[pos]; pos++; }
+        
+        // Add memory amount
+        if (total_heap_mb >= 1000)
+        {
+            mem_info[pos++] = '0' + (total_heap_mb / 1000);
+            mem_info[pos++] = '0' + ((total_heap_mb % 1000) / 100);
+            mem_info[pos++] = '0' + ((total_heap_mb % 100) / 10);
+            mem_info[pos++] = '0' + (total_heap_mb % 10);
+        }
+        else if (total_heap_mb >= 100)
+        {
+            mem_info[pos++] = '0' + (total_heap_mb / 100);
+            mem_info[pos++] = '0' + ((total_heap_mb % 100) / 10);
+            mem_info[pos++] = '0' + (total_heap_mb % 10);
+        }
+        else if (total_heap_mb >= 10)
+        {
+            mem_info[pos++] = '0' + (total_heap_mb / 10);
+            mem_info[pos++] = '0' + (total_heap_mb % 10);
+        }
+        else
+        {
+            mem_info[pos++] = '0' + total_heap_mb;
+        }
+        
+        const char* mem_end = " MB heap";
+        int j = 0;
+        while (mem_end[j] != '\0') { mem_info[pos++] = mem_end[j++]; }
+        mem_info[pos] = '\0';
+
+        for (int i = 0; mem_info[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         mem_info[i], value_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height + 5;
+
+        // Display section
+        const char* display_section = "Display:";
+        for (int i = 0; display_section[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         display_section[i], section_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height;
+
+        // Resolution info
+        char res_info[64];
+        if (vga::fbuf_info != nullptr)
+        {
+            const char* res_base = "  Resolution: ";
+            pos = 0;
+            while (res_base[pos] != '\0') { res_info[pos] = res_base[pos]; pos++; }
+            
+            // Add width
+            uint32_t width = vga::fbuf_info->width;
+            if (width >= 1000) { res_info[pos++] = '0' + (width / 1000); width %= 1000; }
+            if (width >= 100) { res_info[pos++] = '0' + (width / 100); width %= 100; }
+            if (width >= 10) { res_info[pos++] = '0' + (width / 10); width %= 10; }
+            res_info[pos++] = '0' + width;
+            
+            res_info[pos++] = 'x';
+            
+            // Add height
+            uint32_t height = vga::fbuf_info->height;
+            if (height >= 1000) { res_info[pos++] = '0' + (height / 1000); height %= 1000; }
+            if (height >= 100) { res_info[pos++] = '0' + (height / 100); height %= 100; }
+            if (height >= 10) { res_info[pos++] = '0' + (height / 10); height %= 10; }
+            res_info[pos++] = '0' + height;
+            
+            res_info[pos] = '\0';
+        }
+        else
+        {
+            const char* res_unknown = "  Resolution: Unknown";
+            int i = 0;
+            while (res_unknown[i] != '\0') { res_info[i] = res_unknown[i]; i++; }
+            res_info[i] = '\0';
+        }
+
+        for (int i = 0; res_info[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         res_info[i], value_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height;
+
+        // Font info
+        char font_info[64];
+        if (vga::font_hdr != nullptr)
+        {
+            const char* font_base = "  Font: PSF ";
+            pos = 0;
+            while (font_base[pos] != '\0') { font_info[pos] = font_base[pos]; pos++; }
+            
+            // Add font dimensions
+            uint32_t fw = vga::font_hdr->width;
+            if (fw >= 10) { font_info[pos++] = '0' + (fw / 10); fw %= 10; }
+            font_info[pos++] = '0' + fw;
+            font_info[pos++] = 'x';
+            
+            uint32_t fh = vga::font_hdr->height;
+            if (fh >= 10) { font_info[pos++] = '0' + (fh / 10); fh %= 10; }
+            font_info[pos++] = '0' + fh;
+            
+            font_info[pos] = '\0';
+        }
+        else
+        {
+            const char* font_unknown = "  Font: Unknown";
+            int i = 0;
+            while (font_unknown[i] != '\0') { font_info[i] = font_unknown[i]; i++; }
+            font_info[i] = '\0';
+        }
+
+        for (int i = 0; font_info[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         font_info[i], value_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height + 5;
+
+        // System Time section
+        const char* time_section = "System Time:";
+        for (int i = 0; time_section[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         time_section[i], section_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height;
+
+        // Get current time
+        rtc::DateTime dt = rtc::get_datetime();
+        
+        char time_info[32];
+        const char* time_base = "  Current: ";
+        pos = 0;
+        while (time_base[pos] != '\0') { time_info[pos] = time_base[pos]; pos++; }
+        
+        // Add time
+        time_info[pos++] = '0' + (dt.hour / 10);
+        time_info[pos++] = '0' + (dt.hour % 10);
+        time_info[pos++] = ':';
+        time_info[pos++] = '0' + (dt.minute / 10);
+        time_info[pos++] = '0' + (dt.minute % 10);
+        time_info[pos++] = ' ';
+        time_info[pos++] = '0' + (dt.month / 10);
+        time_info[pos++] = '0' + (dt.month % 10);
+        time_info[pos++] = '/';
+        time_info[pos++] = '0' + (dt.day / 10);
+        time_info[pos++] = '0' + (dt.day % 10);
+        time_info[pos++] = '/';
+        time_info[pos++] = '0' + ((dt.year / 1000) % 10);
+        time_info[pos++] = '0' + ((dt.year / 100) % 10);
+        time_info[pos++] = '0' + ((dt.year / 10) % 10);
+        time_info[pos++] = '0' + (dt.year % 10);
+        time_info[pos] = '\0';
+
+        for (int i = 0; time_info[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         time_info[i], value_color, vga::Color(20, 40, 80));
+        }
+        current_y += line_height;
+
+        // Uptime
+        char uptime_info[32];
+        const char* uptime_base = "  Uptime: ";
+        pos = 0;
+        while (uptime_base[pos] != '\0') { uptime_info[pos] = uptime_base[pos]; pos++; }
+        
+        uint64_t uptime_seconds = millis_since_boot / 1000;
+        uint64_t hours = uptime_seconds / 3600;
+        uint64_t minutes = (uptime_seconds % 3600) / 60;
+        uint64_t seconds = uptime_seconds % 60;
+        
+        // Add hours
+        if (hours >= 10) { uptime_info[pos++] = '0' + (hours / 10); hours %= 10; }
+        uptime_info[pos++] = '0' + hours;
+        uptime_info[pos++] = 'h';
+        uptime_info[pos++] = ' ';
+        
+        // Add minutes
+        if (minutes >= 10) { uptime_info[pos++] = '0' + (minutes / 10); minutes %= 10; }
+        uptime_info[pos++] = '0' + minutes;
+        uptime_info[pos++] = 'm';
+        uptime_info[pos++] = ' ';
+        
+        // Add seconds
+        if (seconds >= 10) { uptime_info[pos++] = '0' + (seconds / 10); seconds %= 10; }
+        uptime_info[pos++] = '0' + seconds;
+        uptime_info[pos++] = 's';
+        uptime_info[pos] = '\0';
+
+        for (int i = 0; uptime_info[i] != '\0'; i++)
+        {
+            window_putchar(window, left_column + i * vga::font_hdr->width, current_y, 
+                         uptime_info[i], value_color, vga::Color(20, 40, 80));
+        }
+
+        // Draw border
+        vga::Color border_color = vga::Color(100, 150, 255);
+        window_fillrect(window, 5, 5, window->width - 10, 2, border_color); // Top
+        window_fillrect(window, 5, window->height - 7, window->width - 10, 2, border_color); // Bottom
+        window_fillrect(window, 5, 5, 2, window->height - 10, border_color); // Left
+        window_fillrect(window, window->width - 7, 5, 2, window->height - 10, border_color); // Right
+    }
+
+    // Simple random number generator for food placement
+    static uint32_t snake_seed = 12345;
+    uint32_t snake_rand()
+    {
+        snake_seed = snake_seed * 1103515245 + 12345;
+        return snake_seed;
+    }
+
+    Window *create_snake_window(int x, int y, uint32_t width, uint32_t height)
+    {
+        log::d("WindowManager", "Creating snake game window...");
+        Window *window = create_window(x, y, width, height, "Snake Game");
+        if (!window)
+        {
+            log::e("WindowManager", "Failed to create base window for snake game");
+            return nullptr;
+        }
+
+        window->type = WINDOW_TYPE_SNAKE;
+
+        // Initialize snake game data
+        window->snake_data.grid_size = 12;  // 12x12 pixel grid cells
+        int grid_cols = window->width / window->snake_data.grid_size;
+        int grid_rows = window->height / window->snake_data.grid_size;
+        
+        // Initialize snake in center
+        window->snake_data.snake_length = 3;
+        window->snake_data.snake_x[0] = grid_cols / 2;
+        window->snake_data.snake_y[0] = grid_rows / 2;
+        window->snake_data.snake_x[1] = grid_cols / 2 - 1;
+        window->snake_data.snake_y[1] = grid_rows / 2;
+        window->snake_data.snake_x[2] = grid_cols / 2 - 2;
+        window->snake_data.snake_y[2] = grid_rows / 2;
+        
+        window->snake_data.direction = 1; // Start moving right
+        window->snake_data.score = 0;
+        window->snake_data.game_over = false;
+        window->snake_data.paused = false;
+        
+        // Place first food
+        window->snake_data.food_x = (snake_rand() % (grid_cols - 2)) + 1;
+        window->snake_data.food_y = (snake_rand() % (grid_rows - 2)) + 1;
+
+        // Clear window with dark green background
+        window_clear(window, vga::Color(0, 100, 0));
+
+        // Initial render
+        render_snake_game(window);
+
+        log::d("WindowManager", "Snake game window created successfully");
+        return window;
+    }
+
+    void update_snake_game(Window *window)
+    {
+        if (!window || window->type != WINDOW_TYPE_SNAKE || 
+            window->snake_data.game_over || window->snake_data.paused)
+            return;
+
+        int grid_cols = window->width / window->snake_data.grid_size;
+        int grid_rows = window->height / window->snake_data.grid_size;
+
+        // Calculate new head position
+        int new_head_x = window->snake_data.snake_x[0];
+        int new_head_y = window->snake_data.snake_y[0];
+
+        switch (window->snake_data.direction)
+        {
+        case 0: new_head_y--; break; // Up
+        case 1: new_head_x++; break; // Right
+        case 2: new_head_y++; break; // Down
+        case 3: new_head_x--; break; // Left
+        }
+
+        // Check wall collision
+        if (new_head_x < 0 || new_head_x >= grid_cols || 
+            new_head_y < 0 || new_head_y >= grid_rows)
+        {
+            window->snake_data.game_over = true;
+            return;
+        }
+
+        // Check self collision
+        for (int i = 0; i < window->snake_data.snake_length; i++)
+        {
+            if (window->snake_data.snake_x[i] == new_head_x && 
+                window->snake_data.snake_y[i] == new_head_y)
+            {
+                window->snake_data.game_over = true;
+                return;
+            }
+        }
+
+        // Check food collision
+        bool ate_food = false;
+        if (new_head_x == window->snake_data.food_x && new_head_y == window->snake_data.food_y)
+        {
+            ate_food = true;
+            window->snake_data.score++;
+            window->snake_data.snake_length++;
+            
+            // Generate new food position
+            do {
+                window->snake_data.food_x = (snake_rand() % (grid_cols - 2)) + 1;
+                window->snake_data.food_y = (snake_rand() % (grid_rows - 2)) + 1;
+                
+                // Make sure food doesn't spawn on snake
+                bool on_snake = false;
+                for (int i = 0; i < window->snake_data.snake_length; i++)
+                {
+                    if (window->snake_data.snake_x[i] == window->snake_data.food_x &&
+                        window->snake_data.snake_y[i] == window->snake_data.food_y)
+                    {
+                        on_snake = true;
+                        break;
+                    }
+                }
+                if (!on_snake) break;
+            } while (true);
+        }
+
+        // Move snake body
+        if (!ate_food)
+        {
+            // Shift all segments back
+            for (int i = window->snake_data.snake_length - 1; i > 0; i--)
+            {
+                window->snake_data.snake_x[i] = window->snake_data.snake_x[i - 1];
+                window->snake_data.snake_y[i] = window->snake_data.snake_y[i - 1];
+            }
+        }
+        else
+        {
+            // If ate food, shift all segments back but don't remove tail
+            for (int i = window->snake_data.snake_length - 1; i > 0; i--)
+            {
+                window->snake_data.snake_x[i] = window->snake_data.snake_x[i - 1];
+                window->snake_data.snake_y[i] = window->snake_data.snake_y[i - 1];
+            }
+        }
+
+        // Update head position
+        window->snake_data.snake_x[0] = new_head_x;
+        window->snake_data.snake_y[0] = new_head_y;
+    }
+
+    void render_snake_game(Window *window)
+    {
+        if (!window || window->type != WINDOW_TYPE_SNAKE)
+            return;
+
+        // Clear background
+        window_clear(window, vga::Color(0, 80, 0)); // Dark green
+
+        int grid_size = window->snake_data.grid_size;
+
+        // Draw snake
+        vga::Color snake_color = vga::Color(0, 255, 0); // Bright green
+        vga::Color head_color = vga::Color(255, 255, 0); // Yellow head
+        
+        for (int i = 0; i < window->snake_data.snake_length; i++)
+        {
+            int x = window->snake_data.snake_x[i] * grid_size;
+            int y = window->snake_data.snake_y[i] * grid_size;
+            
+            vga::Color color = (i == 0) ? head_color : snake_color;
+            window_fillrect(window, x + 1, y + 1, grid_size - 2, grid_size - 2, color);
+        }
+
+        // Draw food
+        if (!window->snake_data.game_over)
+        {
+            int food_x = window->snake_data.food_x * grid_size;
+            int food_y = window->snake_data.food_y * grid_size;
+            window_fillrect(window, food_x + 2, food_y + 2, grid_size - 4, grid_size - 4, vga::Color(255, 0, 0)); // Red food
+        }
+
+        // Draw score and controls
+        if (vga::font_hdr && vga::font_hdr->width > 0 && vga::font_hdr->height > 0)
+        {
+            char score_text[32];
+            const char* score_base = "Score: ";
+            int pos = 0;
+            while (score_base[pos] != '\0') { score_text[pos] = score_base[pos]; pos++; }
+            
+            // Add score number
+            int score = window->snake_data.score;
+            if (score >= 100) { score_text[pos++] = '0' + (score / 100); score %= 100; }
+            if (score >= 10) { score_text[pos++] = '0' + (score / 10); score %= 10; }
+            score_text[pos++] = '0' + score;
+            score_text[pos] = '\0';
+            
+            // Draw score in top-left corner
+            for (int i = 0; score_text[i] != '\0'; i++)
+            {
+                window_putchar(window, 5 + i * vga::font_hdr->width, 5, 
+                             score_text[i], vga::Color(255, 255, 255), vga::Color(0, 80, 0));
+            }
+            
+            // Draw controls hint in bottom-right corner
+            const char* controls_hint = "WASD";
+            int hint_x = window->width - (stdlib::strlen(controls_hint) * vga::font_hdr->width) - 5;
+            int hint_y = window->height - vga::font_hdr->height - 5;
+            
+            for (int i = 0; controls_hint[i] != '\0'; i++)
+            {
+                window_putchar(window, hint_x + i * vga::font_hdr->width, hint_y, 
+                             controls_hint[i], vga::Color(150, 150, 150), vga::Color(0, 80, 0));
+            }
+        }
+
+        // Draw game over message
+        if (window->snake_data.game_over)
+        {
+            const char* game_over_text = "GAME OVER!";
+            const char* restart_text = "Press R to restart";
+            
+            if (vga::font_hdr && vga::font_hdr->width > 0 && vga::font_hdr->height > 0)
+            {
+                int text_x = (window->width - stdlib::strlen(game_over_text) * vga::font_hdr->width) / 2;
+                int text_y = window->height / 2 - vga::font_hdr->height;
+                
+                for (int i = 0; game_over_text[i] != '\0'; i++)
+                {
+                    window_putchar(window, text_x + i * vga::font_hdr->width, text_y, 
+                                 game_over_text[i], vga::Color(255, 0, 0), vga::Color(0, 80, 0));
+                }
+                
+                text_x = (window->width - stdlib::strlen(restart_text) * vga::font_hdr->width) / 2;
+                text_y += vga::font_hdr->height + 5;
+                
+                for (int i = 0; restart_text[i] != '\0'; i++)
+                {
+                    window_putchar(window, text_x + i * vga::font_hdr->width, text_y, 
+                                 restart_text[i], vga::Color(255, 255, 255), vga::Color(0, 80, 0));
+                }
+            }
+        }
+
+        // Draw pause message
+        if (window->snake_data.paused && !window->snake_data.game_over)
+        {
+            const char* pause_text = "PAUSED";
+            const char* continue_text = "Press SPACE to continue";
+            const char* controls_text = "Use WASD to move";
+            
+            if (vga::font_hdr && vga::font_hdr->width > 0 && vga::font_hdr->height > 0)
+            {
+                int text_x = (window->width - stdlib::strlen(pause_text) * vga::font_hdr->width) / 2;
+                int text_y = window->height / 2 - vga::font_hdr->height * 2;
+                
+                for (int i = 0; pause_text[i] != '\0'; i++)
+                {
+                    window_putchar(window, text_x + i * vga::font_hdr->width, text_y, 
+                                 pause_text[i], vga::Color(255, 255, 0), vga::Color(0, 80, 0));
+                }
+                
+                text_x = (window->width - stdlib::strlen(continue_text) * vga::font_hdr->width) / 2;
+                text_y += vga::font_hdr->height + 5;
+                
+                for (int i = 0; continue_text[i] != '\0'; i++)
+                {
+                    window_putchar(window, text_x + i * vga::font_hdr->width, text_y, 
+                                 continue_text[i], vga::Color(255, 255, 255), vga::Color(0, 80, 0));
+                }
+                
+                text_x = (window->width - stdlib::strlen(controls_text) * vga::font_hdr->width) / 2;
+                text_y += vga::font_hdr->height + 5;
+                
+                for (int i = 0; controls_text[i] != '\0'; i++)
+                {
+                    window_putchar(window, text_x + i * vga::font_hdr->width, text_y, 
+                                 controls_text[i], vga::Color(200, 200, 200), vga::Color(0, 80, 0));
+                }
+            }
+        }
+    }
+
+    void handle_snake_input(Window* window, uint8_t special_key)
+    {
+        // Snake game doesn't use special keys (arrow keys are for window movement)
+        // WASD controls are handled in handle_window_keyboard_input instead
+        return;
+    }
+
     Window *get_window_at_position(int x, int y)
     {
         // Check windows from top to bottom (reverse order)
@@ -1311,7 +2257,8 @@ namespace wm
 
             if (clicked_window)
             {
-                // Set focus to clicked window
+                // Bring clicked window to top and set focus
+                bring_window_to_top(clicked_window);
                 set_window_focus(clicked_window);
 
                 // Check if clicking in resize area
@@ -1360,6 +2307,106 @@ namespace wm
         last_left_click = left_click;
     }
 
+    void cycle_windows(bool forward)
+    {
+        if (window_count <= 1)
+            return;
+
+        // Find current focused window index
+        int current_index = -1;
+        for (int i = 0; i < window_count; i++)
+        {
+            if (windows[i] == focused_window)
+            {
+                current_index = i;
+                break;
+            }
+        }
+
+        // Calculate next window index
+        int next_index;
+        if (forward)
+        {
+            next_index = (current_index + 1) % window_count;
+        }
+        else
+        {
+            next_index = (current_index - 1 + window_count) % window_count;
+        }
+
+        // Set focus to next window
+        set_window_focus(windows[next_index]);
+    }
+
+    void activate_window_by_function_key(int function_key)
+    {
+        // F1-F11 activate windows 1-11 (F12 is reserved for closing windows)
+        int window_index = function_key - 1;
+        if (window_index >= 0 && window_index < window_count && function_key <= 11)
+        {
+            Window* target_window = windows[window_index];
+            bring_window_to_top(target_window);
+            set_window_focus(target_window);
+        }
+    }
+
+    void handle_window_special_key(uint8_t special_key)
+    {
+        switch (special_key)
+        {
+        case 1: // Up arrow - move focused window up
+            if (focused_window)
+            {
+                int new_y = focused_window->y - 20;
+                if (new_y < 30) new_y = 30; // Keep within screen bounds
+                move_window(focused_window, focused_window->x, new_y);
+            }
+            break;
+        case 2: // Down arrow - move focused window down
+            if (focused_window)
+            {
+                int new_y = focused_window->y + 20;
+                if (vga::fbuf_info && new_y + (int)focused_window->height > (int)vga::fbuf_info->height - 20)
+                    new_y = (int)vga::fbuf_info->height - (int)focused_window->height - 20;
+                move_window(focused_window, focused_window->x, new_y);
+            }
+            break;
+        case 3: // Left arrow - move focused window left
+            if (focused_window)
+            {
+                int new_x = focused_window->x - 20;
+                if (new_x < 10) new_x = 10; // Keep within screen bounds
+                move_window(focused_window, new_x, focused_window->y);
+            }
+            break;
+        case 4: // Right arrow - move focused window right
+            if (focused_window)
+            {
+                int new_x = focused_window->x + 20;
+                if (vga::fbuf_info && new_x + (int)focused_window->width > (int)vga::fbuf_info->width - 10)
+                    new_x = (int)vga::fbuf_info->width - (int)focused_window->width - 10;
+                move_window(focused_window, new_x, focused_window->y);
+            }
+            break;
+        case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 19: case 20: // F1-F10
+        case 21: // F11
+            activate_window_by_function_key(special_key - 10);
+            break;
+        case 22: // F12 - Close focused window
+            if (focused_window)
+            {
+                destroy_window(focused_window);
+            }
+            break;
+        }
+        
+        // Handle snake game input if focused window is a snake game
+        if (focused_window && focused_window->type == WINDOW_TYPE_SNAKE)
+        {
+            handle_snake_input(focused_window, special_key);
+        }
+    }
+
     void handle_window_keyboard_input(char key, bool shift, bool ctrl, bool alt)
     {
         // Handle keyboard shortcuts for window management
@@ -1388,16 +2435,76 @@ namespace wm
                 break;
             }
         }
-        else if (focused_window && focused_window->terminal_data.input_buffer)
+        else if (focused_window)
         {
-            // Send key to focused window based on type
-            if (focused_window->type == WINDOW_TYPE_LOGIN)
+            // Handle snake game keyboard input
+            if (focused_window->type == WINDOW_TYPE_SNAKE)
             {
-                login_window_handle_input(focused_window, key);
+                if (key == ' ') // Spacebar for pause/unpause
+                {
+                    focused_window->snake_data.paused = !focused_window->snake_data.paused;
+                    render_snake_game(focused_window);
+                }
+                else if (key == 'r' || key == 'R') // R for restart
+                {
+                    if (focused_window->snake_data.game_over)
+                    {
+                        // Restart the game
+                        int grid_cols = focused_window->width / focused_window->snake_data.grid_size;
+                        int grid_rows = focused_window->height / focused_window->snake_data.grid_size;
+                        
+                        focused_window->snake_data.snake_length = 3;
+                        focused_window->snake_data.snake_x[0] = grid_cols / 2;
+                        focused_window->snake_data.snake_y[0] = grid_rows / 2;
+                        focused_window->snake_data.snake_x[1] = grid_cols / 2 - 1;
+                        focused_window->snake_data.snake_y[1] = grid_rows / 2;
+                        focused_window->snake_data.snake_x[2] = grid_cols / 2 - 2;
+                        focused_window->snake_data.snake_y[2] = grid_rows / 2;
+                        
+                        focused_window->snake_data.direction = 1;
+                        focused_window->snake_data.score = 0;
+                        focused_window->snake_data.game_over = false;
+                        focused_window->snake_data.paused = false;
+                        
+                        focused_window->snake_data.food_x = (snake_rand() % (grid_cols - 2)) + 1;
+                        focused_window->snake_data.food_y = (snake_rand() % (grid_rows - 2)) + 1;
+                        
+                        render_snake_game(focused_window);
+                    }
+                }
+                // WASD controls for snake movement
+                else if (key == 'w' || key == 'W') // Up
+                {
+                    if (focused_window->snake_data.direction != 2) // Don't allow reverse
+                        focused_window->snake_data.direction = 0;
+                }
+                else if (key == 's' || key == 'S') // Down  
+                {
+                    if (focused_window->snake_data.direction != 0) // Don't allow reverse
+                        focused_window->snake_data.direction = 2;
+                }
+                else if (key == 'a' || key == 'A') // Left
+                {
+                    if (focused_window->snake_data.direction != 1) // Don't allow reverse
+                        focused_window->snake_data.direction = 3;
+                }
+                else if (key == 'd' || key == 'D') // Right
+                {
+                    if (focused_window->snake_data.direction != 3) // Don't allow reverse
+                        focused_window->snake_data.direction = 1;
+                }
             }
-            else if (focused_window->type == WINDOW_TYPE_TERMINAL)
+            else if (focused_window->terminal_data.input_buffer)
             {
-                terminal_window_putc(focused_window, key, true);
+                // Send key to focused window based on type
+                if (focused_window->type == WINDOW_TYPE_LOGIN)
+                {
+                    login_window_handle_input(focused_window, key);
+                }
+                else if (focused_window->type == WINDOW_TYPE_TERMINAL)
+                {
+                    terminal_window_putc(focused_window, key, true);
+                }
             }
         }
     }

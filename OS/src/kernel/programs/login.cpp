@@ -5,7 +5,7 @@
 namespace kernel
 {
     bool logged_in = false;
-    void login_prompt(bool failed = false)
+    void login_prompt(bool failed)
     {
         if (failed)
             printf("%pPassword incorrect :(%p\n", vga::Color(150, 0, 0).getRGB(), vga::Color(255, 255, 255).getRGB());
@@ -26,7 +26,7 @@ namespace kernel
         password = (char*)kernel::read(&login_file);
         kernel::close(&login_file);
 
-        login_prompt();
+        login_prompt(false);
     }
 
     extern char *input_buffer;

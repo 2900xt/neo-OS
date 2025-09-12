@@ -6,6 +6,7 @@ namespace ps2
     bool pollKeyInput();
     extern uint8_t lastKey;
     extern bool shiftBit;
+    extern uint8_t lastSpecialKey;
     
     // Mouse support
     struct MouseState {
