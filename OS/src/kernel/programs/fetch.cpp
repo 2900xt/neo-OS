@@ -3,16 +3,14 @@
 #include <drivers/vga/vga.h>
 #include <kernel/kernel.h>
 
-// External variable declarations for system info
 extern uint64_t millis_since_boot;
 
 namespace vga {
 extern PSF_header_t *font_hdr;
 extern limine::limine_framebuffer *fbuf_info;
-} // namespace vga
+} 
 
 namespace kernel {
-// External declarations for system information
 extern volatile limine::limine_smp_request smp_request;
 extern uint64_t heapBlkcount;
 extern uint64_t heapBlksize;

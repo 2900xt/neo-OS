@@ -4,7 +4,6 @@
 #include <drivers/fs/fat/fat.h>
 #include <kernel/wm/window.h>
 
-// External variable declarations for system info
 extern uint64_t millis_since_boot;
 
 namespace vga
@@ -14,7 +13,6 @@ namespace vga
     extern vga::Color fg;
 }
 
-// External declarations for system information
 extern volatile limine::limine_smp_request smp_request;
 extern uint64_t heapBlkcount;
 extern uint64_t heapBlksize;

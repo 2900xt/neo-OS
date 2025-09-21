@@ -9,16 +9,14 @@
 #include <drivers/rtc/rtc.h>
 
 
-// External variable declarations for system info
 extern uint64_t millis_since_boot;
 
 namespace vga {
 extern PSF_header_t *font_hdr;
 extern limine::limine_framebuffer *fbuf_info;
-} // namespace vga
+}
 
 namespace kernel {
-// External declarations for system information
 extern volatile limine::limine_smp_request smp_request;
 extern uint64_t heapBlkcount;
 extern uint64_t heapBlksize;
@@ -34,8 +32,6 @@ namespace wm
 
     // Working directory for terminal windows (shared for now, could be per-window)
     char current_working_directory[256] = "/";
-
-    // Direct access to vga::font_hdr to avoid namespace issues
 
     void window_manager_init()
     {
@@ -111,7 +107,6 @@ namespace wm
         {
             if (windows[i] == window)
             {
-                // Shift remaining windows
                 for (int j = i; j < window_count - 1; j++)
                 {
                     windows[j] = windows[j + 1];
@@ -121,7 +116,6 @@ namespace wm
             }
         }
 
-        // Update focus if this was the focused window
         if (focused_window == window)
         {
             focused_window = (window_count > 0) ? windows[window_count - 1] : nullptr;
@@ -129,13 +123,11 @@ namespace wm
                 focused_window->focused = true;
         }
 
-        // Free terminal input buffer if it exists
         if (window->terminal_data.input_buffer)
         {
             kernel::kfree(window->terminal_data.input_buffer);
         }
 
-        // Free framebuffer and window
         kernel::kfree(window->framebuffer);
         kernel::kfree(window);
     }
@@ -153,16 +145,13 @@ namespace wm
         if (!window)
             return;
 
-        // Allocate new framebuffer
         uint32_t new_buffer_size = new_width * new_height * sizeof(uint32_t);
         uint32_t *new_framebuffer = (uint32_t *)kernel::kmalloc(new_buffer_size);
         if (!new_framebuffer)
             return;
 
-        // Clear new framebuffer
         kernel::memset_8(new_framebuffer, new_buffer_size, 0);
 
-        // Copy old content (as much as fits)
         uint32_t copy_width = (new_width < window->width) ? new_width : window->width;
         uint32_t copy_height = (new_height < window->height) ? new_height : window->height;
 
@@ -174,13 +163,11 @@ namespace wm
             }
         }
 
-        // Replace old framebuffer
         kernel::kfree(window->framebuffer);
         window->framebuffer = new_framebuffer;
         window->width = new_width;
         window->height = new_height;
 
-        // Update terminal data if this is a terminal window
         if (window->terminal_data.input_buffer && vga::font_hdr && vga::font_hdr->width > 0 && vga::font_hdr->height > 0)
         {
             window->terminal_data.cols = new_width / vga::font_hdr->width;
@@ -193,13 +180,11 @@ namespace wm
         if (!window)
             return;
 
-        // Remove focus from current window
         if (focused_window)
         {
             focused_window->focused = false;
         }
 
-        // Set new focus
         focused_window = window;
         window->focused = true;
     }
@@ -209,7 +194,6 @@ namespace wm
         if (!window)
             return;
 
-        // Find the window in the array
         int window_index = -1;
         for (int i = 0; i < window_count; i++)
         {
@@ -220,22 +204,17 @@ namespace wm
             }
         }
 
-        // If window not found, return
         if (window_index == -1)
             return;
 
-        // If window is already at the top, nothing to do
         if (window_index == window_count - 1)
             return;
 
-        // Move the window to the end of the array (top of z-order)
-        // Shift all windows after this one down by one position
         for (int i = window_index; i < window_count - 1; i++)
         {
             windows[i] = windows[i + 1];
         }
 
-        // Put the selected window at the top
         windows[window_count - 1] = window;
     }
 
@@ -266,7 +245,6 @@ namespace wm
         if (!window || !vga::font_hdr || vga::font_hdr->width == 0 || vga::font_hdr->height == 0)
             return;
 
-        // Get bitmap data pointer similar to fonts.cpp
         uint8_t *bitmap = (uint8_t *)vga::font_hdr + vga::font_hdr->header_sz;
         uint8_t *glyph = (c * vga::font_hdr->glyph_size) + bitmap;
 
@@ -417,13 +395,12 @@ namespace wm
     void render_all_windows()
     {
         static int render_count = 0;
-        if (render_count < 5) // Only log first few renders to avoid spam
+        if (render_count < 3) // Only log first few renders
         {
             log::d("WindowManager", "Rendering all windows (count=%d)", window_count);
             render_count++;
         }
 
-        // Clear screen with cyan blue backdrop
         vga::clearScreen();
         vga::fillRect(0, 0, vga::Color(0, 150, 200), vga::fbuf_info->width, vga::fbuf_info->height);
 
@@ -440,7 +417,6 @@ namespace wm
         // Draw mouse cursor (NOT IMPLEMENTED YET)
         // draw_mouse_cursor();
 
-        // Mark screen as dirty for repaint
         vga::g_framebuffer_dirty = true;
     }
 
