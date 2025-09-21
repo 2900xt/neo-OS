@@ -1,53 +1,91 @@
-# NEO-OS - an open source, fast, and secure amd64 operating system
 
-![OS Preview Image](./neoOS.png)
+<div align="center">
 
-Built on the LIMINE protocol, NEO-OS supports UEFI booting
+# NEO-OS
+**Built on LIMINE protocol with UEFI booting support**
 
-## Current Version - 0.001A
+![OS Preview](./neoOS.png)
+
+[![Version](https://img.shields.io/badge/version-0.001A-blue.svg)](https://github.com/2900xt/neo-OS) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![AMD64](https://img.shields.io/badge/arch-AMD64-red.svg)](https://en.wikipedia.org/wiki/X86-64)
+
+</div>
+
+---
 
 ## Features
 
-* modular page frame allocator
-* stdlib with basic string, math and i/o functions
-* heap
-* virtual file system
-* custom icon file format
-* timers
-* simultaneous multiprocessing
-* APIC, ACPI, AHCI, PCI, serial & VGA drivers
+```
+🧠 Memory Management       📁 File Systems           🖥️  User Interface
+├─ Modular page allocator  ├─ Virtual file system    ├─ Window manager & GUI
+├─ Heap management         ├─ FAT support            ├─ Custom shell & syntax
+└─ Smart allocation        └─ Custom .nic icons      └─ VGA graphics driver
 
-## Goals
+⚡ Performance             🔧 Hardware Support       ⏰ System Services  
+├─ Multiprocessing (SMP)   ├─ APIC & ACPI drivers    ├─ Real-time clock
+├─ Advanced scheduling     ├─ AHCI (hard disk)       ├─ Timer subsystem
+└─ APIC timers             ├─ PCI bus scanning       └─ Power management
+                           └─ Serial communication    
+```
 
-* Processes
-* Scheduler
-* Shell
-* Standard Library
-* USB
-* Port BusyBox
+## Development Roadmap
 
-## How to use
+```
+Next Milestones:
+├─ [ ] USB subsystem implementation
+├─ [ ] Port BusyBox utilities  
+└─ [ ] TCP/IP networking stack
+```
 
-- build it yourself 
-- or use the prebuilt binary "neo-OS.hdd" in the repository
+## Quick Start
 
-### To build it yourself
+### Option 1: Use Prebuilt Binary
+```bash
+# Download and run the prebuilt image
+make run-test
+```
+
+### Option 2: Build from Source
 
 #### Prerequisites
+```
+Required packages:
+├─ libmpfr, libgmp, libmpc
+├─ texinfo, gcc, nasm
+└─ qemu-system (for testing)
+```
 
-- libmpfr
-- libgmp
-- libmpc
-- texinfo
-- gcc
-- nasm
+#### Build Instructions
+```bash
+# 1. Clone the repository
+git clone https://github.com/2900xt/neo-OS.git
+cd neo-OS
 
-### To build and test in QEMU
+# 2. Build cross-compiler toolchain
+./toolchain.sh
 
-1. clone this repo
-2. build the toolchain with "./toolchain.sh"
-2. execute "make run"
+# 3. Compile and run
+make run
+```
 
-## previous iterations (all failed)
-[Open-OS](https://github.com/2900xt/open-OS)
+---
+
+## Development History
+
+```
+Timeline:
+├─ T-DOS ────────────────── ❌ Failed (learning project)
+├─ Open-OS ──────────────── ❌ Failed (redesign needed)
+└─ NEO-OS ───────────────── ✅ Active development
+```
+Legacy Projects:
 [T-DOS](https://github.com/2900xt/T-dos)
+[Open-OS](https://github.com/2900xt/open-OS)
+
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the open source community and my own learning**
+
+</div>
