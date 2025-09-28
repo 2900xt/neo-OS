@@ -20,12 +20,14 @@ run-test:
 	 -M q35\
 	 -m 2G\
 	 -bios ovmf-x64/OVMF.fd\
-	 -drive format=raw,file=neo-OS.hdd\
+	 -drive format=raw,file=neo-OS.hdd,cache=writeback\
 	 -smp cpus=4\
 	 -serial stdio\
 	 -netdev user,id=n0\
 	 -device rtl8139,netdev=n0\
 	 -device isa-debug-exit,iobase=0xf4,iosize=0x04\
+	 -enable-kvm\
+	 -cpu host\
 	 2> /dev/null
 
 .PHONY: run
@@ -38,11 +40,13 @@ run: all
 	 -M q35\
 	 -m 2G\
 	 -bios ovmf-x64/OVMF.fd\
-	 -drive format=raw,file=neo-OS.hdd\
+	 -drive format=raw,file=neo-OS.hdd,cache=writeback\
 	 -smp cpus=4\
 	 -serial stdio\
 	 -netdev user,id=n0\
 	 -device rtl8139,netdev=n0\
+	 -enable-kvm\
+	 -cpu host\
 	 2> /dev/null 
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
