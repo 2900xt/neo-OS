@@ -1,10 +1,12 @@
 #include "kernel/mem/paging.h"
 #include "kernel/vfs/file.h"
-#include <kernel/kernel.h>
-#include <stdlib/stdlib.h>
+
+
 #include <types.h>
 #include <kernel/mem/mem.h>
 #include <drivers/vga/vga.h>
+#include <kernel/io/log.h>
+#include <stdlib/string.h>
 
 namespace vga
 {

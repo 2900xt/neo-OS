@@ -1,8 +1,8 @@
 #include <drivers/acpi/madt.h>
 #include <drivers/acpi/sdt.h>
-#include <kernel/kernel.h>
+
 #include <kernel/x64/io.h>
-#include <stdlib/stdlib.h>
+
 
 extern acpi::MADT *madt;
 extern acpi::LAPIC_ENTRY *local_apics[32];

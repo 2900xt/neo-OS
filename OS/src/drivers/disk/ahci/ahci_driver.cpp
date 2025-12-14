@@ -4,12 +4,13 @@
 #include "drivers/fs/gpt.h"
 #include <types.h>
 #include <drivers/disk/ahci/ahci.h>
-#include <stdlib/stdlib.h>
+
 #include <kernel/mem/paging.h>
 #include <kernel/mem/mem.h>
 #include <kernel/vfs/file.h>
+#include <kernel/io/log.h>
 #include <stdlib/string.h>
-#include <kernel/kernel.h>
+
 
 namespace disk
 {
@@ -134,7 +135,7 @@ namespace disk
         // Set up the PRDT
 
         command_tbl_t *command_table = command_header->cmd_table_desc_base_addr;
-        kernel::memset_8(command_table, sizeof(command_tbl_t), 0);
+        kernel::memset(command_table, sizeof(command_tbl_t), 0);
 
         int i;
         for (i = 0; i < command_header->prdt_length - 1; i++)
@@ -196,7 +197,7 @@ namespace disk
         // Set up the PRDT
 
         command_tbl_t *command_table = command_header->cmd_table_desc_base_addr;
-        kernel::memset_8(command_table, sizeof(command_tbl_t), 0);
+        kernel::memset(command_table, sizeof(command_tbl_t), 0);
 
         int i;
         for (i = 0; i < command_header->prdt_length - 1; i++)
@@ -256,7 +257,7 @@ namespace disk
         // Set up the PRDT
 
         command_tbl_t *command_table = command_header->cmd_table_desc_base_addr;
-        kernel::memset_8(command_table, sizeof(command_tbl_t), 0);
+        kernel::memset(command_table, sizeof(command_tbl_t), 0);
 
         command_table->prdt->data_base_address = (uint64_t)_buffer;
         command_table->prdt->data_byte_count = 512;

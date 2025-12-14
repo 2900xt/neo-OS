@@ -13,8 +13,7 @@ namespace kernel
     void kfree(void *ptr);
     void *krealloc(void *ptr, uint64_t size);
     void memcpy(void *_destination, const void *_src, uint64_t num);
-    void memset_64(void *_addr, uint64_t num, uint64_t value);
-    void memset_8(void *_addr, uint64_t num, uint8_t value);
+    void memset(void *_addr, uint64_t num, uint8_t value);
     void *kcalloc(uint64_t count, uint64_t size);
 
 }

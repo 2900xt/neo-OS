@@ -2,12 +2,13 @@
 #include "kernel/mem/paging.h"
 #include "types.h"
 #include <limine/limine.h>
-#include <stdlib/stdlib.h>
+
 #include <drivers/vga/vga.h>
 #include <kernel/x64/intr/apic.h>
 #include <kernel/mem/mem.h>
 #include <kernel/vfs/file.h>
-#include <kernel/kernel.h>
+#include <kernel/io/log.h>
+
 
 namespace vga
 {
@@ -30,7 +31,7 @@ namespace vga
 
     void clearScreen()
     {
-        kernel::memset_8(g_framebuffer2, framebufferSize, 0);
+        kernel::memset(g_framebuffer2, framebufferSize, 0);
         g_framebuffer_dirty = true;
     }
 

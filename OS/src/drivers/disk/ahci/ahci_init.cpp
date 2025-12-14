@@ -1,10 +1,11 @@
 #include "drivers/disk/ahci/hba_port.h"
-#include <stdlib/stdlib.h>
-#include <kernel/kernel.h>
+
+
 #include <kernel/mem/paging.h>
 #include <drivers/disk/ahci/ahci.h>
 #include <drivers/pci/pci.h>
 #include <drivers/disk/ahci/ahci_cmd.h>
+#include <stdlib/assert.h>
 namespace disk
 {
 

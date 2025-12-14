@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+
 #include <drivers/vga/vga.h>
 #include <drivers/vga/fonts.h>
 #include <drivers/vga/vga.h>

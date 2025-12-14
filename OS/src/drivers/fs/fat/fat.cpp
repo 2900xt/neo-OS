@@ -5,13 +5,13 @@
 #include "kernel/mem/paging.h"
 #include "limine/limine.h"
 #include "stdlib/assert.h"
-#include "stdlib/stdlib.h"
 #include "stdlib/string.h"
-#include <kernel/kernel.h>
+
 #include <types.h>
 #include <drivers/fs/fat/fat.h>
 #include <drivers/disk/disk_driver.h>
 #include <kernel/vfs/file.h>
+#include <kernel/io/log.h>
 
 namespace filesystem
 {
@@ -159,7 +159,7 @@ namespace filesystem
     const char *filename_to_fat(stdlib::string &formal_filename)
     {
         char *fat_filename = new char[MAX_FILENAME_LENGTH];
-        kernel::memset_8(fat_filename, MAX_FILENAME_LENGTH, ' ');
+        kernel::memset(fat_filename, MAX_FILENAME_LENGTH, ' ');
 
         int srcIndex = 0;
 

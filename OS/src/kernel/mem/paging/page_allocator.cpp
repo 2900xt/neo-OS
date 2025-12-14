@@ -1,6 +1,6 @@
 #include <limine/limine.h>
-#include <kernel/kernel.h>
-#include <stdlib/stdlib.h>
+
+
 
 static volatile limine::limine_memmap_request memmap_request = {LIMINE_MEMMAP_REQUEST, 0};
 static limine::limine_memmap_entry **memory_entries;

@@ -1,5 +1,5 @@
-#include <stdlib/stdlib.h>
-#include <kernel/kernel.h>
+
+
 #include <stdlib/lock.h>
 
 namespace kernel
@@ -143,14 +143,7 @@ namespace kernel
             return NULL;
         }
         
-        if (size % 64 == 0)
-        {
-            memset_64(retPtr, totalSize, 0);
-        }
-        else
-        {
-            memset_8(retPtr, totalSize, 0);
-        }
+        memset(retPtr, totalSize, 0);
 
         return retPtr;
     }

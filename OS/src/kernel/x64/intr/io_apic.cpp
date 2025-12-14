@@ -1,6 +1,6 @@
-#include <kernel/kernel.h>
+
 #include <kernel/x64/intr/apic.h>
-#include <stdlib/stdlib.h>
+
 
 extern acpi::IOAPIC_ENTRY *ioapic;
 

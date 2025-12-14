@@ -1,6 +1,8 @@
-#include <kernel/kernel.h>
+
 #include <drivers/ps2/ps2.h>
 #include <drivers/vga/fonts.h>
+#include <stdlib/string.h>
+#include <kernel/io/terminal.h>
 
 namespace kernel
 {

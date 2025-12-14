@@ -1,8 +1,9 @@
 #include <types.h>
 #include <kernel/x64/io.h>
 #include <drivers/vga/vga.h>
-#include <stdlib/stdlib.h>
-#include <kernel/kernel.h>
+#include <kernel/io/log.h>
+
+
 
 namespace ps2
 {

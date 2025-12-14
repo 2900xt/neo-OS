@@ -3,10 +3,12 @@
 #include <drivers/pci/pci.h>
 #include <kernel/x64/io.h>
 #include <drivers/acpi/mcfg.h>
-#include <stdlib/stdlib.h>
+
 #include <kernel/mem/paging.h>
 #include <kernel/mem/mem.h>
-#include <kernel/kernel.h>
+#include <kernel/io/log.h>
+#include <stdlib/string.h>
+
 
 namespace pci
 {

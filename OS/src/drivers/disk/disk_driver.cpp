@@ -1,7 +1,8 @@
 #include "drivers/disk/ahci/ahci.h"
-#include <kernel/kernel.h>
+
 #include <drivers/fs/gpt.h>
 #include <drivers/disk/disk_driver.h>
+#include <kernel/io/log.h>
 
 namespace disk
 {

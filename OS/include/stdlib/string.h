@@ -2,7 +2,6 @@
 #include "kernel/mem/mem.h"
 #include "stdlib/assert.h"
 #include <types.h>
-#include <stdlib/stdlib.h>
 
 namespace stdlib
 {
@@ -83,7 +82,7 @@ namespace stdlib
 
         void clear()
         {
-            kernel::memset_8(data, size, 0);
+            kernel::memset(data, size, 0);
         }
 
         void resize(size_t requested)

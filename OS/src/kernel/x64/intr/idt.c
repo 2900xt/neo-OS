@@ -1,18 +1,16 @@
 #include "stdlib/timer.h"
 #include <types.h>
-#include <stdlib/stdlib.h>
+
 #include <kernel/x64/io.h>
 #include <kernel/x64/intr/idt.h>
 #include <kernel/x64/intr/apic.h>
-#include <kernel/kernel.h>
+
 
 uint64_t millis_since_boot = 0;
+#define stop() for (;;)
 
 namespace kernel
 {
-
-#define stop() for (;;)
-
     constexpr uint8_t INTERRUPT = 0x8E;
     constexpr uint8_t EXCEPTION = 0x8F;
 
@@ -221,7 +219,7 @@ namespace kernel
 
         int64_t countdown = 0;
 
-        __attribute__((interrupt)) void timer_handler(interruptFrame *frame)
+        __attribute__((interrupt)) void timer_handler(interruptFrame*)
         {
             countdown--;
             millis_since_boot++;
@@ -230,7 +228,7 @@ namespace kernel
             return; // iretq
         }
 
-        __attribute__((interrupt)) void spurious_isr(interruptFrame *frame)
+        __attribute__((interrupt)) void spurious_isr(interruptFrame*)
         {
             log::e("Spurious ISR", "????????????");
             apicSendEOI();
@@ -245,7 +243,7 @@ namespace kernel
             ;
     }
 
-    void fillIDT(void)
+    void fill_idt(void)
     {
 
         remapPIC(0xF0, 0xF8);
@@ -289,5 +287,4 @@ namespace kernel
 
         asm("sti");
     }
-
 }

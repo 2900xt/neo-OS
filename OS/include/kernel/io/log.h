@@ -9,7 +9,7 @@ namespace kernel
 
     extern limine::limine_terminal *console;
     extern limine::limine_terminal_write write;
-    void tty_init(void);
+    void log_init(void);
 
     [[gnu::deprecated]]
     inline void klogf(...)

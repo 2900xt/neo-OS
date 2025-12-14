@@ -67,7 +67,7 @@ static inline uint64_t read_flags()
 }
 
 uint64_t readCR3(void);
-extern "C" void enableSSE(void);
+extern "C" void enable_sse(void);
 #define IO_WAIT() outb(0x80, 0)
 
 };

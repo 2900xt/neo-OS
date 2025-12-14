@@ -1,6 +1,6 @@
 #include <drivers/acpi/madt.h>
 #include <kernel/x64/intr/apic.h>
-#include <stdlib/stdlib.h>
+
 
 acpi::MADT *madt;
 acpi::LAPIC_ENTRY *local_apics[32];

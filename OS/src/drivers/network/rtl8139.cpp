@@ -1,7 +1,8 @@
-#include <stdlib/stdlib.h>
-#include <kernel/kernel.h>
+
+
 #include <drivers/pci/pci.h>
 #include <drivers/network/rtl8139.h>
+#include <kernel/io/log.h>
 
 namespace network
 {

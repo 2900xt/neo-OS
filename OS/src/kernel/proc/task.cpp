@@ -1,5 +1,5 @@
-#include <kernel/kernel.h>
-#include <stdlib/stdlib.h>
+#include <kernel/proc/proc.h>
+
 
 namespace kernel
 {

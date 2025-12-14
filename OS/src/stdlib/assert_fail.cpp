@@ -1,5 +1,5 @@
 #include <kernel/io/log.h>
-#include <kernel/kernel.h>
+
 
 namespace stdlib
 {

@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+
 #include <limine/limine.h>
 #include <drivers/serial/serial.h>
 
@@ -11,7 +11,7 @@ namespace kernel
     limine::limine_terminal_write write;
     static bool serial_output;
 
-    void tty_init(void)
+    void log_init(void)
     {
         if (terminal_request.response == NULL || terminal_request.response->terminal_count == 0)
         {
