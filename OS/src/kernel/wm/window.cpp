@@ -420,57 +420,6 @@ namespace wm
         vga::g_framebuffer_dirty = true;
     }
 
-    void draw_mouse_cursor()
-    {
-        int x = ps2::mouse_state.x;
-        int y = ps2::mouse_state.y;
-
-        // Draw a simple arrow cursor
-        vga::Color cursor_color = vga::Color(255, 255, 255);
-        vga::Color outline_color = vga::Color(0, 0, 0);
-
-        // Simple arrow cursor pattern
-        for (int dy = 0; dy < 16; dy++)
-        {
-            for (int dx = 0; dx < 10; dx++)
-            {
-                bool draw_pixel = false;
-                bool draw_outline = false;
-
-                // Simple arrow shape
-                if (dy < 10 && dx <= dy)
-                {
-                    draw_pixel = true;
-                }
-                else if (dy >= 10 && dy < 14 && dx >= 4 && dx <= 6)
-                {
-                    draw_pixel = true;
-                }
-
-                // Outline
-                if (draw_pixel)
-                {
-                    if (dx == 0 || dy == 0 || dx == dy || (dy >= 10 && dy < 14 && (dx == 4 || dx == 6)))
-                    {
-                        draw_outline = true;
-                    }
-                }
-
-                if (x + dx < (int)vga::fbuf_info->width && y + dy < (int)vga::fbuf_info->height)
-                {
-                    if (draw_outline)
-                    {
-                        vga::putpixel(x + dx, y + dy, outline_color);
-                    }
-                    else if (draw_pixel)
-                    {
-                        vga::putpixel(x + dx, y + dy, cursor_color);
-                    }
-                }
-            }
-        }
-    }
-
     Window *create_terminal_window(int x, int y, uint32_t width, uint32_t height)
     {
         log::d("WindowManager", "Creating terminal window...");
@@ -740,7 +689,7 @@ namespace wm
         switch (src)
         {
         case '\r':
-        case '\0':
+        case '\0':WINDOW_TYPE_SYSINFO
             break;
         case '\n':
             // Clear cursor
@@ -1665,7 +1614,7 @@ namespace wm
             const char* cpu_unknown = "  CPU: Unknown";
             int i = 0;
             while (cpu_unknown[i] != '\0') { cpu_info[i] = cpu_unknown[i]; i++; }
-            cpu_info[i] = '\0';
+            cpu_info[i] = '\0';WINDOW_TYPE_SYSINFO
         }
 
         for (int i = 0; cpu_info[i] != '\0'; i++)
@@ -2167,13 +2116,6 @@ namespace wm
         }
     }
 
-    void handle_snake_input(Window* window, uint8_t special_key)
-    {
-        // Snake game doesn't use special keys (arrow keys are for window movement)
-        // WASD controls are handled in handle_window_keyboard_input instead
-        return;
-    }
-
     Window *get_window_at_position(int x, int y)
     {
         // Check windows from top to bottom (reverse order)
@@ -2212,106 +2154,6 @@ namespace wm
                 x <= window->x + (int)window->width + 2 &&
                 y >= window->y + (int)window->height - 10 &&
                 y <= window->y + (int)window->height + 2);
-    }
-
-    void handle_window_mouse_input(int mouse_x, int mouse_y, bool left_click, bool right_click)
-    {
-        static bool last_left_click = false;
-
-        // Handle drag/resize release
-        if (!left_click && last_left_click)
-        {
-            interaction_state.dragging = false;
-            interaction_state.resizing = false;
-            interaction_state.active_window = nullptr;
-        }
-
-        // Handle new clicks
-        if (left_click && !last_left_click)
-        {
-            Window *clicked_window = get_window_at_position(mouse_x, mouse_y);
-
-            if (clicked_window)
-            {
-                // Bring clicked window to top and set focus
-                bring_window_to_top(clicked_window);
-                set_window_focus(clicked_window);
-
-                // Check if clicking in resize area
-                if (is_in_resize_area(clicked_window, mouse_x, mouse_y))
-                {
-                    interaction_state.resizing = true;
-                    interaction_state.active_window = clicked_window;
-                    interaction_state.resize_start_width = clicked_window->width;
-                    interaction_state.resize_start_height = clicked_window->height;
-                }
-                // Check if clicking in title bar for dragging
-                else if (is_in_title_bar(clicked_window, mouse_x, mouse_y))
-                {
-                    interaction_state.dragging = true;
-                    interaction_state.active_window = clicked_window;
-                    interaction_state.drag_offset_x = mouse_x - clicked_window->x;
-                    interaction_state.drag_offset_y = mouse_y - clicked_window->y;
-                }
-            }
-        }
-
-        // Handle dragging
-        if (interaction_state.dragging && interaction_state.active_window)
-        {
-            int new_x = mouse_x - interaction_state.drag_offset_x;
-            int new_y = mouse_y - interaction_state.drag_offset_y;
-            move_window(interaction_state.active_window, new_x, new_y);
-        }
-
-        // Handle resizing
-        if (interaction_state.resizing && interaction_state.active_window)
-        {
-            Window *window = interaction_state.active_window;
-            int new_width = mouse_x - window->x;
-            int new_height = mouse_y - window->y;
-
-            // Minimum window size
-            if (new_width < 100)
-                new_width = 100;
-            if (new_height < 50)
-                new_height = 50;
-
-            resize_window(window, new_width, new_height);
-        }
-
-        last_left_click = left_click;
-    }
-
-    void cycle_windows(bool forward)
-    {
-        if (window_count <= 1)
-            return;
-
-        // Find current focused window index
-        int current_index = -1;
-        for (int i = 0; i < window_count; i++)
-        {
-            if (windows[i] == focused_window)
-            {
-                current_index = i;
-                break;
-            }
-        }
-
-        // Calculate next window index
-        int next_index;
-        if (forward)
-        {
-            next_index = (current_index + 1) % window_count;
-        }
-        else
-        {
-            next_index = (current_index - 1 + window_count) % window_count;
-        }
-
-        // Set focus to next window
-        set_window_focus(windows[next_index]);
     }
 
     void activate_window_by_function_key(int function_key)

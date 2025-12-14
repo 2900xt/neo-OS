@@ -58,7 +58,6 @@ namespace wm
     void bring_window_to_top(Window* window);
     void render_window(Window* window);
     void render_all_windows();
-    void draw_mouse_cursor();
     
     // Window framebuffer operations
     void window_putpixel(Window* window, int x, int y, vga::Color color);
@@ -96,10 +95,8 @@ namespace wm
     void terminal_window_print_file_contents(Window* window, const char* path);
     
     // Input handling for windows
-    void handle_window_mouse_input(int mouse_x, int mouse_y, bool left_click, bool right_click);
     void handle_window_keyboard_input(char key, bool shift, bool ctrl, bool alt);
     void handle_window_special_key(uint8_t special_key);
-    void cycle_windows(bool forward);
     void activate_window_by_function_key(int function_key);
     Window* get_window_at_position(int x, int y);
     bool is_in_title_bar(Window* window, int x, int y);
