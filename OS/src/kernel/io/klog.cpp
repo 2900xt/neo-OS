@@ -129,6 +129,8 @@ namespace kernel
                 break;
             case 'x': // Hexadecimal unsigned int
             case 'X':
+            case 'P':
+            case 'p':
                 klog_state.argFound = true;
                 klog_state.num = va_arg(args, uint64_t);
                 klog_state.token = stdlib::utoa(klog_state.num, 16);

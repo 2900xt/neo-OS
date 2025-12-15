@@ -4,7 +4,6 @@
 #include <drivers/vga/vga.h>
 
 
-// External variable declarations for system info
 extern uint64_t millis_since_boot;
 
 namespace vga
