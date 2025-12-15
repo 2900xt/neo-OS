@@ -40,7 +40,7 @@ template <typename K, typename V>
 void HashMap<K, V>::put(K key, V val)
 {
     size_t hash_key = hash(key) % buckets.length();
-    buckets[hash_key].push_back(val);
+    buckets[hash_key].push_back(pair<K, V>(key, val));
 }
 
 template <typename K, typename V>
@@ -67,25 +67,26 @@ template <typename K, typename V>
 V &HashMap<K, V>::get(K key) const
 {
     size_t hash_key = hash(key) % buckets.length();
-    list<pair<K, V>> &bucket = buckets[hash_key];
+    const list<pair<K, V>> &bucket = buckets[hash_key];
     for(size_t i = 0; i < bucket.length(); i++)
     {
         if (bucket[i].first == key)
         {
-            return bucket[i].second;
+            return const_cast<V&>(bucket[i].second);
         }
     }
     // If key not found, handle accordingly
 
     assert(false && "Key not found in HashMap");
-    return V();
+    static V default_value = V();
+    return default_value;
 }
 
 template <typename K, typename V>
 bool HashMap<K, V>::contains(K key) const
 {
     size_t hash_key = hash(key) % buckets.length();
-    list<pair<K, V>> &bucket = buckets[hash_key];
+    const list<pair<K, V>> &bucket = buckets[hash_key];
     for(size_t i = 0; i < bucket.length(); i++)
     {
         if (bucket[i].first == key)
@@ -101,5 +102,8 @@ V &HashMap<K, V>::operator[](K key) const
 {
     return get(key);
 }
+
+// Explicit template instantiations
+template class HashMap<stdlib::string, int>;
 
 }

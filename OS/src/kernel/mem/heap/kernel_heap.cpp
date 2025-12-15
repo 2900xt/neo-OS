@@ -265,12 +265,22 @@ void *operator new[](size_t size)
     return kernel::kcalloc(1, size);
 }
 
-void operator delete(void *addr, uint64_t)
+void operator delete(void *addr)
 {
     kernel::kfree(addr);
 }
 
 void operator delete[](void *addr)
+{
+    kernel::kfree(addr);
+}
+
+void operator delete(void *addr, size_t)
+{
+    kernel::kfree(addr);
+}
+
+void operator delete[](void *addr, size_t)
 {
     kernel::kfree(addr);
 }

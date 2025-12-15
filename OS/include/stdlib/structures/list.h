@@ -44,17 +44,23 @@ namespace stdlib
             }
         }
 
-        size_t length()
+        size_t length() const
         {
             return size;
         }
 
-        size_t capacity()
+        size_t capacity() const
         {
             return max_capacity;
         }
 
         T *data()
+        {
+            assert(_data != NULL);
+            return _data;
+        }
+
+        const T *data() const
         {
             assert(_data != NULL);
             return _data;
@@ -84,7 +90,19 @@ namespace stdlib
             return _data[ind];
         }
 
+        const T &at(size_t ind) const
+        {
+            assert(ind < size && ind >= 0);
+            return _data[ind];
+        }
+
         T &operator[](size_t ind)
+        {
+            assert(ind < size && ind >= 0);
+            return _data[ind];
+        }
+
+        const T &operator[](size_t ind) const
         {
             assert(ind < size && ind >= 0);
             return _data[ind];
@@ -104,14 +122,12 @@ namespace stdlib
             }
 
             _data[size++] = c;
-            _data[size] = '\0';
         }
 
         void pop_back()
         {
             assert(size > 0);
             size--;
-            _data[size] = '\0';
         }
 
         void append(list<T> &other)
@@ -127,8 +143,6 @@ namespace stdlib
             }
 
             size += other.size;
-
-            _data[size] = '\0';
         }
 
         void erase(size_t ind)

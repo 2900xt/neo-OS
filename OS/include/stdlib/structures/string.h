@@ -41,13 +41,13 @@ namespace stdlib
             this->data = new char[max_capacity];
         }
 
-        string(string &other)
+        string(const string &other)
         {
             this->size = other.size;
             this->max_capacity = other.max_capacity;
             this->data = new char[max_capacity];
 
-            strcpy(data, other.c_str());
+            strcpy(data, other.data);
         }
 
         string()
@@ -65,17 +65,22 @@ namespace stdlib
             }
         }
 
-        size_t length()
+        size_t length() const
         {
             return size;
         }
 
-        size_t capacity()
+        size_t capacity() const
         {
             return max_capacity;
         }
 
         char *c_str()
+        {
+            return data;
+        }
+
+        const char *c_str() const
         {
             return data;
         }
@@ -172,6 +177,13 @@ namespace stdlib
             }
 
             return out;
+        }
+
+        bool operator==(const string &other) const
+        {
+            if (size != other.size)
+                return false;
+            return strcmp(data, other.data);
         }
     };
 
