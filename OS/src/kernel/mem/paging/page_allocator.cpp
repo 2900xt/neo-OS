@@ -1,5 +1,7 @@
 #include <limine/limine.h>
-
+#include <kernel/mem/paging.h>
+#include <kernel/proc/proc.h>
+#include <kernel/io/log.h>
 
 
 static volatile limine::limine_memmap_request memmap_request = {LIMINE_MEMMAP_REQUEST, 0};
@@ -108,7 +110,7 @@ namespace kernel
             {
                 if (current_page_entry->memory.type != USED)
                 {
-                    log::w(page_allocator_tag, "Asking to free an unused page!");
+                    log.w(page_allocator_tag, "Asking to free an unused page!");
                     stdlib::release_spinlock(&pa_lock);
                     return;
                 }

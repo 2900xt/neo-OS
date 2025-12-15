@@ -1,6 +1,6 @@
-
-
+#include "kernel/smp/smp.h"
 #include <drivers/fs/fat/fat.h>
+#include <kernel/io/log.h>
 
 namespace kernel
 {
@@ -20,7 +20,7 @@ namespace kernel
 
         if (root_part == NULL)
         {
-            log::e(vfs_tag, "Error while mounting root!");
+            log.e(vfs_tag, "Error while mounting root!");
             kernel::panic();
         }
     }
@@ -46,7 +46,7 @@ namespace kernel
 
         if (entry == NULL)
         {
-            log::e(vfs_tag, "File not found: %s", filepath->c_str());
+            log.e(vfs_tag, "File not found: %s", filepath->c_str());
             return -1;
         }
 

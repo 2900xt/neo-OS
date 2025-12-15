@@ -1,6 +1,7 @@
 #include "stdlib/timer.h"
 #include <types.h>
 
+#include <kernel/io/log.h>
 #include <kernel/x64/io.h>
 #include <kernel/x64/intr/idt.h>
 #include <kernel/x64/intr/apic.h>
@@ -95,72 +96,72 @@ namespace kernel
 
         __attribute__((interrupt)) void exc0(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[0]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[0]);
             stop();
         }
         __attribute__((interrupt)) void exc1(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[1]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[1]);
             stop();
         }
         __attribute__((interrupt)) void exc2(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[2]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[2]);
             stop();
         }
         __attribute__((interrupt)) void exc3(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[3]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[3]);
             stop();
         }
         __attribute__((interrupt)) void exc4(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[4]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[4]);
             stop();
         }
         __attribute__((interrupt)) void exc5(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[5]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[5]);
             stop();
         }
         __attribute__((interrupt)) void exc6(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[6]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[6]);
             stop();
         }
         __attribute__((interrupt)) void exc7(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[7]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[7]);
             stop();
         }
         __attribute__((interrupt)) void exc9(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[9]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[9]);
             stop();
         }
         __attribute__((interrupt)) void exc16(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[16]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[16]);
             stop();
         }
         __attribute__((interrupt)) void exc18(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[18]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[18]);
             stop();
         }
         __attribute__((interrupt)) void exc19(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[19]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[19]);
             stop();
         }
         __attribute__((interrupt)) void exc20(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);
             stop();
         }
         __attribute__((interrupt)) void exc28(interruptFrame *frame)
         {
-            log::e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[28]);
+            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[28]);
             stop();
         }
 
@@ -168,52 +169,52 @@ namespace kernel
 
         __attribute__((interrupt)) void exc8(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[8]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[8]);
             stop();
         }
         __attribute__((interrupt)) void exc10(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[10]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[10]);
             stop();
         }
         __attribute__((interrupt)) void exc11(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[11]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[11]);
             stop();
         }
         __attribute__((interrupt)) void exc12(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[12]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[12]);
             stop();
         }
         __attribute__((interrupt)) void exc13(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[13]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[13]);
             stop();
         }
         __attribute__((interrupt)) void exc14(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[14]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[14]);
             stop();
         }
         __attribute__((interrupt)) void exc17(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[17]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[17]);
             stop();
         }
         __attribute__((interrupt)) void exc21(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[21]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[21]);
             stop();
         }
         __attribute__((interrupt)) void exc29(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[29]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[29]);
             stop();
         }
         __attribute__((interrupt)) void exc30(interruptFrame *frame, uint64_t error)
         {
-            log::e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);
+            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);
             stop();
         }
 
@@ -230,7 +231,7 @@ namespace kernel
 
         __attribute__((interrupt)) void spurious_isr(interruptFrame*)
         {
-            log::e("Spurious ISR", "????????????");
+            log.e("Spurious ISR", "????????????");
             apicSendEOI();
             return; // iretq
         }

@@ -1,7 +1,5 @@
 #include "drivers/vga/vga.h"
 #include "kernel/mem/mem.h"
-#include "kernel/mem/paging.h"
-#include "types.h"
 #include <drivers/vga/fonts.h>
 #include <stdlib/string.h>
 #include <kernel/vfs/file.h>

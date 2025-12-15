@@ -1,4 +1,5 @@
-
+#include <kernel/mem/paging.h>
+#include <kernel/shell/shell.h>
 #include <drivers/vga/vga.h>
 #include <drivers/vga/fonts.h>
 #include <drivers/vga/vga.h>

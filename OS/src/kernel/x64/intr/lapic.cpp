@@ -1,5 +1,7 @@
+#include <kernel/x64/intr/apic.h>
 #include <drivers/acpi/madt.h>
 #include <drivers/acpi/sdt.h>
+#include <kernel/io/log.h>
 
 #include <kernel/x64/io.h>
 
@@ -95,7 +97,7 @@ namespace kernel
         cpuid(1, &eax, &edx);
         if (!(edx & APIC_SUPPORTED))
         {
-            log::e(lapic_tag, "APIC not supported on this system! (CPUID_ERROR)");
+            log.e(lapic_tag, "APIC not supported on this system! (CPUID_ERROR)");
             for (;;)
                 ;
         }
@@ -109,7 +111,7 @@ namespace kernel
 
         if (!(rdmsr(0x1B) & APIC_ENABLE))
         {
-            log::e(lapic_tag, "APIC not suported on this system! (MSR_NOT_PRESENT)");
+            log.e(lapic_tag, "APIC not suported on this system! (MSR_NOT_PRESENT)");
             for (;;)
                 ;
         }
@@ -138,7 +140,7 @@ namespace kernel
         const uint8_t id = apicReadRegister(LAPIC_ID_REG) >> 24;
         if (id != apicID)
         {
-            log::e(lapic_tag, "APIC ID not matching: given: %u\t sys:%u", apicID, id);
+            log.e(lapic_tag, "APIC ID not matching: given: %u\t sys:%u", apicID, id);
             return;
         }
 
@@ -185,12 +187,12 @@ namespace kernel
         cpuFreq /= 16;
         // cpuFreq /= 1000;
 
-        log::d(lapic_tag, "CPU frequency: %d MHz", (cpuFreq / 1000));
+        log.d(lapic_tag, "CPU frequency: %d MHz", (cpuFreq / 1000));
 
         apicWriteRegister(TIMER_INITIAL_COUNT_REG, cpuFreq);
         apicWriteRegister(TIMER_LVT_ENTRY, 32 | 0x20000);
         apicWriteRegister(TIMER_DIVIDE_CONFIG_REG, 0x3);
-        log::d(lapic_tag, "APIC timer initialized");
+        log.d(lapic_tag, "APIC timer initialized");
     }
 
 }

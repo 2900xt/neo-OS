@@ -13,7 +13,7 @@ namespace network
         pci::device_t *dev = pci::get_pci_dev(0x10EC, 0x8139);
         if (dev == NULL)
         {
-            log::e(rtl8139_tag, "RTL8139 network controller not found");
+            log.e(rtl8139_tag, "RTL8139 network controller not found");
             return;
         }
 
@@ -22,6 +22,6 @@ namespace network
         dev->hdr.command.io_space_enable = 1;
         dev->hdr.command.intr_disable = 1;
 
-        log::d(rtl8139_tag, "RTL8139 network controller initialized");
+        log.d(rtl8139_tag, "RTL8139 network controller initialized");
     }
 }

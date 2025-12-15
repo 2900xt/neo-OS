@@ -1,5 +1,7 @@
-
-
+#include <types.h>
+#include <kernel/io/log.h>
+#include <kernel/mem/mem.h>
+#include <stdlib/assert.h>
 
 namespace kernel
 {
@@ -73,13 +75,13 @@ namespace kernel
 
         if (!getPageEntry(virtualAddr, &page))
         {
-            log::e(page_allocator_tag, "Page table(s) is not present in memory!");
+            log.e(page_allocator_tag, "Page table(s) is not present in memory!");
             return NULL;
         }
 
         if (~page[pageOffset] & PRESENT)
         {
-            log::e(page_allocator_tag, "Page is not present in memory!");
+            log.e(page_allocator_tag, "Page is not present in memory!");
             return NULL;
         }
 

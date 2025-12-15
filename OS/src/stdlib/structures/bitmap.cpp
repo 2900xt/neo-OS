@@ -1,4 +1,4 @@
-
+#include <stdlib/assert.h>
 #include <stdlib/structures/bitmap.h>
 #include <kernel/mem/mem.h>
 

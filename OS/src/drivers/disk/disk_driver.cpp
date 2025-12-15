@@ -22,7 +22,7 @@ namespace disk
         }
         else
         {
-            log::e(
+            log.e(
                 disk_driver_tag,
                 "Unknown Disk Type: %u", disk->type);
             return;
@@ -30,7 +30,7 @@ namespace disk
 
         if (status != 0)
         {
-            log::e(disk_driver_tag, "Disk Write Error: %d", status);
+            log.e(disk_driver_tag, "Disk Write Error: %d", status);
         }
     }
 
@@ -44,13 +44,13 @@ namespace disk
         }
         else
         {
-            log::e(disk_driver_tag, "Unknown Disk Type: %u", disk->type);
+            log.e(disk_driver_tag, "Unknown Disk Type: %u", disk->type);
             return;
         }
 
         if (status != 0)
         {
-            log::e(disk_driver_tag, "Disk Read Error: %d", status);
+            log.e(disk_driver_tag, "Disk Read Error: %d", status);
         }
     }
 
@@ -63,7 +63,7 @@ namespace disk
         }
         else
         {
-            log::e(disk_driver_tag, "Unable to find GPT data - Unknown Disk Type: %u", disk->type);
+            log.e(disk_driver_tag, "Unable to find GPT data - Unknown Disk Type: %u", disk->type);
             return NULL;
         }
     }

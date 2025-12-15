@@ -1,5 +1,8 @@
 #include <types.h>
 #include <limine/limine.h>
+#include <kernel/io/log.h>
+#include <kernel/x64/intr/apic.h>
+#include <kernel/smp/smp.h>
 
 
 namespace kernel
@@ -12,7 +15,7 @@ namespace kernel
     void smp_init(void)
     {
         kernel::initAPIC(smp_request.response->bsp_lapic_id);
-        log::d(kernel_scheduler_tag, "%u CPU cores detected", smp_request.response->cpu_count);
+        log.d(kernel_scheduler_tag, "%u CPU cores detected", smp_request.response->cpu_count);
 
         for (int i = 1; i < smp_request.response->cpu_count; i++)
         {
@@ -45,7 +48,7 @@ namespace kernel
             currentCPU++;
         }
 
-        log::e(kernel_scheduler_tag, "Unable to find CPU #%u!", pid);
+        log.e(kernel_scheduler_tag, "Unable to find CPU #%u!", pid);
     }
 
     void panic()

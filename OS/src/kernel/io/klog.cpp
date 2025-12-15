@@ -1,8 +1,13 @@
-
+#include <config.h>
+#include <types.h>
+#include <stdarg.h>
+#include <kernel/io/log.h>
+#include <kernel/proc/proc.h>
 #include <limine/limine.h>
 #include <drivers/serial/serial.h>
 
 static volatile limine::limine_terminal_request terminal_request = {LIMINE_TERMINAL_REQUEST, 0};
+serial_logger log;
 
 namespace kernel
 {
@@ -172,7 +177,7 @@ namespace kernel
 
 extern uint64_t millis_since_boot;
 
-static void log::v(const char *source, const char *fmt, ...)
+void serial_logger::v(const char *source, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -196,7 +201,7 @@ static void log::v(const char *source, const char *fmt, ...)
     va_end(args);
 }
 
-static void log::d(const char *source, const char *fmt, ...)
+void serial_logger::d(const char *source, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -219,7 +224,7 @@ static void log::d(const char *source, const char *fmt, ...)
     va_end(args);
 }
 
-static void log::w(const char *source, const char *fmt, ...)
+void serial_logger::w(const char *source, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -242,7 +247,7 @@ static void log::w(const char *source, const char *fmt, ...)
     va_end(args);
 }
 
-static void log::e(const char *source, const char *fmt, ...)
+void serial_logger::e(const char *source, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

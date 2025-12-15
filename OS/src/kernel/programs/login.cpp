@@ -1,11 +1,12 @@
-
+#include <kernel/vfs/file.h>
+#include <kernel/shell/shell.h>
 #include <drivers/vga/vga.h>
 #include <drivers/vga/fonts.h>
 
 namespace kernel
 {
     bool logged_in = false;
-    void login_prompt(bool failed = false)
+    void login_prompt(bool failed)
     {
         if (failed)
             printf("%pPassword incorrect :(%p\n", vga::Color(150, 0, 0).getRGB(), vga::Color(255, 255, 255).getRGB());
@@ -32,7 +33,7 @@ namespace kernel
     extern char *input_buffer;
     bool login_check()
     {
-        //log::d(kernel_tag, "%s %s", password, kernel::input_buffer);
+        //log.d(kernel_tag, "%s %s", password, kernel::input_buffer);
         if (stdlib::strcmp(password, kernel::input_buffer))
         {
             printf("%pLogin successful%p\n", vga::Color(0, 150, 0).getRGB(), vga::Color(255, 255, 255).getRGB());

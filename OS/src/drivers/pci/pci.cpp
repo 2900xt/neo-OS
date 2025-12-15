@@ -115,7 +115,7 @@ namespace pci
 
         device_t *dev = (device_t *)pci_func;
 
-        log::d(pci_tag, "PCI device found: %s %s", getVendorString(pci_func->vendor_id), getDeviceName(pci_func->vendor_id, pci_func->device_id));
+        log.d(pci_tag, "PCI device found: %s %s", getVendorString(pci_func->vendor_id), getDeviceName(pci_func->vendor_id, pci_func->device_id));
 
         // Only enumerate single function devices
         if ((dev->hdr.header_type & 0xF) == 0x0)

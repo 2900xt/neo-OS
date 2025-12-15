@@ -17,19 +17,17 @@ namespace kernel
         return;
     }
 
-    void update_terminal();
-
-    void printf(const char *fmt, ...);
-
     extern const char *kernel_tag;
 }
 
 // Serial Kernel Logger
-class log
+class serial_logger
 {
 public:
-    static void v(const char *tag, const char *fmt, ...);
-    static void d(const char *tag, const char *fmt, ...);
-    static void w(const char *tag, const char *fmt, ...);
-    static void e(const char *tag, const char *fmt, ...);
+    void v(const char *tag, const char *fmt, ...);
+    void d(const char *tag, const char *fmt, ...);
+    void w(const char *tag, const char *fmt, ...);
+    void e(const char *tag, const char *fmt, ...);
 };
+
+extern serial_logger log;

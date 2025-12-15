@@ -1,4 +1,4 @@
-
+#include "kernel/shell/shell.h"
 #include <drivers/ps2/ps2.h>
 #include <drivers/vga/fonts.h>
 #include <stdlib/string.h>

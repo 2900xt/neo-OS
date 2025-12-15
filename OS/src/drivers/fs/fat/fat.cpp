@@ -65,7 +65,7 @@ namespace filesystem
         {
             if (cluster == 0x0FFFFFF7)
             {
-                log::e(fat_driver_tag, "(hd%d, gpt%d): Encountered bad sector while reading %s", partition->dev->disk_number, partition->partition, file_entry->dir_name);
+                log.e(fat_driver_tag, "(hd%d, gpt%d): Encountered bad sector while reading %s", partition->dev->disk_number, partition->partition, file_entry->dir_name);
                 kernel::free_pages(buffer);
                 return NULL;
             }
@@ -83,7 +83,7 @@ namespace filesystem
 
     static void print_file_info(fat_dir_entry *file)
     {
-        log::d(fat_driver_tag, "%s | sz: 0x%x | cluster: 0x%x | attrib: 0x%x", file->dir_name, file->file_size, file->first_cluster_l | ((uint32_t)file->first_cluster_h << 16), file->dir_attrib);
+        log.d(fat_driver_tag, "%s | sz: 0x%x | cluster: 0x%x | attrib: 0x%x", file->dir_name, file->file_size, file->first_cluster_l | ((uint32_t)file->first_cluster_h << 16), file->dir_attrib);
     }
 
     static fat_dir_entry *copy_dir_entry(fat_dir_entry *entry)
@@ -106,15 +106,15 @@ namespace filesystem
             {
                 if (current_entry->file_size > 1000000)
                 {
-                    log::d(fat_driver_tag, "%dK\t%s", current_entry->file_size / 1000000, current_entry->dir_name);
+                    log.d(fat_driver_tag, "%dK\t%s", current_entry->file_size / 1000000, current_entry->dir_name);
                 }
                 else if (current_entry->file_size > 1000)
                 {
-                    log::d(fat_driver_tag, "%dK\t%s", current_entry->file_size / 1000, current_entry->dir_name);
+                    log.d(fat_driver_tag, "%dK\t%s", current_entry->file_size / 1000, current_entry->dir_name);
                 }
                 else
                 {
-                    log::d(fat_driver_tag, "%dB\t%s", current_entry->file_size, current_entry->dir_name);
+                    log.d(fat_driver_tag, "%dB\t%s", current_entry->file_size, current_entry->dir_name);
                 }
             }
             current_entry++;
@@ -200,7 +200,7 @@ namespace filesystem
             current_dir = search_directory(partition, current_dir, fat_filename);
             if (current_dir == NULL)
             {
-                log::e(fat_driver_tag, "(hd%d, gpt%d): Directory not found: %s", partition->dev->disk_number, partition->partition, filepath->c_str());
+                log.e(fat_driver_tag, "(hd%d, gpt%d): Directory not found: %s", partition->dev->disk_number, partition->partition, filepath->c_str());
                 return NULL;
             }
         }
@@ -214,7 +214,7 @@ namespace filesystem
 
         if (bpb->magic_number != 0xAA55)
         {
-            log::e(fat_driver_tag, "(hd%d, gpt%d): Invalid BPB Magic Number: 0x%x", device->disk_number, part_num, bpb->magic_number);
+            log.e(fat_driver_tag, "(hd%d, gpt%d): Invalid BPB Magic Number: 0x%x", device->disk_number, part_num, bpb->magic_number);
             return NULL;
         }
 
@@ -225,11 +225,11 @@ namespace filesystem
             fsinfo->signature_2 != FSINFO_SIGNATURE_2 ||
             fsinfo->signature_1 != FSINFO_SIGNATURE_1)
         {
-            log::e(fat_driver_tag, "(hd%d, gpt%d): Invalid FSINFO Magic Number: (0x%x, 0x%x, 0x%x)", device->disk_number, part_num, fsinfo->signature_1, fsinfo->signature_2, fsinfo->signature_3);
+            log.e(fat_driver_tag, "(hd%d, gpt%d): Invalid FSINFO Magic Number: (0x%x, 0x%x, 0x%x)", device->disk_number, part_num, fsinfo->signature_1, fsinfo->signature_2, fsinfo->signature_3);
             return NULL;
         }
 
-        log::v(fat_driver_tag, "(hd%d, gpt%d): Available Clusters: 0x%x\tFirst Cluster: 0x%x", device->disk_number, part_num, fsinfo->free_cluster_count, fsinfo->cluster_search_start);
+        log.v(fat_driver_tag, "(hd%d, gpt%d): Available Clusters: 0x%x\tFirst Cluster: 0x%x", device->disk_number, part_num, fsinfo->free_cluster_count, fsinfo->cluster_search_start);
 
         filesystem::FAT_partition *partition = new filesystem::FAT_partition;
         partition->bpb = bpb;
@@ -250,7 +250,7 @@ namespace filesystem
 
         if (partition->fat == NULL)
         {
-            log::e(fat_driver_tag, "(hd%d, gpt%d): Error trying to read FAT", device->disk_number, part_num);
+            log.e(fat_driver_tag, "(hd%d, gpt%d): Error trying to read FAT", device->disk_number, part_num);
         }
 
         // Get the root directory information

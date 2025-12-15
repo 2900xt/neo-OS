@@ -1,7 +1,4 @@
 #include "kernel/mem/paging.h"
-#include "kernel/vfs/file.h"
-
-
 #include <types.h>
 #include <kernel/mem/mem.h>
 #include <drivers/vga/vga.h>
@@ -19,7 +16,7 @@ namespace vga
     {
         if (!stdlib::strcmp(img->signature, NIC_SIGNATURE, 7))
         {
-            log::e(nic_driver_tag, "Invalid NIC File Signature: %s", img->signature);
+            log.e(nic_driver_tag, "Invalid NIC File Signature: %s", img->signature);
             return;
         }
 

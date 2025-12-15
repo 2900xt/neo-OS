@@ -94,7 +94,7 @@ namespace ps2
         if (code < 59)
         {
             lastKey = (!shiftBit ? ScanCodeLookupTable[code] : ScanCodeLookupTableShift[code]);
-            // log::e("PS/2 Driver", "Key pressed: %c", lastKey);
+            // log.e("PS/2 Driver", "Key pressed: %c", lastKey);
             return true;
         }
 
@@ -206,7 +206,7 @@ namespace ps2
 
     testFailed:
 
-        log::e("PS/2 Driver", "Error initializing PS/2 port!\n");
+        log.e("PS/2 Driver", "Error initializing PS/2 port!\n");
         return;
     }
 

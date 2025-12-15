@@ -1,5 +1,6 @@
-
-
+#include <limine/limine.h>
+#include <kernel/io/log.h>
+#include <kernel/mem/mem.h>
 #include <stdlib/lock.h>
 
 namespace kernel
@@ -95,7 +96,7 @@ namespace kernel
 
         // Not enough memory
         stdlib::release_spinlock(&heap_lock);
-        log::e(heap_tag, "Requested size (0x%x) exceeds remaining heap size", size);
+        log.e(heap_tag, "Requested size (0x%x) exceeds remaining heap size", size);
         return NULL;
 
     blockFound:
@@ -202,7 +203,7 @@ namespace kernel
 
     ERROR:
 
-        log::e(heap_tag, "Invalid Heap Pointer: %x", ptr);
+        log.e(heap_tag, "Invalid Heap Pointer: %x", ptr);
         stdlib::release_spinlock(&heap_lock);
     }
 

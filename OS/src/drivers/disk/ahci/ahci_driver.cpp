@@ -96,7 +96,7 @@ namespace disk
             for (int i = 0; i < 4; i++)
             {
                 uint64_t part_size = (gpt_data->entries[currentEntry].ending_lba - gpt_data->entries[currentEntry].starting_lba) * 512;
-                log::v(
+                log.v(
                     "AHCI Disks",
                     "(hd%u, gpt%u) \tlabel: %l\tsize: %x", port_num, currentEntry, gpt_data->entries[currentEntry].parition_name, part_size);
                 currentEntry++;

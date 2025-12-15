@@ -1,4 +1,5 @@
 
+#include "kernel/mem/paging.h"
 #include <kernel/x64/intr/apic.h>
 
 

@@ -1,3 +1,4 @@
+#include "kernel/shell/shell.h"
 #include <drivers/fs/fat/fat.h>
 #include <drivers/vga/fonts.h>
 #include <drivers/vga/vga.h>
