@@ -19,6 +19,8 @@ namespace vga
         uint32_t width;
     } __attribute__((packed));
 
+    extern PSF_header_t *font_hdr;
+    
     void initialize_font();
     void putstring(const char *data, int x, int y);
     void putstring(const char *data);

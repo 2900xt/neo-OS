@@ -27,7 +27,7 @@ namespace kernel
         password = (char*)kernel::read(&login_file);
         kernel::close(&login_file);
 
-        login_prompt();
+        login_prompt(false);
     }
 
     extern char *input_buffer;
