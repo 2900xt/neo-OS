@@ -7,7 +7,8 @@
 #include <kernel/mem/paging.h>
 #include <kernel/mem/mem.h>
 #include <kernel/io/log.h>
-#include <stdlib/string.h>
+#include <stdlib/structures/string.h>
+
 
 
 namespace pci

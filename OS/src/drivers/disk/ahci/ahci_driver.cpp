@@ -9,7 +9,8 @@
 #include <kernel/mem/mem.h>
 #include <kernel/vfs/file.h>
 #include <kernel/io/log.h>
-#include <stdlib/string.h>
+#include <stdlib/structures/string.h>
+
 
 
 namespace disk

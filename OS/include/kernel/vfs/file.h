@@ -1,5 +1,6 @@
 #pragma once
-#include <stdlib/string.h>
+#include <stdlib/structures/string.h>
+
 #include "drivers/disk/disk_driver.h"
 #include <types.h>
 

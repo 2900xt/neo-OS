@@ -1,6 +1,7 @@
 
 #include <drivers/acpi/sdt.h>
-#include <stdlib/string.h>
+#include <stdlib/structures/string.h>
+
 
 
 namespace acpi

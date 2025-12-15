@@ -1,7 +1,7 @@
 #ifndef SCAN_H
 #define SCAN_H
 
-#include <stdlib/string.h>
+#include <stdlib/structures/string.h>
 
 namespace kernel
 {

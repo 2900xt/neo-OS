@@ -3,7 +3,8 @@
 #include <kernel/mem/mem.h>
 #include <drivers/vga/vga.h>
 #include <kernel/io/log.h>
-#include <stdlib/string.h>
+#include <stdlib/structures/string.h>
+
 
 namespace vga
 {

@@ -1,7 +1,8 @@
 #include "drivers/vga/vga.h"
 #include "kernel/mem/mem.h"
 #include <drivers/vga/fonts.h>
-#include <stdlib/string.h>
+#include <stdlib/structures/string.h>
+
 #include <kernel/vfs/file.h>
 
 namespace vga

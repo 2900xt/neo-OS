@@ -1,7 +1,8 @@
 #pragma once
 
 #include "stdlib/lock.h"
-#include "stdlib/string.h"
+#include <stdlib/structures/string.h>
+
 namespace kernel
 {
     struct stream

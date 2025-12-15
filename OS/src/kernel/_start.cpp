@@ -15,11 +15,14 @@
 #include <kernel/x64/intr/apic.h>
 #include <stdlib/timer.h>
 #include <kernel/io/scan.h>
+#include <kernel/io/log.h>
 
 
 namespace kernel
 {
     const char *kernel_tag = "Kernel";
+
+
 
     extern "C" void _start(void)
     {

@@ -5,7 +5,8 @@
 #include "kernel/mem/paging.h"
 #include "limine/limine.h"
 #include "stdlib/assert.h"
-#include "stdlib/string.h"
+#include <stdlib/structures/string.h>
+
 
 #include <types.h>
 #include <drivers/fs/fat/fat.h>
