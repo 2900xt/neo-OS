@@ -58,7 +58,6 @@ namespace vga
     extern uint32_t *g_framebuffer2;
 
     void drawMouse(uint64_t x, uint64_t y);
-    void setBackgroundColor(Color c);
     Color *getBackgroundColor(void);
     void framebuffer_init(void);
     void repaintScreen();

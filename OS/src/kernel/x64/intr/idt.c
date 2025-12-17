@@ -1,3 +1,6 @@
+#include "drivers/vga/fonts.h"
+#include "drivers/vga/vga.h"
+#include "kernel/shell/shell.h"
 #include "stdlib/timer.h"
 #include <types.h>
 
@@ -90,78 +93,155 @@ namespace kernel
     const char *intr_tag = "Interrupt";
     const char *except_tag = "Exception";
 
+    // Helper function to convert uint64_t to hex string
+    void uint64_to_hex(uint64_t value, char *buffer)
+    {
+        const char hex_chars[] = "0123456789ABCDEF";
+        buffer[0] = '0';
+        buffer[1] = 'x';
+        for (int i = 15; i >= 0; i--)
+        {
+            buffer[2 + (15 - i)] = hex_chars[(value >> (i * 4)) & 0xF];
+        }
+        buffer[18] = '\0';
+    }
+
+    extern int terminal_x , terminal_y;
+
+    void kernel_panic(kernel::interruptFrame *frame, const char *message, const char *fmt, uint64_t error, bool has_error)
+    {
+
+        
+        terminal_x = 0, terminal_y =0;
+        // Clear screen to blue (BSOD style)
+        vga::fillRect(0, 0, vga::Color(0, 0, 255), vga::fbuf_info->width, vga::fbuf_info->height);
+        vga::set_foreground(vga::Color(255, 255, 255));
+        vga::set_background(vga::Color(0, 0, 255));
+
+        display_fetch();
+        
+        // Print to screen using printf
+        printf("=== KERNEL PANIC ===\n\n");
+        printf("Exception: %s\n", message);
+        
+        if (has_error)
+        {
+            printf("Error Code: 0x%x\n\n", error);
+        }
+        else
+        {
+            printf("\n");
+        }
+        
+        printf("--- Registers ---\n");
+        printf("RIP:    0x%x\n", frame->IP);
+        printf("RSP:    0x%x\n", frame->SP);
+        printf("RBP:    0x%x\n", frame->BP);
+        printf("CS:     0x%x\n", frame->CS);
+        printf("RFLAGS: 0x%x\n\n", frame->flags);
+        
+        printf("--- Stack Trace ---\n");
+        uint64_t *stack = (uint64_t *)frame->SP;
+        for (int i = 0; i < 8; i++)
+        {
+            printf("  [%d] 0x%x: 0x%x\n", i, (uint64_t)&stack[i], stack[i]);
+        }
+        
+        vga::repaintScreen();
+        
+        // Log to serial
+        if (has_error)
+        {
+            log.e(except_tag, fmt, error, frame->IP, frame->CS, frame->flags, frame->SP, message);
+        }
+        else
+        {
+            log.e(except_tag, fmt, frame->IP, frame->CS, frame->flags, frame->SP, message);
+        }
+
+
+        
+        stop();
+    }
+
+    void kernel_panic(kernel::interruptFrame *frame, const char *message, const char *fmt)
+    {
+        kernel_panic(frame, message, fmt, 0, false);
+    }
+
+
     extern "C"
     {
         // Exceptions without error codes
 
         __attribute__((interrupt)) void exc0(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[0]);
+            kernel_panic(frame, exceptions[0], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc1(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[1]);
+            kernel_panic(frame, exceptions[1], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc2(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[2]);
+            kernel_panic(frame, exceptions[2], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc3(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[3]);
+            kernel_panic(frame, exceptions[3], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc4(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[4]);
+            kernel_panic(frame, exceptions[4], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc5(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[5]);
+            kernel_panic(frame, exceptions[5], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc6(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[6]);
+            kernel_panic(frame, exceptions[6], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc7(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[7]);
+            kernel_panic(frame, exceptions[7], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc9(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[9]);
+            kernel_panic(frame, exceptions[9], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc16(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[16]);
+            kernel_panic(frame, exceptions[16], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc18(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[18]);
+            kernel_panic(frame, exceptions[18], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc19(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[19]);
+            kernel_panic(frame, exceptions[19], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc20(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);
+            kernel_panic(frame, exceptions[20], exceptionNoError);
             stop();
         }
         __attribute__((interrupt)) void exc28(interruptFrame *frame)
         {
-            log.e(except_tag, exceptionNoError, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[28]);
+            kernel_panic(frame, exceptions[28], exceptionNoError);
             stop();
         }
 
@@ -169,52 +249,52 @@ namespace kernel
 
         __attribute__((interrupt)) void exc8(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[8]);
+            kernel_panic(frame, exceptions[8], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc10(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[10]);
+            kernel_panic(frame, exceptions[10], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc11(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[11]);
+            kernel_panic(frame, exceptions[11], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc12(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[12]);
+            kernel_panic(frame, exceptions[12], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc13(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[13]);
+            kernel_panic(frame, exceptions[13], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc14(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[14]);
+            kernel_panic(frame, exceptions[14], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc17(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[17]);
+            kernel_panic(frame, exceptions[17], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc21(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[21]);
+            kernel_panic(frame, exceptions[21], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc29(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[29]);
+            kernel_panic(frame, exceptions[29], exceptionError, error, true);
             stop();
         }
         __attribute__((interrupt)) void exc30(interruptFrame *frame, uint64_t error)
         {
-            log.e(except_tag, exceptionError, error, frame->IP, frame->CS, frame->flags, frame->SP, exceptions[20]);
+            kernel_panic(frame, exceptions[30], exceptionError, error, true);
             stop();
         }
 

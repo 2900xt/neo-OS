@@ -54,9 +54,10 @@ namespace kernel
         network::rtl8139_init();
         kernel::smp_init();
         
-        test_hashmap();
         kernel::terminal_init();
         kernel::login_init();
+
+        test_hashmap();
 
         while (true)
         {
