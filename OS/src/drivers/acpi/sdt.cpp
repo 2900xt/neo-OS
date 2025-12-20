@@ -7,7 +7,7 @@
 namespace acpi
 {
 
-    volatile struct limine::limine_rsdp_request rsdp_request = {LIMINE_RSDP_REQUEST, 0};
+    volatile struct limine::limine_rsdp_request rsdp_request = {LIMINE_RSDP_REQUEST, 0, NULL};
 
     static RSDPDescriptor *rsdp;
 

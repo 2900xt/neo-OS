@@ -3,10 +3,10 @@
 #include <stdlib/math.h>
 #include <types.h>
 #include <stdlib/structures/string.h>
+#include <stdarg.h>
 
 namespace stdlib
 {
-
     size_t strlen(const char *src)
     {
         size_t length = 0;
@@ -26,6 +26,57 @@ namespace stdlib
             src++;
         }
         return length;
+    }
+
+    void sprintf(char* buffer, const char* format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        char* buf_ptr = buffer;
+        const char* fmt_ptr = format;
+
+        while (*fmt_ptr)
+        {
+            if (*fmt_ptr == '%')
+            {
+                fmt_ptr++;
+                switch (*fmt_ptr)
+                {
+                    case 'd':
+                    {
+                        int val = va_arg(args, int);
+                        char* str = itoa(val, 10);
+                        while (*str)
+                        {
+                            *buf_ptr++ = *str++;
+                        }
+                        break;
+                    }
+                    case 's':
+                    {
+                        char* str = va_arg(args, char*);
+                        while (*str)
+                        {
+                            *buf_ptr++ = *str++;
+                        }
+                        break;
+                    }
+                    // Add more format specifiers as needed
+                    default:
+                        *buf_ptr++ = *fmt_ptr;
+                        break;
+                }
+            }
+            else
+            {
+                *buf_ptr++ = *fmt_ptr;
+            }
+            fmt_ptr++;
+        }
+
+        *buf_ptr = '\0';
+        va_end(args);
     }
 
     const char *g_HexChars = "0123456789ABCDEF";

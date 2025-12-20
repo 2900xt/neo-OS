@@ -11,7 +11,7 @@ namespace kernel
     constexpr uint64_t pollDelay = 10;
     bool outputEnabled = true;
 
-    char pollNextChar()
+    uint8_t pollNextChar()
     {
         if (!ps2::pollKeyInput())
         {
@@ -31,7 +31,7 @@ namespace kernel
         output->clear();
         while (true)
         {
-            char c = pollNextChar();
+            uint8_t c = pollNextChar();
 
             if (c == 0xFF)
                 continue;

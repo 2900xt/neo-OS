@@ -110,8 +110,6 @@ namespace kernel
 
     void kernel_panic(kernel::interruptFrame *frame, const char *message, const char *fmt, uint64_t error, bool has_error)
     {
-
-        
         terminal_x = 0, terminal_y =0;
         // Clear screen to blue (BSOD style)
         vga::fillRect(0, 0, vga::Color(0, 0, 255), vga::fbuf_info->width, vga::fbuf_info->height);
@@ -160,7 +158,7 @@ namespace kernel
         }
 
 
-        
+
         stop();
     }
 

@@ -6,7 +6,7 @@
 #include <limine/limine.h>
 #include <drivers/serial/serial.h>
 
-static volatile limine::limine_terminal_request terminal_request = {LIMINE_TERMINAL_REQUEST, 0};
+static volatile limine::limine_terminal_request terminal_request = {LIMINE_TERMINAL_REQUEST, 0, NULL, NULL};
 serial_logger log;
 
 namespace kernel

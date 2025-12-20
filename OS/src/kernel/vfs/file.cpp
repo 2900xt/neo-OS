@@ -1,4 +1,4 @@
-#include "kernel/smp/smp.h"
+#include "kernel/proc/smp.h"
 #include <drivers/fs/fat/fat.h>
 #include <kernel/io/log.h>
 
@@ -20,8 +20,7 @@ namespace kernel
 
         if (root_part == NULL)
         {
-            log.e(vfs_tag, "Error while mounting root!");
-            kernel::panic();
+            panic(stdlib::string("Failed to mount root filesystem!"));
         }
     }
 

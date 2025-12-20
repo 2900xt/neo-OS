@@ -47,6 +47,7 @@ namespace pci
             case 0x2930:
                 return "SMBus Controller";
             }
+            break;
         }
         case 0x10EC:
         {
@@ -57,6 +58,7 @@ namespace pci
                 case 0x8169:
                     return "RTL8169 Network Controller";
             }
+            break;
         }
         }
 

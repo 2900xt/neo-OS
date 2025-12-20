@@ -21,6 +21,17 @@ namespace stdlib
             this->_data = new T[max_capacity];
         }
 
+        list(size_t size, T default_value)
+        {
+            this->size = size;
+            this->max_capacity = size;
+            this->_data = new T[max_capacity];
+            for (size_t i = 0; i < size; i++)
+            {
+                _data[i] = default_value;
+            }
+        }
+
         list(list &other)
         {
             this->size = other.size;
@@ -86,31 +97,31 @@ namespace stdlib
 
         T &at(size_t ind)
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
             return _data[ind];
         }
 
         const T &at(size_t ind) const
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
             return _data[ind];
         }
 
         T &operator[](size_t ind)
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
             return _data[ind];
         }
 
         const T &operator[](size_t ind) const
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
             return _data[ind];
         }
 
         void set(size_t ind, T c)
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
             _data[ind] = c;
         }
 
@@ -147,7 +158,7 @@ namespace stdlib
 
         void erase(size_t ind)
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
 
             for (size_t i = ind; i < size - 1; i++)
             {

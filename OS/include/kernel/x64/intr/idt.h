@@ -17,6 +17,5 @@ struct interruptFrame
 
 void remapPIC(int offset1, int offset2);
 void fill_idt(void);
-void register_isr(uint8_t vector, __attribute__((interrupt)) void (*isr)(interruptFrame*));
-
+void register_isr(uint8_t vector, __attribute__((interrupt)) void (*isr)(interruptFrame*));    
 }

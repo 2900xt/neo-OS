@@ -2,6 +2,7 @@
 
 #include <limine/limine.h>
 #include <types.h>
+#include <stdlib/structures/string.h>
 
 namespace kernel
 {
@@ -12,6 +13,6 @@ namespace kernel
     void cpu_jump_to(uint8_t pid, void *addr);
     void smp_init(void);
 
-    void panic();
+    void panic(stdlib::string message);
 
 }

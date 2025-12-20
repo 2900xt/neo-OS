@@ -12,7 +12,7 @@
 namespace vga
 {
 
-    volatile limine::limine_framebuffer_request fbuf_req = {LIMINE_FRAMEBUFFER_REQUEST, 0};
+    volatile limine::limine_framebuffer_request fbuf_req = {LIMINE_FRAMEBUFFER_REQUEST, 0, NULL};
 
     uint32_t *g_framebuffer1;
     uint32_t *g_framebuffer2;

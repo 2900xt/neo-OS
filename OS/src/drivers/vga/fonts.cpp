@@ -7,7 +7,6 @@
 
 namespace vga
 {
-
     PSF_header_t *font_hdr;
     uint8_t *bitmap;
     const char *font_path = "/bin/font.psf";

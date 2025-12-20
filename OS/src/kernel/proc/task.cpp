@@ -6,11 +6,11 @@ namespace kernel
     process_t *task_list[100];
     stream *kernel_stdout, *kernel_stdin;
 
-    process_t *create_task(proc_main main)
+    process_t *create_task()
     {
         process_t *proc = new process_t;
 
-        uint64_t pid = 0;
+        int64_t pid = 0;
         while (task_list[pid++] != NULL)
             ;
         proc->pid = pid - 1;
@@ -24,8 +24,8 @@ namespace kernel
 
     void yeild(process_t *proc, int exit_code)
     {
-        uint64_t pid = 99;
-        for (; pid >= 0; pid++)
+        int64_t pid = 99;
+        for (; pid >= 0; pid--)
         {
             if (task_list[pid] != NULL && task_list[pid] != proc && !task_list[pid]->started)
             {

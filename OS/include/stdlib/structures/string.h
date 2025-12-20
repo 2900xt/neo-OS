@@ -15,7 +15,9 @@ namespace stdlib
     size_t strclen(const char *src, char term);
     char toUpper(char c);
     uint64_t atou(const char *str, uint64_t len);
-    char *dtoa(double number, int max_decimals);
+    char *dtoa(double number, int max_decimals);    
+    void sprintf(char* buffer, const char* format, ...);
+
 
     class string
     {
@@ -48,6 +50,21 @@ namespace stdlib
             this->data = new char[max_capacity];
 
             strcpy(data, other.data);
+        }
+
+        string& operator=(const string &other)
+        {
+            if (this != &other)
+            {
+                delete[] this->data;
+
+                this->size = other.size;
+                this->max_capacity = other.max_capacity;
+                this->data = new char[max_capacity];
+
+                strcpy(data, other.data);
+            }
+            return *this;
         }
 
         string()
@@ -104,19 +121,19 @@ namespace stdlib
 
         char &at(size_t ind)
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
             return data[ind];
         }
 
         char &operator[](size_t ind)
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
             return data[ind];
         }
 
         void set(size_t ind, char c)
         {
-            assert(ind < size && ind >= 0);
+            assert(ind < size);
             data[ind] = c;
         }
 

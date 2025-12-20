@@ -4,7 +4,7 @@
 #include <kernel/io/log.h>
 
 
-static volatile limine::limine_memmap_request memmap_request = {LIMINE_MEMMAP_REQUEST, 0};
+static volatile limine::limine_memmap_request memmap_request = {LIMINE_MEMMAP_REQUEST, 0, NULL};
 static limine::limine_memmap_entry **memory_entries;
 
 namespace kernel

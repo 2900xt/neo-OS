@@ -6,7 +6,7 @@
 namespace kernel
 {
 
-    static volatile limine::limine_hhdm_request hhdm_request = {LIMINE_HHDM_REQUEST, 0};
+    static volatile limine::limine_hhdm_request hhdm_request = {LIMINE_HHDM_REQUEST, 0, NULL};
     static const char *heap_tag = "Heap";
 
     enum class HEAP_MEMORY_TYPES : uint8_t

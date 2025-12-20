@@ -31,7 +31,7 @@ size_t hash_string(stdlib::string s)
 
 // HashMap template method implementations
 template <typename K, typename V>
-HashMap<K, V>::HashMap(hash_function_t hash_fn, int num_buckets) : buckets(num_buckets)
+HashMap<K, V>::HashMap(hash_function_t hash_fn, int num_buckets) : buckets(num_buckets, list<pair<K, V>>(0))
 {
     this->hash = hash_fn;
 }
@@ -102,8 +102,4 @@ V &HashMap<K, V>::operator[](K key) const
 {
     return get(key);
 }
-
-// Explicit template instantiations
-template class HashMap<stdlib::string, int>;
-
 }
