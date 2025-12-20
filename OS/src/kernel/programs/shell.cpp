@@ -116,7 +116,7 @@ namespace kernel
         stdlib::string abs_path = resolve_path(path);
         
         // Try to open the path to verify it exists and is a directory
-        File test_file;
+        file_handle test_file;
         int ret = kernel::open(&test_file, &abs_path);
         
         if (ret == -1)

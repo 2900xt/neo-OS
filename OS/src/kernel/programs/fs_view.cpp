@@ -46,7 +46,7 @@ namespace kernel
     void list_files(const char *path)
     {
         fat_dir_entry *current_entry;
-        File file;
+        file_handle file;
         stdlib::string file_path = path;
         int ret = kernel::open(&file, &file_path);
         if (ret == -1)
@@ -83,7 +83,7 @@ namespace kernel
 
     void print_file_contents(const char *path)
     {
-        File file;
+        file_handle file;
         stdlib::string file_path = path;
         int ret = kernel::open(&file, &file_path);
 

@@ -1,4 +1,4 @@
-#include <stdlib/structures/hashmap.h>
+#include <stdlib/structures/hash_map.h>
 #include <kernel/mem/mem.h>
 #include <stdlib/assert.h>
 
@@ -29,22 +29,22 @@ size_t hash_string(stdlib::string s)
     return sum;
 }
 
-// HashMap template method implementations
+// hash_map template method implementations
 template <typename K, typename V>
-HashMap<K, V>::HashMap(hash_function_t hash_fn, int num_buckets) : buckets(num_buckets, list<pair<K, V>>(0))
+hash_map<K, V>::hash_map(hash_function_t hash_fn, int num_buckets) : buckets(num_buckets, list<pair<K, V>>(0))
 {
     this->hash = hash_fn;
 }
 
 template <typename K, typename V>
-void HashMap<K, V>::put(K key, V val)
+void hash_map<K, V>::put(K key, V val)
 {
     size_t hash_key = hash(key) % buckets.length();
     buckets[hash_key].push_back(pair<K, V>(key, val));
 }
 
 template <typename K, typename V>
-V HashMap<K, V>::remove(K key)
+V hash_map<K, V>::remove(K key)
 {
     size_t hash_key = hash(key) % buckets.length();
     list<pair<K, V>> &bucket = buckets[hash_key];
@@ -59,12 +59,12 @@ V HashMap<K, V>::remove(K key)
     }
     // If key not found, handle accordingly
 
-    assert(false && "Key not found in HashMap");
+    assert(false && "Key not found in hash_map");
     return V();
 }
 
 template <typename K, typename V>
-V &HashMap<K, V>::get(K key) const
+V &hash_map<K, V>::get(K key) const
 {
     size_t hash_key = hash(key) % buckets.length();
     const list<pair<K, V>> &bucket = buckets[hash_key];
@@ -77,13 +77,13 @@ V &HashMap<K, V>::get(K key) const
     }
     // If key not found, handle accordingly
 
-    assert(false && "Key not found in HashMap");
+    assert(false && "Key not found in hash_map");
     static V default_value = V();
     return default_value;
 }
 
 template <typename K, typename V>
-bool HashMap<K, V>::contains(K key) const
+bool hash_map<K, V>::contains(K key) const
 {
     size_t hash_key = hash(key) % buckets.length();
     const list<pair<K, V>> &bucket = buckets[hash_key];
@@ -98,7 +98,7 @@ bool HashMap<K, V>::contains(K key) const
 }
 
 template <typename K, typename V>
-V &HashMap<K, V>::operator[](K key) const
+V &hash_map<K, V>::operator[](K key) const
 {
     return get(key);
 }

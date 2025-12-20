@@ -15,7 +15,7 @@ namespace kernel
 
         stream *stdin, *stdout;
 
-        kernel::File **files;
+        kernel::file_handle **files;
 
         bool started;
         bool exited;

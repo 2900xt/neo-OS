@@ -20,7 +20,7 @@ namespace kernel
     void login_init()
     {
         logged_in = false;
-        File login_file;
+        file_handle login_file;
         stdlib::string login_file_path = "/etc/login";
         kernel::open(&login_file, &login_file_path);
 

@@ -134,7 +134,7 @@ namespace filesystem
         int partition;
     };
 
-    FAT_partition *mount_part(disk::rw_disk_t *device, int partition, kernel::File *root);
+    FAT_partition *mount_part(disk::rw_disk_t *device, int partition, kernel::file_handle *root);
     fat_dir_entry *get_file_entry(FAT_partition *partition, stdlib::string *filepath);
     void *read_cluster_chain(filesystem::FAT_partition *partition, fat_dir_entry *file_entry);
     void print_directory_contents(filesystem::FAT_partition *partition, fat_dir_entry *directory);

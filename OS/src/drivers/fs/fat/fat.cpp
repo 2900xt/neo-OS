@@ -209,7 +209,7 @@ namespace filesystem
         return current_dir;
     }
 
-    filesystem::FAT_partition *mount_part(disk::rw_disk_t *device, int part_num, kernel::File *folder)
+    filesystem::FAT_partition *mount_part(disk::rw_disk_t *device, int part_num, kernel::file_handle *folder)
     {
         bios_param_block *bpb = read_bpb(device, part_num);
 

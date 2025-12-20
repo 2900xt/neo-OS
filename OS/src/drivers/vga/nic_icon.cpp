@@ -17,7 +17,7 @@ namespace vga
     {
         if (!stdlib::strcmp(img->signature, NIC_SIGNATURE, 7))
         {
-            log.e(nic_driver_tag, "Invalid NIC File Signature: %s", img->signature);
+            log.e(nic_driver_tag, "Invalid NIC file_handle Signature: %s", img->signature);
             return;
         }
 

@@ -17,7 +17,7 @@ namespace vga
     void initialize_font()
     {
         stdlib::string path{font_path};
-        kernel::File *font_file = new kernel::File;
+        kernel::file_handle *font_file = new kernel::file_handle;
         kernel::open(font_file, &path);
         uint8_t *buffer = (uint8_t *)kernel::read(font_file);
 

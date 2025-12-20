@@ -11,7 +11,7 @@
 namespace kernel
 {
 
-    struct File
+    struct file_handle
     {
         stdlib::string filename;
         size_t filesize;
@@ -22,9 +22,9 @@ namespace kernel
 
     void vfs_init();
     void mount_root(disk::rw_disk_t *disk, uint64_t partition);
-    File *get_root();
-    int open(File *file, stdlib::string *filepath);
-    void close(File *file);
-    void *read(File *file);
+    file_handle *get_root();
+    int open(file_handle *file, stdlib::string *filepath);
+    void close(file_handle *file);
+    void *read(file_handle *file);
 
 }

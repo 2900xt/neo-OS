@@ -5,7 +5,7 @@
 namespace kernel
 {
     static const char *vfs_tag = "VFS";
-    static File *root;
+    static file_handle *root;
     filesystem::FAT_partition *root_part;
 
     void mount_root(disk::rw_disk_t *disk, uint64_t partition)
@@ -15,7 +15,7 @@ namespace kernel
 
     void vfs_init()
     {
-        root = new File;
+        root = new file_handle;
         mount_root(disk::disks[0], 0);
 
         if (root_part == NULL)
@@ -24,12 +24,12 @@ namespace kernel
         }
     }
 
-    File *get_root()
+    file_handle *get_root()
     {
         return root;
     }
 
-    int open(File *file, stdlib::string *filepath)
+    int open(file_handle *file, stdlib::string *filepath)
     {
         int count;
 
@@ -45,7 +45,7 @@ namespace kernel
 
         if (entry == NULL)
         {
-            log.e(vfs_tag, "File not found: %s", filepath->c_str());
+            log.e(vfs_tag, "file_handle not found: %s", filepath->c_str());
             return -1;
         }
 
@@ -58,12 +58,12 @@ namespace kernel
         return 0;
     }
 
-    void *read(File *file)
+    void *read(file_handle *file)
     {
         return read_cluster_chain(root_part, (filesystem::fat_dir_entry *)file->fat_entry);
     }
 
-    void close(File *file)
+    void close(file_handle *file)
     {
         kfree(file->fat_entry);
     }
