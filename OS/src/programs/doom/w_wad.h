@@ -20,8 +20,6 @@
 #ifndef __W_WAD__
 #define __W_WAD__
 
-#include <stdio.h>
-
 #include "doomtype.h"
 #include "d_mode.h"
 

@@ -19,6 +19,9 @@ namespace stdlib
     void sprintf(char* buffer, const char* format, ...);
 
 
+    int strcasecmp(const char *s1, const char *s2);
+    int strncasecmp(const char *s1, const char *s2, size_t num);
+
     class string
     {
         char *data;

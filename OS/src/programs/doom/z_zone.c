@@ -362,39 +362,6 @@ Z_DumpHeap
 
 
 //
-// Z_FileDumpHeap
-//
-void Z_FileDumpHeap (FILE* f)
-{
-    memblock_t*	block;
-	
-    fprintf (f,"zone size: %i  location: %p\n",mainzone->size,mainzone);
-	
-    for (block = mainzone->blocklist.next ; ; block = block->next)
-    {
-	fprintf (f,"block:%p    size:%7i    user:%p    tag:%3i\n",
-		 block, block->size, block->user, block->tag);
-		
-	if (block->next == &mainzone->blocklist)
-	{
-	    // all blocks have been hit
-	    break;
-	}
-	
-	if ( (byte *)block + block->size != (byte *)block->next)
-	    fprintf (f,"ERROR: block size does not touch the next block\n");
-
-	if ( block->next->prev != block)
-	    fprintf (f,"ERROR: next block doesn't have proper back link\n");
-
-	if (block->tag == PU_FREE && block->next->tag == PU_FREE)
-	    fprintf (f,"ERROR: two consecutive free blocks\n");
-    }
-}
-
-
-
-//
 // Z_CheckHeap
 //
 void Z_CheckHeap (void)
