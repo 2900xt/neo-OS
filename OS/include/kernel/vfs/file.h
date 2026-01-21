@@ -16,6 +16,7 @@ namespace kernel
         stdlib::string filename;
         size_t filesize;
         void *fat_entry;
+        void *data;
         bool is_root;
         bool is_dir;
     };

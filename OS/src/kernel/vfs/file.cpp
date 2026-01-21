@@ -1,6 +1,7 @@
 #include "kernel/proc/smp.h"
 #include <drivers/fs/fat/fat.h>
 #include <kernel/io/log.h>
+#include <kernel/mem/paging.h>
 
 namespace kernel
 {
@@ -45,7 +46,7 @@ namespace kernel
 
         if (entry == NULL)
         {
-            log.e(vfs_tag, "file_handle not found: %s", filepath->c_str());
+            log.e(vfs_tag, "file not found: %s", filepath->c_str());
             return -1;
         }
 
@@ -60,11 +61,23 @@ namespace kernel
 
     void *read(file_handle *file)
     {
+        // Check if we've already read this file in
+        if(file->data)
+        {
+            return file->data;
+        }
+
         return read_cluster_chain(root_part, (filesystem::fat_dir_entry *)file->fat_entry);
     }
 
     void close(file_handle *file)
     {
+        // Free the data we've read
+        if (file->data)
+        {
+            free_pages(file->data);
+        }
+
         kfree(file->fat_entry);
     }
 

@@ -17,24 +17,8 @@
 //      Miscellaneous.
 //
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <errno.h>
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <io.h>
-#ifdef _MSC_VER
-#include <direct.h>
-#endif
-#else
-#include <sys/stat.h>
-#include <sys/types.h>
-#endif
+#include <stdlib/structures/string.h>
+#include <kernel/vfs/file.h>
 
 #include "doomtype.h"
 
@@ -54,78 +38,31 @@
 
 void M_MakeDirectory(char *path)
 {
-#ifdef _WIN32
-    mkdir(path);
-#else
-    mkdir(path, 0755);
-#endif
+    // Do nothing lmfao
 }
 
 // Check if a file exists
 
 boolean M_FileExists(char *filename)
 {
-    FILE *fstream;
-
-    fstream = fopen(filename, "r");
-
-    if (fstream != NULL)
+    kernel::file_handle fstream;
+    stdlib::string s(filename);
+    if (kernel::open(&fstream, &s) == -1)
     {
-        fclose(fstream);
-        return true;
+        return false;
     }
-    else
-    {
-        // If we can't open because the file is a directory, the 
-        // "file" exists at least!
 
-        return errno == EISDIR;
-    }
+    kernel::close(&fstream);
+    return true;
 }
 
 //
 // Determine the length of an open file.
 //
 
-long M_FileLength(FILE *handle)
+long M_FileLength(kernel::file_handle *handle)
 { 
-    long savedpos;
-    long length;
-
-    // save the current position in the file
-    savedpos = ftell(handle);
-    
-    // jump to the end and find the length
-    fseek(handle, 0, SEEK_END);
-    length = ftell(handle);
-
-    // go back to the old location
-    fseek(handle, savedpos, SEEK_SET);
-
-    return length;
-}
-
-//
-// M_WriteFile
-//
-
-boolean M_WriteFile(char *name, void *source, int length)
-{
-    FILE *handle;
-    int	count;
-	
-    handle = fopen(name, "wb");
-
-    if (handle == NULL)
-	return false;
-
-    count = fwrite(source, 1, length, handle);
-    fclose(handle);
-	
-    if (count < length)
-	return false;
-		
-    return true;
+    return handle->filesize;
 }
 
 
@@ -135,27 +72,29 @@ boolean M_WriteFile(char *name, void *source, int length)
 
 int M_ReadFile(char *name, byte **buffer)
 {
-    FILE *handle;
-    int	count, length;
+    kernel::file_handle handle;
+    int length;
     byte *buf;
+
+    stdlib::string path(name);
 	
-    handle = fopen(name, "rb");
-    if (handle == NULL)
-	I_Error ("Couldn't read file %s", name);
+    if (kernel::open(&handle, &path) == -1)
+    {
+	    I_Error ("Couldn't read file %s", name);
+    }
 
     // find the size of the file by seeking to the end and
     // reading the current position
 
-    length = M_FileLength(handle);
+    length = M_FileLength(&handle);
+
+    *buffer = (byte *)read(&handle);
+
+    if(*buffer == NULL)
+    {
+	    I_Error ("Couldn't read file %s", name);
+    }
     
-    buf = Z_Malloc (length, PU_STATIC, NULL);
-    count = fread(buf, 1, length, handle);
-    fclose (handle);
-	
-    if (count < length)
-	I_Error ("Couldn't read file %s", name);
-		
-    *buffer = buf;
     return length;
 }
 
