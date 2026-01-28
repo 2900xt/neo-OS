@@ -37,18 +37,9 @@ namespace kernel
         vga::initialize_font();
         network::rtl8139_init();
         kernel::smp_init();
-        
-        kernel::terminal_init();
-        kernel::login_init();
 
         while (true)
         {
-            kernel::sleep(5);
-            stdlib::call_timers();
-            kernel::pollNextChar();
-
-            if (vga::g_framebuffer_dirty)
-                vga::repaintScreen();
             asm volatile("hlt");
         }
 

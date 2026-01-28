@@ -1,3 +1,4 @@
+#include "drivers/disk/disk_driver.h"
 #include "kernel/proc/smp.h"
 #include <drivers/fs/fat/fat.h>
 #include <kernel/io/log.h>
@@ -17,7 +18,7 @@ namespace kernel
     void vfs_init()
     {
         root = new file_handle;
-        mount_root(disk::disks[0], 0);
+        mount_root(disk::get_disk(0), 0);
 
         if (root_part == NULL)
         {

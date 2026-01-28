@@ -4,22 +4,24 @@
 
 namespace disk
 {
-    enum class diskTypes
+    enum class disk_type_t
     {
-        AHCI
+        EMPTY   = 0,
+        AHCI    = 1,
     };
 
     struct rw_disk_t
     {
         void *driver;
-        diskTypes type;
+        disk_type_t type;
         int disk_number;
     };
-
-    extern rw_disk_t *disks[10];
-    extern uint8_t disk_count;
 
     void write(rw_disk_t *disk, uint32_t starting_lba, uint32_t sector_cnt, void *buffer);
     void read(rw_disk_t *disk, uint64_t starting_lba, uint32_t sector_cnt, void *buffer);
     filesystem::gpt_part_data *get_gpt(rw_disk_t *disk);
+
+
+    rw_disk_t *register_disk(disk_type_t type, int disk_id, void *driver);
+    rw_disk_t *get_disk(uint8_t drive_num);
 }

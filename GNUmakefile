@@ -15,7 +15,23 @@ run: all
 	 -device rtl8139,netdev=n0\
 	 2> /dev/null 
 
-.PHONY:
+
+.PHONY: run-serial
+run-serial: all
+	@echo Running Image No Video...
+	qemu-system-x86_64\
+	 -M q35\
+	 -m 2G\
+	 -bios ovmf-x64/OVMF.fd\
+	 -drive format=raw,file=neo-OS.hdd\
+	 -smp cpus=4\
+	 -serial stdio\
+	 -netdev user,id=n0\
+	 -device rtl8139,netdev=n0\
+	 -display none
+	 2> /dev/null 
+
+.PHONY: kernel
 kernel:
 	@clear
 	@echo Building Kernel...
@@ -56,6 +72,7 @@ neo-OS.hdd: kernel ./limine/limine-deploy
 	@sudo losetup -d `cat loopback_dev` 
 	@sudo rm -rf loopback_dev img_mount
 
+.PHONY: reset
 reset:
 	@echo Reseting Failed Build...
 	@sudo umount img_mount

@@ -1,10 +1,7 @@
-#include "drivers/disk/ahci/ahci.h"
 #include "drivers/fs/gpt.h"
 #include "drivers/fs/gpt.h"
 #include "kernel/mem/mem.h"
 #include "kernel/mem/paging.h"
-#include "limine/limine.h"
-#include "stdlib/assert.h"
 #include <stdlib/structures/string.h>
 
 
