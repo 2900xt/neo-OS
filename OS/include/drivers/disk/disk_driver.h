@@ -17,6 +17,11 @@ namespace disk
         int disk_number;
     };
 
+    /*
+    disk::read and disk::write REQUIRE memory buffers to be 4Kb alligned.
+
+    Also, `buffer` is a physical memory address, not a virtual, since DMA is used.
+    */
     void write(rw_disk_t *disk, uint32_t starting_lba, uint32_t sector_cnt, void *buffer);
     void read(rw_disk_t *disk, uint64_t starting_lba, uint32_t sector_cnt, void *buffer);
     filesystem::gpt_part_data *get_gpt(rw_disk_t *disk);

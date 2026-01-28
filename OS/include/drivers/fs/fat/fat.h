@@ -1,6 +1,7 @@
 #pragma once
 #include "drivers/disk/ahci/ahci.h"
 #include "drivers/disk/disk_driver.h"
+#include "drivers/fs/gpt.h"
 #include <kernel/vfs/file.h>
 #include <types.h>
 
@@ -114,7 +115,6 @@ namespace filesystem
 
     struct FAT_partition
     {
-
         // Read this to get access to root dir
         fat_dir_entry root_dir;
 
@@ -122,6 +122,7 @@ namespace filesystem
         bios_param_block *bpb;
         fsinfo_fat32 *fsinfo;
         uint32_t *fat;
+        uint8_t fat_dirty;
 
         uint32_t first_sector;
         uint32_t total_sectors;
@@ -130,6 +131,7 @@ namespace filesystem
         uint32_t first_fat_sector;
         uint32_t total_clusters;
 
+        gpt_part_data *gpt;
         disk::rw_disk_t *dev;
         int partition;
     };
@@ -138,4 +140,9 @@ namespace filesystem
     fat_dir_entry *get_file_entry(FAT_partition *partition, stdlib::string *filepath);
     void *read_cluster_chain(filesystem::FAT_partition *partition, fat_dir_entry *file_entry);
     void print_directory_contents(filesystem::FAT_partition *partition, fat_dir_entry *directory);
+    bios_param_block *read_bpb(disk::rw_disk_t *device, int partition);
+    void read_fsinfo(FAT_partition *partition);
+    void write_fsinfo(FAT_partition *partition);
+    void read_fat(FAT_partition *partition);
+    void write_fat(FAT_partition *partition);
 }
