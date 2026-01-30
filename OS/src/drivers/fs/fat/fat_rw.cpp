@@ -101,4 +101,10 @@ uint32_t get_file_size(FAT_partition* partition, uint32_t starting_cluster) {
 
     return file_size;
 }
+
+
+/* 
+create_file:
+    This function takes in a
+*/
 }  // namespace filesystem

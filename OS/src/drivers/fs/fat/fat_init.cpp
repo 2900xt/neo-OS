@@ -27,9 +27,6 @@ bios_param_block* read_bpb(disk::rw_disk_t* device, int partition) {
     return data;
 }
 
-void write_fsinfo(FAT_partition* partition) 
-{
-}
 
 void read_fat(FAT_partition* partition) {
     uint64_t fat_page_count = (partition->fat_size * partition->bpb->bytes_per_sector) / 0x1000 + 1;
