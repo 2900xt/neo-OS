@@ -239,7 +239,7 @@ namespace stdlib
 
     char toUpper(char c)
     {
-        if (c >= 97)
+        if (c >= 97 && c <= 122)
         {
             return c - 32;
         }
@@ -264,6 +264,29 @@ namespace stdlib
         if (len != strlen(b))
             return false;
         return strcmp(a, b, len);
+    }
+
+    int strcasecmp(const char *s1, const char *s2)
+    {
+        while(*s1 && *s2 && (toUpper(*s1) == toUpper(*s2)))
+        {
+            s1++, s2++;
+        }
+
+        return toUpper(*(uint8_t *)s1) - toUpper(*(uint8_t *)s2);
+    }
+
+    int strncasecmp(const char *s1, const char *s2, size_t num)
+    {
+        while(*s1 && *s2 && num && (toUpper(*s1) == toUpper(*s2)))
+        {
+            s1++, s2++;
+            num--;
+        }
+
+        if(num == 0) return 0;
+
+        return toUpper(*(uint8_t *)s1) - toUpper(*(uint8_t *)s2);
     }
 
     const char *strcat(char *dest, const char *src)

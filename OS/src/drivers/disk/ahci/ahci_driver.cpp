@@ -28,11 +28,7 @@ namespace disk
         this->port = &hba_memory->ports[port_num];
 
         // Add the block device
-
-        this->interface.disk_number = port_num;
-        this->interface.driver = this;
-        this->interface.type = diskTypes::AHCI;
-        disk::disks[disk::disk_count++] = this->get_interface();
+        register_disk(disk_type_t::AHCI, port_num, this);
 
         // Stop the port from doing any commands
 
