@@ -43,6 +43,59 @@ void* read_cluster_chain(filesystem::FAT_partition* partition, fat_dir_entry* fi
     return buffer;
 }
 
+/*
+Returns cluster_num on success
+Returns -1 on not enough clusters
+*/
+int write_cluster_chain(filesystem::FAT_partition* partition, fat_dir_entry* file_entry, void* _buffer, uint64_t size)
+{
+    uint64_t cluster_count = (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector + size - 1) / (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector);
+    if(cluster_count > partition->fsinfo->free_cluster_count)
+    {
+        log.e("A", "%x", cluster_count);
+        return -1;
+    }
+
+    partition->fsinfo->free_cluster_count -= cluster_count;
+
+    //find a free cluster
+    uint64_t cur = partition->fsinfo->cluster_search_start;
+    uint64_t prev = 0xFFFFFFFF, starting = 0xFFFFFFFF;
+    uint8_t* buffer = (uint8_t*)_buffer;
+
+    if(cur == 0xFFFFFFFF)
+    {
+        cur = 2;
+    }
+
+    while(cur < partition->total_clusters)
+    {
+        if(partition->fat[cur] == 0x0)
+        {
+            // we can use this
+            if(prev != 0xFFFFFFFF)
+            {
+                partition->fat[prev] = cur;
+            }
+            else 
+            {
+                starting = cur;
+            }
+            
+
+            uint32_t lba = partition->first_data_sector + (cur - 2) * partition->bpb->sectors_per_cluster;
+            disk::write(partition->dev, lba, partition->bpb->sectors_per_cluster, buffer);
+            buffer += partition->bpb->bytes_per_sector * partition->bpb->sectors_per_cluster;
+
+            prev = cur;
+        }
+        cur++;
+    }
+
+    partition->fsinfo->cluster_search_start = cur;
+    return starting;
+}
+
 // Don't forget to kfree the dir entry
 // Reads a directory into memory and searches for the requested entry
 static fat_dir_entry* search_directory(FAT_partition* partition, fat_dir_entry* directory,
@@ -105,6 +158,9 @@ uint32_t get_file_size(FAT_partition* partition, uint32_t starting_cluster) {
 
 /* 
 create_file:
-    This function takes in a
+    This function takes in a filepath
 */
+
+
+
 }  // namespace filesystem

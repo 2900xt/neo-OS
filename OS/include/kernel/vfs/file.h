@@ -4,6 +4,8 @@
 #include "drivers/disk/disk_driver.h"
 #include <types.h>
 
+namespace filesystem { struct FAT_partition; }
+
 #define FILE_READABLE (1 << 0)
 #define FILE_WRITABLE (1 << 1)
 #define FILE_EXECUTABLE (1 << 2)
@@ -24,6 +26,7 @@ namespace kernel
     void vfs_init();
     void mount_root(disk::rw_disk_t *disk, uint64_t partition);
     file_handle *get_root();
+    filesystem::FAT_partition *get_root_partition();
     int open(file_handle *file, stdlib::string *filepath);
     void close(file_handle *file);
     void *read(file_handle *file);

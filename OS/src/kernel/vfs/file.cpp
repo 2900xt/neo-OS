@@ -31,6 +31,11 @@ namespace kernel
         return root;
     }
 
+    filesystem::FAT_partition *get_root_partition()
+    {
+        return root_part;
+    }
+
     int open(file_handle *file, stdlib::string *filepath)
     {
         int count;
