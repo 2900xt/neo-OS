@@ -19,6 +19,9 @@
 #include <stdlib/assert.h>
 #include <drivers/fs/fat/fat.h>
 
+#include <tests/drivers.h>
+#include "drivers/disk/disk_driver.h"
+
 namespace kernel
 {
     const char *kernel_tag = "Kernel";
@@ -38,6 +41,8 @@ namespace kernel
         vga::initialize_font();
         network::rtl8139_init();
         kernel::smp_init();
+
+        //testDiskDriver(disk::get_disk(0));
 
         while (true)
         {
