@@ -47,7 +47,7 @@ void* read_cluster_chain(filesystem::FAT_partition* partition, fat_dir_entry* fi
 Returns cluster_num on success
 Returns -1 on not enough clusters
 */
-int write_cluster_chain(filesystem::FAT_partition* partition, fat_dir_entry* file_entry, void* _buffer, uint64_t size)
+int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint64_t size)
 {
     uint64_t cluster_count = (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector + size - 1) / (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector);
     if(cluster_count > partition->fsinfo->free_cluster_count)
@@ -68,7 +68,9 @@ int write_cluster_chain(filesystem::FAT_partition* partition, fat_dir_entry* fil
         cur = 2;
     }
 
-    while(cur < partition->total_clusters)
+    int num = 0;
+
+    while(cur < partition->total_clusters && num < cluster_count)
     {
         if(partition->fat[cur] == 0x0)
         {
@@ -86,13 +88,15 @@ int write_cluster_chain(filesystem::FAT_partition* partition, fat_dir_entry* fil
             uint32_t lba = partition->first_data_sector + (cur - 2) * partition->bpb->sectors_per_cluster;
             disk::write(partition->dev, lba, partition->bpb->sectors_per_cluster, buffer);
             buffer += partition->bpb->bytes_per_sector * partition->bpb->sectors_per_cluster;
-
+            num++;
             prev = cur;
         }
         cur++;
     }
 
     partition->fsinfo->cluster_search_start = cur;
+
+    log.v(fat_driver_tag, "Wrote 0x%x clusters starting from 0x%x", num, starting);
     return starting;
 }
 
