@@ -9,47 +9,57 @@ namespace filesystem {
 
 static const char* fat_driver_tag = "FAT Driver";
 
-uint32_t get_next_cluster(filesystem::FAT_partition* partition, int current_cluster) {
+uint32_t get_next_cluster(filesystem::FAT_partition* partition, int current_cluster) 
+{
     return partition->fat[current_cluster] & ~0xF0000000;
 }
 
 // Make sure to free the allocated pages after using them
-void* read_cluster_chain(filesystem::FAT_partition* partition, fat_dir_entry* file_entry) {
-    int page_count = file_entry->file_size / 0x1000 + 1;
-    void* buffer = kernel::allocate_pages(page_count);
-    uint8_t* ptr = (uint8_t*)buffer;
+int read_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint32_t start_cluster) 
+{
+    uint32_t cluster = start_cluster;
+    uint8_t* buffer = (uint8_t*)_buffer;
 
-    kernel::map_pages((uint64_t)buffer, (uint64_t)buffer, page_count);
-
-    uint32_t cluster =
-        ((uint32_t)file_entry->first_cluster_h << 16) | (file_entry->first_cluster_l);
     do {
         if (cluster == 0x0FFFFFF7) {
-            log.e(fat_driver_tag, "(hd%d, gpt%d): Encountered bad sector while reading %s",
-                  partition->dev->disk_number, partition->partition, file_entry->dir_name);
-            kernel::free_pages(buffer);
-            return NULL;
+            log.e(fat_driver_tag, "(hd%d, gpt%d): Encountered bad sector while reading cluster 0x%x",
+                  partition->dev->disk_number, partition->partition, cluster);
+            return -1;
         }
 
         uint32_t lba =
             partition->first_data_sector + (cluster - 2) * partition->bpb->sectors_per_cluster;
-        disk::read(partition->dev, lba, partition->bpb->sectors_per_cluster, ptr);
+        disk::read(partition->dev, lba, partition->bpb->sectors_per_cluster, buffer);
 
-        ptr += partition->bpb->bytes_per_sector * partition->bpb->sectors_per_cluster;
+        buffer += partition->bpb->bytes_per_sector * partition->bpb->sectors_per_cluster;
         cluster = get_next_cluster(partition, cluster);
 
     } while (cluster < 0x0FFFFFF8);
 
-    return buffer;
+    return 0;
 }
 
+
+void* read_file_entry(filesystem::FAT_partition* partition, fat_dir_entry* file_entry)
+{
+    int page_count = file_entry->file_size / 0x1000 + 1;
+    void* buffer = kernel::allocate_pages(page_count);
+
+    kernel::map_pages((uint64_t)buffer, (uint64_t)buffer, page_count);
+    uint32_t cluster = ((uint32_t)file_entry->first_cluster_h << 16) | (file_entry->first_cluster_l);
+
+    read_cluster_chain(partition, buffer, cluster);
+    return buffer;
+}
 /*
 Returns cluster_num on success
 Returns -1 on not enough clusters
 */
 int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint64_t size)
 {
-    uint64_t cluster_count = (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector + size - 1) / (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector);
+    uint64_t cluster_count = 
+        (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector + size - 1) / 
+        (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector);
     if(cluster_count > partition->fsinfo->free_cluster_count)
     {
         log.e("A", "%x", cluster_count);
@@ -104,7 +114,7 @@ int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uin
 // Reads a directory into memory and searches for the requested entry
 static fat_dir_entry* search_directory(FAT_partition* partition, fat_dir_entry* directory,
                                        const char* filename) {
-    void* buffer = read_cluster_chain(partition, directory);
+    void* buffer = read_file_entry(partition, directory);
     fat_dir_entry* current_entry = (fat_dir_entry*)buffer;
 
     while (true) {

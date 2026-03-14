@@ -42,8 +42,8 @@ namespace kernel
         network::rtl8139_init();
         kernel::smp_init();
 
-        //testDiskDriver(disk::get_disk(0));
-
+        testFATDriver(get_root_partition());
+        
         while (true)
         {
             asm volatile("hlt");

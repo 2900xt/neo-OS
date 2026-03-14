@@ -73,7 +73,7 @@ namespace kernel
             return file->data;
         }
 
-        return read_cluster_chain(root_part, (filesystem::fat_dir_entry *)file->fat_entry);
+        return filesystem::read_file_entry(root_part, (filesystem::fat_dir_entry *)file->fat_entry);
     }
 
     void close(file_handle *file)
