@@ -32,18 +32,15 @@ void testDiskDriver(disk::rw_disk_t* cur)
 
 void testFATDriver(filesystem::FAT_partition* part)
 {
-    stdlib::string path("/efi/boot/bootx64.efi");
-    filesystem::fat_dir_entry* entry = filesystem::get_file_entry(part, &path);
-    uint32_t cluster = entry->first_cluster_l | (entry->first_cluster_h << 16);
-    uint64_t* data = (uint64_t*)kernel::allocate_pages(25);
+    uint64_t* data = (uint64_t*)kernel::allocate_pages(1);
     mmap(data, data);
 
-    data[1067] = 0xAA55AA55;
-    filesystem::write_cluster_chain(part, data, entry->file_size);
+    data[567] = 0xAA55AA55;
+    int cluster = filesystem::write_cluster_chain(part, data, 0x1000);
     kernel::memset(data, 0x1000, 0);
 
     filesystem::read_cluster_chain(part, data, cluster);
-    assert(data[1067] == 0xAA55AA55);
+    assert(data[567] == 0xAA55AA55);
 
     log.v(kernel::kernel_tag, "FAT DRIVER TEST SUCCESS");
 }

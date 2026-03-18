@@ -104,6 +104,11 @@ int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uin
         cur++;
     }
 
+    if(prev != 0xFFFFFFFF)
+    {
+        partition->fat[prev] = 0x0FFFFFF8;
+    }
+
     partition->fsinfo->cluster_search_start = cur;
 
     log.v(fat_driver_tag, "Wrote 0x%x clusters starting from 0x%x", num, starting);
