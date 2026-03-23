@@ -4,7 +4,6 @@
 #include "kernel/mem/paging.h"
 #include "stdlib/assert.h"
 #include "kernel/io/log.h"
-#include "stdlib/structures/string.h"
 
 void testDiskDriver(disk::rw_disk_t* cur)
 {
@@ -41,6 +40,9 @@ void testFATDriver(filesystem::FAT_partition* part)
 
     filesystem::read_cluster_chain(part, data, cluster);
     assert(data[567] == 0xAA55AA55);
+
+    data[67] = 0x6767;
+    filesystem::write_cluster_chain(part, data, 0x1000, cluster);
 
     log.v(kernel::kernel_tag, "FAT DRIVER TEST SUCCESS");
 }

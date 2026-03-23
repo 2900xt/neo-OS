@@ -3,6 +3,7 @@
 #include <kernel/io/log.h>
 #include <kernel/vfs/file.h>
 #include <stdlib/structures/string.h>
+#include <stdlib/structures/list.h>
 #include "kernel/mem/paging.h"
 
 namespace filesystem {
@@ -51,69 +52,95 @@ void* read_file_entry(filesystem::FAT_partition* partition, fat_dir_entry* file_
     read_cluster_chain(partition, buffer, cluster);
     return buffer;
 }
-/*
-Returns cluster_num on success
-Returns -1 on not enough clusters
-*/
-int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint64_t size)
+
+static int find_free_cluster(filesystem::FAT_partition* partition)
 {
-    uint64_t cluster_count = 
-        (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector + size - 1) / 
-        (partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector);
-    if(cluster_count > partition->fsinfo->free_cluster_count)
-    {
-        log.e("A", "%x", cluster_count);
-        return -1;
-    }
-
-    partition->fsinfo->free_cluster_count -= cluster_count;
-
     //find a free cluster
     uint64_t cur = partition->fsinfo->cluster_search_start;
-    uint64_t prev = 0xFFFFFFFF, starting = 0xFFFFFFFF;
-    uint8_t* buffer = (uint8_t*)_buffer;
 
     if(cur == 0xFFFFFFFF)
     {
         cur = 2;
     }
 
-    int num = 0;
-
-    while(cur < partition->total_clusters && num < cluster_count)
+    while(cur < partition->total_clusters)
     {
-        if(partition->fat[cur] == 0x0)
-        {
-            // we can use this
-            if(prev != 0xFFFFFFFF)
-            {
-                partition->fat[prev] = cur;
-            }
-            else 
-            {
-                starting = cur;
-            }
-            
-
-            uint32_t lba = partition->first_data_sector + (cur - 2) * partition->bpb->sectors_per_cluster;
-            disk::write(partition->dev, lba, partition->bpb->sectors_per_cluster, buffer);
-            buffer += partition->bpb->bytes_per_sector * partition->bpb->sectors_per_cluster;
-            num++;
-            prev = cur;
-        }
+        if(partition->fat[cur] == 0x0) break;
         cur++;
     }
 
-    if(prev != 0xFFFFFFFF)
+    partition->fsinfo->cluster_search_start = cur;
+    return cur;
+}
+
+/*
+Follows, writes, (and/or) appends a cluster chain of X bytes until the end 
+*/
+
+int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint64_t size_bytes, uint64_t start_cluster)
+{
+    uint64_t cluster_size = partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector;
+    uint64_t cluster_count = (size_bytes + cluster_size - 1) / cluster_size;
+
+    if(cluster_count > partition->fsinfo->free_cluster_count)
     {
-        partition->fat[prev] = 0x0FFFFFF8;
+        return -1;
     }
 
-    partition->fsinfo->cluster_search_start = cur;
+    partition->fsinfo->free_cluster_count -= cluster_count;
 
-    log.v(fat_driver_tag, "Wrote 0x%x clusters starting from 0x%x", num, starting);
-    return starting;
+    //find a free cluster
+    uint64_t first = start_cluster != -1 ? start_cluster : find_free_cluster(partition);
+    uint32_t cur = first, prev = 0;
+    int num = 0;
+
+    uint8_t *buffer = (uint8_t*)_buffer;
+
+    while(num < cluster_count)
+    {
+        if(prev)
+        {
+            partition->fat[prev] = cur;
+        }
+
+        uint32_t lba = partition->first_data_sector + (cur - 2) * partition->bpb->sectors_per_cluster;
+        disk::write(partition->dev, lba, partition->bpb->sectors_per_cluster, buffer);
+        buffer += partition->bpb->bytes_per_sector * partition->bpb->sectors_per_cluster;
+
+        prev = cur;
+        num++;
+
+        uint32_t next = partition->fat[cur];
+        partition->fat[cur] = 0xFFFFFFFF;
+        if(next == 0x00) 
+        {
+            cur = find_free_cluster(partition);
+            if(cur == partition->total_clusters)
+            {
+                log.e(fat_driver_tag, "ERROR: FAT IS FULL");
+                return -2;
+            }
+        }
+        else 
+        {
+            cur = next;
+        }
+    }
+
+
+    write_fat(partition);
+
+    log.v(fat_driver_tag, "Wrote 0x%x clusters starting from 0x%x", num, first);
+    return first;
 }
+
+
+int write_file_entry(filesystem::FAT_partition* partition, fat_dir_entry* file_entry, void* buffer)
+{
+    uint32_t cluster = ((uint32_t)file_entry->first_cluster_h << 16) | (file_entry->first_cluster_l);
+    return write_cluster_chain(partition, buffer, file_entry->file_size, cluster);
+}
+
 
 // Don't forget to kfree the dir entry
 // Reads a directory into memory and searches for the requested entry
