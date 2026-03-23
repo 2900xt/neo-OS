@@ -10,5 +10,4 @@
 
 # current todo
  - [] FAT driver append files to directory
- - [] FAT extended filename support
  - [] Rewrite shell

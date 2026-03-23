@@ -45,7 +45,8 @@ void print_file_info(fat_dir_entry* file) {
           file->dir_attrib);
 }
 
-fat_dir_entry* copy_dir_entry(fat_dir_entry* entry) {
+fat_dir_entry* copy_dir_entry(fat_dir_entry* entry) 
+{
     fat_dir_entry* copy = new fat_dir_entry;
     kernel::memcpy(copy, entry, sizeof(fat_dir_entry));
     return copy;

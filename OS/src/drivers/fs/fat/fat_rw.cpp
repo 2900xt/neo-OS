@@ -4,7 +4,9 @@
 #include <kernel/vfs/file.h>
 #include <stdlib/structures/string.h>
 #include <stdlib/structures/list.h>
+#include "kernel/mem/mem.h"
 #include "kernel/mem/paging.h"
+#include "stdlib/math.h"
 
 namespace filesystem {
 
@@ -21,7 +23,7 @@ int read_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint
     uint32_t cluster = start_cluster;
     uint8_t* buffer = (uint8_t*)_buffer;
 
-    do {
+    while (cluster < 0x0FFFFFF8) {
         if (cluster == 0x0FFFFFF7) {
             log.e(fat_driver_tag, "(hd%d, gpt%d): Encountered bad sector while reading cluster 0x%x",
                   partition->dev->disk_number, partition->partition, cluster);
@@ -35,7 +37,7 @@ int read_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint
         buffer += partition->bpb->bytes_per_sector * partition->bpb->sectors_per_cluster;
         cluster = get_next_cluster(partition, cluster);
 
-    } while (cluster < 0x0FFFFFF8);
+    }
 
     return 0;
 }
@@ -127,7 +129,6 @@ int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uin
         }
     }
 
-
     write_fat(partition);
 
     log.v(fat_driver_tag, "Wrote 0x%x clusters starting from 0x%x", num, first);
@@ -142,14 +143,13 @@ int write_file_entry(filesystem::FAT_partition* partition, fat_dir_entry* file_e
 }
 
 
-// Don't forget to kfree the dir entry
-// Reads a directory into memory and searches for the requested entry
-static fat_dir_entry* search_directory(FAT_partition* partition, fat_dir_entry* directory,
-                                       const char* filename) {
-    void* buffer = read_file_entry(partition, directory);
-    fat_dir_entry* current_entry = (fat_dir_entry*)buffer;
+// searches for the requested entry in an ALREADY read directory
+static fat_dir_entry* search_directory(fat_dir_entry* directory_data,
+                                       const char* filename, uint32_t directory_size) {
+    fat_dir_entry* current_entry = directory_data;
 
-    while (true) {
+    while ((uint8_t*)current_entry < (uint8_t*)directory_data + directory_size) 
+    {
         if (current_entry->dir_name[0] == 0x00) break;
 
         if ((uint8_t)current_entry->dir_name[0] == 0xE5 || current_entry->dir_attrib == LONG_NAME) {
@@ -158,15 +158,12 @@ static fat_dir_entry* search_directory(FAT_partition* partition, fat_dir_entry* 
         }
 
         if (stdlib::strcmp(filename, current_entry->dir_name, 11)) {
-            fat_dir_entry* copy_of_entry = copy_dir_entry(current_entry);
-            kernel::free_pages(buffer);
-            return copy_of_entry;
+            return current_entry;
         }
 
         current_entry++;
     }
 
-    kernel::free_pages(buffer);
     return NULL;
 }
 
@@ -180,7 +177,12 @@ fat_dir_entry* get_file_entry(FAT_partition* partition, stdlib::string* filepath
 
     for (int i = 1; i < dir_levels; i++) {
         const char* fat_filename = filename_to_fat(*path[i]);
-        current_dir = search_directory(partition, current_dir, fat_filename);
+
+        //Read the next directory
+        fat_dir_entry* cur_dir_data = (fat_dir_entry*)read_file_entry(partition, current_dir);
+
+        current_dir = search_directory(cur_dir_data, fat_filename, current_dir->file_size);
+        kernel::free_pages(cur_dir_data);
         if (current_dir == NULL) {
             log.e(fat_driver_tag, "(hd%d, gpt%d): Directory not found: %s",
                   partition->dev->disk_number, partition->partition, filepath->c_str());
@@ -193,20 +195,161 @@ fat_dir_entry* get_file_entry(FAT_partition* partition, stdlib::string* filepath
 
 uint32_t get_file_size(FAT_partition* partition, uint32_t starting_cluster) {
     uint32_t file_size = 0, cluster = starting_cluster;
-    do {
+    while (cluster < 0x0FFFFFF8) {
         file_size += partition->bpb->sectors_per_cluster * partition->bpb->bytes_per_sector;
         cluster = get_next_cluster(partition, cluster);
-    } while (cluster < 0x0FFFFFF8);
+    } 
 
     return file_size;
 }
 
+// Updates the entry at `filepath` to `entry`
+void update_file_entry(FAT_partition* partition, stdlib::string* filepath, fat_dir_entry* entry)
+{
+    assert(filepath->at(0) == '/');
+
+    int dir_levels;
+    stdlib::string** path = filepath->split('/', &dir_levels);
+
+    stdlib::string file = *path[dir_levels-1];
+    stdlib::string dir = stdlib::string("/");
+    dir.resize(filepath->length());
+    for(int i = 0; i < dir_levels-1; i++)
+    {
+        dir.push_back('/');
+        dir.append(*path[i]);
+    }
+
+    //find the directory that leads into the file
+    fat_dir_entry* parent_entry = get_file_entry(partition, &dir);
+    fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_entry);
+    fat_dir_entry* cur = search_directory(parent_dir, filename_to_fat(file),  parent_entry->file_size);
+    kernel::memcpy(cur, entry, sizeof(fat_dir_entry));
+
+    write_file_entry(partition, parent_entry, parent_dir);
+}
 
 /* 
 create_file:
     This function takes in a filepath
 */
+int create_file(FAT_partition* partition, stdlib::string* filepath, fat_dir_entry* dir_entry, void* buffer = NULL)
+{
+    assert(filepath->at(0) == '/');
 
+    int dir_levels;
+    stdlib::string** path = filepath->split('/', &dir_levels);
 
+    stdlib::string file = *path[dir_levels-1];
+    stdlib::string dir = stdlib::string("/");
+    dir.resize(filepath->length());
+    for(int i = 0; i < dir_levels-1; i++)
+    {
+        dir.push_back('/');
+        dir.append(*path[i]);
+    }
+
+    const char* fat_filename = filename_to_fat(file);
+    assert(stdlib::strcmp(fat_filename, dir_entry->dir_name, 11));
+
+    //find the directory that leads into the file
+    fat_dir_entry* parent_entry = get_file_entry(partition, &dir);
+    fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_entry);
+    fat_dir_entry* current_entry = parent_dir;
+
+    //double-check for duplicate filenames
+    search_directory(parent_dir, fat_filename, parent_entry->file_size);
+    
+    //in the directory, find an open slot
+    while ((uint8_t*)current_entry < (uint8_t*)parent_dir + parent_entry->file_size) 
+    {
+        if (current_entry->dir_name[0] == 0x00 || (uint8_t)current_entry->dir_name[0] == 0xE5) 
+        {
+            // Found an open slot
+            break;
+        }
+
+        current_entry++;
+    }
+    
+    //write to the entry
+    kernel::memcpy(current_entry, dir_entry, sizeof(fat_dir_entry));
+
+    //if the buffer is NULL, initialize a blank cluster
+    if(buffer == NULL)
+    {
+        current_entry->file_size = 0;
+    }
+
+    int start_cluster = write_cluster_chain(partition, buffer, current_entry->file_size);
+    if(start_cluster < 0) return -2;
+
+    current_entry->first_cluster_l = start_cluster & 0xFFFF;
+    current_entry->first_cluster_h = start_cluster >> 16;
+
+    // update the directory
+    if(write_file_entry(partition, parent_entry, parent_dir) < 0) return -3;
+
+    return 0;
+}
+
+void save_file(FAT_partition* partition, stdlib::string* filepath, fat_dir_entry* entry, void* buffer)
+{
+    update_file_entry(partition, filepath, entry);
+    write_file_entry(partition, entry, buffer);
+}
+
+void delete_file(FAT_partition* partition, stdlib::string* filepath)
+{
+    assert(filepath->at(0) == '/');
+
+    int dir_levels;
+    stdlib::string** path = filepath->split('/', &dir_levels);
+
+    stdlib::string file = *path[dir_levels-1];
+    stdlib::string dir = stdlib::string("/");
+    dir.resize(filepath->length());
+    for(int i = 0; i < dir_levels-1; i++)
+    {
+        dir.push_back('/');
+        dir.append(*path[i]);
+    }
+
+    const char* fat_filename = filename_to_fat(file);
+
+    fat_dir_entry* parent_dir_entry = get_file_entry(partition, &dir);
+    fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_dir_entry);
+    fat_dir_entry* file_entry = search_directory(parent_dir, fat_filename, parent_dir_entry->file_size);
+
+    if(file_entry == NULL)
+    {
+        log.e(fat_driver_tag, "FILE NOT FOUND (deleting): %s", filepath->c_str());
+        return;
+    }
+
+    int freed = 1;
+    file_entry->dir_name[0] = 0xE5;
+    uint32_t start = ((uint32_t)file_entry->first_cluster_h << 16) | (file_entry->first_cluster_l);
+    uint32_t cluster = start;
+    while (cluster < 0x0FFFFFF8) 
+    {
+        if (cluster == 0x0FFFFFF7) 
+        {
+            log.e(fat_driver_tag, "(hd%d, gpt%d): Encountered bad sector while deleting cluster 0x%x",
+                  partition->dev->disk_number, partition->partition, cluster);
+            return;
+        }
+
+        uint32_t next = get_next_cluster(partition, cluster);
+        partition->fat[cluster] = 0;
+        cluster = next;
+        freed++;
+    }
+
+    partition->fat[cluster] = 0;
+    partition->fsinfo->free_cluster_count += freed;
+    partition->fsinfo->cluster_search_start = stdlib::min(start, partition->fsinfo->cluster_search_start);
+    write_fat(partition);
+}
 
 }  // namespace filesystem
