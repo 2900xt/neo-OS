@@ -86,5 +86,4 @@ namespace kernel
 
         kfree(file->fat_entry);
     }
-
 }

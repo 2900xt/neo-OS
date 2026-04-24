@@ -93,7 +93,7 @@ int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uin
 
     //find a free cluster
     uint64_t first = start_cluster != -1 ? start_cluster : find_free_cluster(partition);
-    uint32_t cur = first, prev = 0;
+    uint32_t cur = first, prev = 0, next;
     int num = 0;
 
     uint8_t *buffer = (uint8_t*)_buffer;
@@ -112,7 +112,7 @@ int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uin
         prev = cur;
         num++;
 
-        uint32_t next = partition->fat[cur];
+        next = partition->fat[cur];
         partition->fat[cur] = 0xFFFFFFFF;
         if(next == 0x00) 
         {
@@ -128,6 +128,19 @@ int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uin
             cur = next;
         }
     }
+
+    int freed = 0;
+    uint32_t orphan = next;
+    while (orphan != 0 && orphan < 0x0FFFFFF8)
+    {
+        if (orphan == 0x0FFFFFF7) break;
+        next = get_next_cluster(partition, orphan);
+        partition->fat[orphan] = 0;
+        orphan = next;
+        freed++;
+    }
+
+    partition->fsinfo->free_cluster_count += freed;
 
     write_fat(partition);
 
@@ -375,7 +388,7 @@ void delete_file(FAT_partition* partition, stdlib::string* filepath)
 
     uint32_t start = ((uint32_t)file_entry->first_cluster_h << 16) | (file_entry->first_cluster_l);
     uint32_t cluster = start;
-    while (cluster < 0x0FFFFFF8) 
+    while (cluster < 0x0FFFFFF8)
     {
         if (cluster == 0x0FFFFFF7) 
         {
