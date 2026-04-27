@@ -2,6 +2,8 @@
 
 Built on the LIMINE protocol, NEO-OS supports UEFI booting
 
+![](screenshot.png)
+
 ## Current Version - 0.001A
 
 ## Features
@@ -49,3 +51,4 @@ Built on the LIMINE protocol, NEO-OS supports UEFI booting
 ## previous iterations (all failed)
 [Open-OS](https://github.com/2900xt/open-OS)
 [T-DOS](https://github.com/2900xt/T-dos)
+

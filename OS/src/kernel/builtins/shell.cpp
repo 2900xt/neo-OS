@@ -1,6 +1,6 @@
-#include "kernel/shell/shell.h"
-#include "kernel/io/log.h"
+#include <stdarg.h>
 #include <types.h>
+#include "kernel/shell/shell.h"
 #include <drivers/vga/vga.h>
 #include <drivers/vga/fonts.h>
 #include <drivers/fs/fat/fat.h>

@@ -45,14 +45,15 @@ void print_file_info(fat_dir_entry* file) {
           file->dir_attrib);
 }
 
-fat_dir_entry* copy_dir_entry(fat_dir_entry* entry) {
+fat_dir_entry* copy_dir_entry(fat_dir_entry* entry) 
+{
     fat_dir_entry* copy = new fat_dir_entry;
     kernel::memcpy(copy, entry, sizeof(fat_dir_entry));
     return copy;
 }
 
 void print_directory_contents(FAT_partition* partition, fat_dir_entry* directory) {
-    void* buffer = read_cluster_chain(partition, directory);
+    void* buffer = read_file_entry(partition, directory);
     fat_dir_entry* current_entry = (fat_dir_entry*)buffer;
     while (true) {
         if (current_entry->dir_name[0] == 0x00) break;
