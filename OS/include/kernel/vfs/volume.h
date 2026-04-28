@@ -2,7 +2,7 @@
 
 namespace kernel
 {
-    class disk_vol_t
+    struct disk_vol_t
     {
         enum FS_TYPE
         {
@@ -18,6 +18,8 @@ namespace kernel
         void* driver;
     };
 
-    int register_vol(disk_vol_t* new_vol);
-    disk_vol_t* get_vol_by_idx(int idx);
+    void vol_mgr_init();
+
+    void register_vol(int drive, int part, disk_vol_t::FS_TYPE fs_type);
+    disk_vol_t* get_vol_driver(int drive, int part);
 };
