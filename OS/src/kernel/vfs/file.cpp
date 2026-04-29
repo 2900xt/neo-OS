@@ -1,53 +1,30 @@
-#include "drivers/disk/disk_driver.h"
-#include "kernel/proc/smp.h"
+
 #include <drivers/fs/fat/fat.h>
 #include <kernel/io/log.h>
 #include <kernel/mem/paging.h>
+#include <kernel/vfs/volume.h>
 
 namespace kernel
 {
     static const char *vfs_tag = "VFS";
-    static file_handle *root;
-    filesystem::FAT_partition *root_part;
 
-    void mount_root(disk::rw_disk_t *disk, uint64_t partition)
+    void mount_root(int disk, int part)
     {
-        root_part = filesystem::mount_part(disk, partition, root);
+        register_vol(disk, part, disk_vol_t::FAT32);
     }
 
-    void vfs_init()
-    {
-        root = new file_handle;
-        mount_root(disk::get_disk(0), 0);
-
-        if (root_part == NULL)
-        {
-            panic(stdlib::string("Failed to mount root filesystem!"));
-        }
-    }
-
-    file_handle *get_root()
-    {
-        return root;
-    }
-
-    filesystem::FAT_partition *get_root_partition()
-    {
-        return root_part;
-    }
-
-    int open(file_handle *file, stdlib::string *filepath)
+    int open(file_handle *file, int drive, int vol, stdlib::string *filepath)
     {
         int count;
 
         filesystem::fat_dir_entry *entry;
         if (filepath->c_str()[0] == '/' && filepath->c_str()[1] == '\0') {
             file->is_root = true;
-            entry = (filesystem::fat_dir_entry *)root->fat_entry;
+            entry = (filesystem::fat_dir_entry *)entry;
         }
         else {
             file->is_root = false;
-            entry = filesystem::get_file_entry(root_part, filepath);
+            entry = filesystem::get_f32_file_entry(root_part, filepath);
         }
 
         if (entry == NULL)

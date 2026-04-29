@@ -180,7 +180,7 @@ static fat_dir_entry* search_directory(fat_dir_entry* directory_data,
     return NULL;
 }
 
-fat_dir_entry* get_file_entry(FAT_partition* partition, stdlib::string* filepath) {
+fat_dir_entry* get_f32_file_entry(FAT_partition* partition, stdlib::string* filepath) {
     assert(filepath->at(0) == '/');
 
     int dir_levels;
@@ -240,7 +240,7 @@ void update_file_entry(FAT_partition* partition, stdlib::string* filepath, fat_d
     }
 
     //find the directory that leads into the file
-    fat_dir_entry* parent_entry = get_file_entry(partition, &dir);
+    fat_dir_entry* parent_entry = get_f32_file_entry(partition, &dir);
     fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_entry);
 
     uint32_t cluster = ((uint32_t)parent_entry->first_cluster_h << 16) | (parent_entry->first_cluster_l);
@@ -284,7 +284,7 @@ int create_file(FAT_partition* partition, stdlib::string* filepath, fat_dir_entr
     assert(stdlib::strcmp(fat_filename, dir_entry->dir_name, 11));
 
     //find the directory that leads into the file
-    fat_dir_entry* parent_entry = get_file_entry(partition, &dir);
+    fat_dir_entry* parent_entry = get_f32_file_entry(partition, &dir);
     fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_entry);
     fat_dir_entry* current_entry = parent_dir;
 
@@ -368,7 +368,7 @@ void delete_file(FAT_partition* partition, stdlib::string* filepath)
 
     const char* fat_filename = filename_to_fat(file);
 
-    fat_dir_entry* parent_dir_entry = get_file_entry(partition, &dir);
+    fat_dir_entry* parent_dir_entry = get_f32_file_entry(partition, &dir);
     fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_dir_entry);
 
     uint32_t parent_dir_cluster = ((uint32_t)parent_dir_entry->first_cluster_h << 16) | (parent_dir_entry->first_cluster_l);

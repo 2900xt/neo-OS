@@ -61,8 +61,7 @@ void write_fat(FAT_partition* partition) {
     partition->fat_dirty = 0;
 }
 
-filesystem::FAT_partition* mount_part(disk::rw_disk_t* device, int part_num,
-                                      kernel::file_handle* folder) {
+filesystem::FAT_partition* mount_part(disk::rw_disk_t* device, int part_num) {
     bios_param_block* bpb = read_bpb(device, part_num);
 
     if (bpb->magic_number != 0xAA55) {
@@ -122,10 +121,6 @@ filesystem::FAT_partition* mount_part(disk::rw_disk_t* device, int part_num,
 
     print_file_info(&partition->root_dir);
     print_directory_contents(partition, &partition->root_dir);
-
-    folder->fat_entry = &partition->root_dir;
-    folder->filename = stdlib::string("/");
-    folder->filesize = partition->root_dir.file_size;
 
     return partition;
 }
