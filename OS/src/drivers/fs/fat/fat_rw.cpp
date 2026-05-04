@@ -180,16 +180,14 @@ static fat_dir_entry* search_directory(fat_dir_entry* directory_data,
     return NULL;
 }
 
-fat_dir_entry* get_f32_file_entry(FAT_partition* partition, stdlib::string* filepath) {
-    assert(filepath->at(0) == '/');
+fat_dir_entry* get_f32_file_entry(FAT_partition* partition, const stdlib::string& filepath) {
+    assert(filepath[0] == '/');
 
-    int dir_levels;
-    stdlib::string** path = filepath->split('/', &dir_levels);
-
+    stdlib::list<stdlib::string> path = filepath.split('/');
     fat_dir_entry* current_dir = &partition->root_dir;
 
-    for (int i = 1; i < dir_levels; i++) {
-        const char* fat_filename = filename_to_fat(*path[i]);
+    for (int i = 1; i < path.size(); i++) {
+        const char* fat_filename = filename_to_fat(path[i]);
 
         //Read the next directory
         fat_dir_entry* cur_dir_data = (fat_dir_entry*)read_file_entry(partition, current_dir);
@@ -201,7 +199,7 @@ fat_dir_entry* get_f32_file_entry(FAT_partition* partition, stdlib::string* file
         if (current_dir == NULL) 
         {
             log.e(fat_driver_tag, "(hd%d, gpt%d): Directory not found: %s",
-                  partition->dev->disk_number, partition->partition, filepath->c_str());
+                  partition->dev->disk_number, partition->partition, filepath.c_str());
             return NULL;
         }
 
@@ -223,24 +221,23 @@ uint32_t get_file_size(FAT_partition* partition, uint32_t starting_cluster) {
 }
 
 // Updates the entry at `filepath` to `entry`
-void update_file_entry(FAT_partition* partition, stdlib::string* filepath, fat_dir_entry* entry)
+void update_file_entry(FAT_partition* partition, const stdlib::string& filepath, fat_dir_entry* entry)
 {
-    assert(filepath->at(0) == '/');
+    assert(filepath[0] == '/');
+ 
+    stdlib::list<stdlib::string> path = filepath.split('/');
 
-    int dir_levels;
-    stdlib::string** path = filepath->split('/', &dir_levels);
-
-    stdlib::string file = *path[dir_levels-1];
+    stdlib::string file = path[path.size()-1];
     stdlib::string dir = stdlib::string("/");
-    dir.resize(filepath->length());
-    for(int i = 1; i < dir_levels-1; i++)
+    dir.resize(filepath.length());
+    for(int i = 1; i < path.size()-1; i++)
     {
         dir.push_back('/');
-        dir.append(*path[i]);
+        dir.append(path[i]);
     }
 
     //find the directory that leads into the file
-    fat_dir_entry* parent_entry = get_f32_file_entry(partition, &dir);
+    fat_dir_entry* parent_entry = get_f32_file_entry(partition, dir);
     fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_entry);
 
     uint32_t cluster = ((uint32_t)parent_entry->first_cluster_h << 16) | (parent_entry->first_cluster_l);
@@ -251,7 +248,7 @@ void update_file_entry(FAT_partition* partition, stdlib::string* filepath, fat_d
     if(cur == NULL)
     {
         log.e(fat_driver_tag, "(hd%d, gpt%d): Directory not found when updating: %s",
-            partition->dev->disk_number, partition->partition, filepath->c_str());
+            partition->dev->disk_number, partition->partition, filepath.c_str());
         return;
     }
 
@@ -264,27 +261,26 @@ void update_file_entry(FAT_partition* partition, stdlib::string* filepath, fat_d
 create_file:
     This function takes in a filepath
 */
-int create_file(FAT_partition* partition, stdlib::string* filepath, fat_dir_entry* dir_entry, void* buffer = NULL)
+int create_file(FAT_partition* partition, const stdlib::string& filepath, fat_dir_entry* dir_entry, void* buffer = NULL)
 {
-    assert(filepath->at(0) == '/');
+    assert(filepath[0] == '/');
 
-    int dir_levels;
-    stdlib::string** path = filepath->split('/', &dir_levels);
+    stdlib::list<stdlib::string> path = filepath.split('/');
 
-    stdlib::string file = *path[dir_levels-1];
+    stdlib::string file = path[path.size()-1];
     stdlib::string dir = stdlib::string("/");
-    dir.resize(filepath->length());
-    for(int i = 1; i < dir_levels-1; i++)
+    dir.resize(filepath.length());
+    for(int i = 1; i < path.size()-1; i++)
     {
         dir.push_back('/');
-        dir.append(*path[i]);
+        dir.append(path[i]);
     }
 
     const char* fat_filename = filename_to_fat(file);
     assert(stdlib::strcmp(fat_filename, dir_entry->dir_name, 11));
 
     //find the directory that leads into the file
-    fat_dir_entry* parent_entry = get_f32_file_entry(partition, &dir);
+    fat_dir_entry* parent_entry = get_f32_file_entry(partition, dir);
     fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_entry);
     fat_dir_entry* current_entry = parent_dir;
 
@@ -315,7 +311,7 @@ int create_file(FAT_partition* partition, stdlib::string* filepath, fat_dir_entr
     if(!found)
     {
         parent_entry->file_size += 0x1000;
-        update_file_entry(partition, &dir, parent_entry);
+        update_file_entry(partition, dir, parent_entry);
     }
     
     
@@ -344,31 +340,30 @@ int create_file(FAT_partition* partition, stdlib::string* filepath, fat_dir_entr
     return 0;
 }
 
-void save_file(FAT_partition* partition, stdlib::string* filepath, fat_dir_entry* entry, void* buffer)
+void save_file(FAT_partition* partition, const stdlib::string& filepath, fat_dir_entry* entry, void* buffer)
 {
     update_file_entry(partition, filepath, entry);
     write_file_entry(partition, entry, buffer);
 }
 
-void delete_file(FAT_partition* partition, stdlib::string* filepath)
+void delete_file(FAT_partition* partition, const stdlib::string& filepath)
 {
-    assert(filepath->at(0) == '/');
+    assert(filepath[0] == '/');
 
-    int dir_levels;
-    stdlib::string** path = filepath->split('/', &dir_levels);
+    stdlib::list<stdlib::string> path = filepath.split('/');
 
-    stdlib::string file = *path[dir_levels-1];
+    stdlib::string file = path[path.size()-1];
     stdlib::string dir = stdlib::string("/");
-    dir.resize(filepath->length());
-    for(int i = 1; i < dir_levels-1; i++)
+    dir.resize(filepath.length());
+    for(int i = 1; i < path.size()-1; i++)
     {
         dir.push_back('/');
-        dir.append(*path[i]);
+        dir.append(path[i]);
     }
 
     const char* fat_filename = filename_to_fat(file);
 
-    fat_dir_entry* parent_dir_entry = get_f32_file_entry(partition, &dir);
+    fat_dir_entry* parent_dir_entry = get_f32_file_entry(partition, dir);
     fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_dir_entry);
 
     uint32_t parent_dir_cluster = ((uint32_t)parent_dir_entry->first_cluster_h << 16) | (parent_dir_entry->first_cluster_l);
@@ -377,7 +372,7 @@ void delete_file(FAT_partition* partition, stdlib::string* filepath)
 
     if(file_entry == NULL)
     {
-        log.e(fat_driver_tag, "FILE NOT FOUND (deleting): %s", filepath->c_str());
+        log.e(fat_driver_tag, "FILE NOT FOUND (deleting): %s", filepath.c_str());
         return;
     }
 

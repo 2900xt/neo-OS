@@ -15,12 +15,10 @@ namespace kernel
 
     struct file_handle
     {
-        stdlib::string filename;
+        stdlib::string filepath;
         size_t filesize;
-        void *fat_entry;
-        void *data;
-        bool is_root;
-        bool is_dir;
+        void *data, *file_entry;
+        uint8_t attrib;
     };
 
     void vfs_init();

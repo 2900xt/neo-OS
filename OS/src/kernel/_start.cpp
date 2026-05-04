@@ -18,9 +18,7 @@
 #include <kernel/io/log.h>
 #include <stdlib/assert.h>
 #include <drivers/fs/fat/fat.h>
-
 #include <tests/drivers.h>
-#include "drivers/disk/disk_driver.h"
 
 namespace kernel
 {
@@ -41,8 +39,6 @@ namespace kernel
         vga::initialize_font();
         network::rtl8139_init();
         kernel::smp_init();
-
-        testFATDriver(get_root_partition());
         
         while (true)
         {

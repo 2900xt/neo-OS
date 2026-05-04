@@ -3,6 +3,7 @@
 #include "drivers/disk/disk_driver.h"
 #include "drivers/fs/fat/fat.h"
 #include "kernel/mem/mem.h"
+#include "kernel/vfs/file.h"
 #include "stdlib/structures/string.h"
 
 #define MAX_VOL 10
@@ -63,19 +64,27 @@ namespace kernel
         kernel::memset(volumes, sizeof(disk_vol_t) * MAX_VOL, 0);
     }
 
-    void* get_file_entry(int drive, int part, stdlib::string* filepath)
+    void get_file_entry(const stdlib::string& filepath, file_handle* handle)
     {
+        int drive = filepath[0] - '0';
+        int part = filepath[2] - '0';
+        stdlib::string vol_path = filepath.substr(3);
         disk_vol_t* driver = get_vol_driver(drive, part);
         switch(driver->filesys_type)
         {
             case disk_vol_t::FAT32:
             {
-                filesystem::fat_dir_entry* file_entry = filesystem::get_f32_file_entry((filesystem::FAT_partition*)driver->driver, filepath);
-                return file_entry;
+                filesystem::fat_dir_entry* file_entry = filesystem::get_f32_file_entry((filesystem::FAT_partition*)driver->driver, vol_path);
+                handle->file_entry = file_entry;
+                handle->data = NULL;
+                handle->filepath = filepath;
+                handle->attrib = file_entry->dir_attrib;
+                handle->filesize = file_entry->file_size;
+                return;
             }
             default:
                 log.e("VOLUME MGR", "trying to read a RAW volume!");    
-                return NULL;
+                return;
         }
     }
 };

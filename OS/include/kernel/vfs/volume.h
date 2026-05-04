@@ -1,5 +1,6 @@
 #include <types.h>
 #include "stdlib/structures/string.h"
+#include <kernel/vfs/file.h>
 
 namespace kernel
 {
@@ -23,5 +24,5 @@ namespace kernel
 
     void register_vol(int drive, int part, disk_vol_t::FS_TYPE fs_type);
     disk_vol_t* get_vol_driver(int drive, int part);
-    void* get_file_entry(int drive, int part, stdlib::string* filepath);
+    void get_file_entry(const stdlib::string& filepath, file_handle* handle);
 };

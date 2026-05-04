@@ -238,6 +238,28 @@ namespace stdlib
             return ret;
         }
 
+        string substr(int start) const
+        {
+            assert(start >= 0);
+            int len = size - start;
+            string ret(len);
+            for(int i = 0; i < len; i++)
+            {
+                ret[i] = data[i+start];
+            }
+            return ret;
+        }
+
+        int find(int start, char c) const 
+        {
+            for(int i = start; i < size; i++)
+            {
+                if(data[i] == c) return i;
+            }
+
+            return -1;
+        }
+
         bool operator==(const string &other) const
         {
             if (size != other.size)
