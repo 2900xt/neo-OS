@@ -55,7 +55,7 @@ namespace kernel
             return;
         }
 
-        if (!file.is_dir)
+        if (!(file.attrib & filesystem::F32_ATTRIB::DIRECTORY))
         {
             printf("Not a directory: %s\n", path);
             return;
@@ -76,8 +76,8 @@ namespace kernel
             current_entry++;
         }
         printf("\n");
-
-        if (!file.is_root) kernel::free_pages(buffer);
+        
+        kernel::free_pages(buffer);
         kernel::close(&file);
     }
 
