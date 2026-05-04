@@ -10,20 +10,19 @@ namespace stdlib
     class list
     {
         T *_data;
-        size_t size;
+        size_t _size;
         size_t max_capacity;
-
     public:
         list(size_t size)
         {
-            this->size = 0;
+            this->_size = 0;
             this->max_capacity = size;
             this->_data = new T[max_capacity];
         }
 
         list(size_t size, T default_value)
         {
-            this->size = size;
+            this->_size = size;
             this->max_capacity = size;
             this->_data = new T[max_capacity];
             for (size_t i = 0; i < size; i++)
@@ -32,17 +31,63 @@ namespace stdlib
             }
         }
 
-        list(list &other)
+        list(const list &other)
         {
-            this->size = other.size;
+            this->_size = other._size;
             this->max_capacity = other.max_capacity;
             this->_data = new T[max_capacity];
-            kernel::memcpy(_data, other.data(), this->size*sizeof(T));
+            for(int i = 0; i < this->_size; i++)
+            {
+                this->_data[i] = other._data[i];
+            }
+        }
+
+        list(list &&other) noexcept
+        {
+            this->_size = other._size;
+            this->max_capacity = other.max_capacity;
+            this->_data = other._data;
+            other._data = NULL;
+            other._size = 0;
+            other.max_capacity = 0;
+        }
+
+        list& operator=(const list &other)
+        {
+            if(&other != this)
+            {
+                delete [] this->_data;
+                this->_size = other._size;
+                this->max_capacity = other.max_capacity;
+                this->_data = new T[max_capacity];
+                for(int i = 0; i < this->_size; i++)
+                {
+                    this->_data[i] = other._data[i];
+                }
+            }
+
+            return *this;
+        }
+
+        list& operator=(list &&other) noexcept
+        {
+            if(&other != this)
+            {
+                delete [] this->_data;
+                this->_size = other._size;
+                this->max_capacity = other.max_capacity;
+                this->_data = other._data;
+                other._data = NULL;
+                other._size = 0;
+                other.max_capacity = 0;
+            }
+
+            return *this;
         }
 
         list()
         {
-            this->size = 0;
+            this->_size = 0;
             this->max_capacity = 10;
             this->_data = new T[max_capacity];
         }
@@ -55,14 +100,9 @@ namespace stdlib
             }
         }
 
-        size_t length() const
+        size_t size() const
         {
-            return size;
-        }
-
-        size_t capacity() const
-        {
-            return max_capacity;
+            return _size;
         }
 
         T *data()
@@ -79,8 +119,7 @@ namespace stdlib
 
         void clear()
         {
-            this->size = 0;
-            kernel::memset(_data, size*sizeof(T), 0);
+            this->_size = 0;
         }
 
         void resize(size_t requested)
@@ -88,7 +127,10 @@ namespace stdlib
             this->max_capacity = requested;
 
             T *newData = new T[requested];
-            kernel::memcpy(newData, _data, size*sizeof(T));
+            for(int i = 0; i < _size;i++)
+            {
+                newData[i] = _data[i];
+            }
 
             delete[] _data;
 
@@ -97,75 +139,75 @@ namespace stdlib
 
         T &at(size_t ind)
         {
-            assert(ind < size);
+            assert(ind < _size);
             return _data[ind];
         }
 
         const T &at(size_t ind) const
         {
-            assert(ind < size);
+            assert(ind < _size);
             return _data[ind];
         }
 
         T &operator[](size_t ind)
         {
-            assert(ind < size);
+            assert(ind < _size);
             return _data[ind];
         }
 
         const T &operator[](size_t ind) const
         {
-            assert(ind < size);
+            assert(ind < _size);
             return _data[ind];
         }
 
-        void set(size_t ind, T c)
+        void set(size_t ind, const T& c)
         {
-            assert(ind < size);
+            assert(ind < _size);
             _data[ind] = c;
         }
 
-        void push_back(T c)
+        void push_back(const T& c)
         {
-            if (size >= max_capacity - 1)
+            if (_size >= max_capacity)
             {
-                resize(max_capacity * 2);
+                resize(max_capacity * 2+1);
             }
 
-            _data[size++] = c;
+            _data[_size++] = c;
         }
 
         void pop_back()
         {
-            assert(size > 0);
-            size--;
+            assert(_size > 0);
+            _size--;
         }
 
-        void append(list<T> &other)
+        void append(const list<T> &other)
         {
-            if (max_capacity - 1 <= size + other.size)
+            if (max_capacity <= _size + other._size)
             {
-                resize(other.size + size * 2);
+                resize((other._size + _size) * 2+1);
             }
 
-            for (int i = size; i < other.size + size; i++)
+            for (int i = _size; i < other._size + _size; i++)
             {
-                _data[i] = other.at(i - size);
+                _data[i] = other.at(i - _size);
             }
 
-            size += other.size;
+            _size += other._size;
         }
 
         void erase(size_t ind)
         {
-            assert(ind < size);
+            assert(ind < _size);
 
-            for (size_t i = ind; i < size - 1; i++)
+            for (size_t i = ind; i < _size - 1; i++)
             {
                 _data[i] = _data[i + 1];
             }
 
-            size--;
+            _size--;
         }
     };
 }

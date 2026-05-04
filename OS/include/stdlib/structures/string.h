@@ -1,6 +1,7 @@
 #pragma once
 #include "kernel/mem/mem.h"
 #include "stdlib/assert.h"
+#include "stdlib/structures/list.h"
 #include <types.h>
 
 namespace stdlib
@@ -32,30 +33,46 @@ namespace stdlib
         string(const char *data)
         {
             this->size = strlen(data);
-            this->data = new char[size];
+            this->max_capacity = this->size;
+            this->data = new char[this->size+1];
 
             stdlib::strcpy(this->data, data);
 
-            this->max_capacity = size;
         }
 
-        string(size_t size)
+        string(size_t size, char c = ' ')
         {
-            this->size = 0;
-            this->max_capacity = size;
-            this->data = new char[max_capacity];
+            this->size = size;
+            this->max_capacity = this->size;
+            this->data = new char[this->size+1];
+            for(int i = 0; i < size; i++)
+            {
+                this->data[i] = c;
+            }
+            this->data[size] = '\0';
         }
 
         string(const string &other)
         {
             this->size = other.size;
             this->max_capacity = other.max_capacity;
-            this->data = new char[max_capacity];
+            this->data = new char[max_capacity+1];
 
             strcpy(data, other.data);
         }
 
-        string& operator=(const string &other)
+        // Move Constructor
+        string(string &&other) noexcept
+        {
+            this->size = other.size;
+            this->max_capacity = other.max_capacity;
+            this->data = other.data;
+            other.data = NULL;
+            other.size = 0;
+            other.max_capacity = 0;
+        }
+
+        string& operator=(const string &other) 
         {
             if (this != &other)
             {
@@ -63,9 +80,25 @@ namespace stdlib
 
                 this->size = other.size;
                 this->max_capacity = other.max_capacity;
-                this->data = new char[max_capacity];
+                this->data = new char[max_capacity+1];
 
                 strcpy(data, other.data);
+            }
+            return *this;
+        }
+
+        string& operator=(string &&other) noexcept
+        {
+            if(this != &other) 
+            {
+                delete [] this->data;
+
+                this->size = other.size;
+                this->max_capacity = other.max_capacity;
+                this->data = other.data;
+                other.data = NULL;
+                other.size = 0;
+                other.max_capacity = 0;
             }
             return *this;
         }
@@ -74,7 +107,7 @@ namespace stdlib
         {
             this->size = 0;
             this->max_capacity = 10;
-            this->data = new char[max_capacity];
+            this->data = new char[max_capacity+1];
         }
 
         ~string()
@@ -90,11 +123,6 @@ namespace stdlib
             return size;
         }
 
-        size_t capacity() const
-        {
-            return max_capacity;
-        }
-
         char *c_str()
         {
             return data;
@@ -107,14 +135,15 @@ namespace stdlib
 
         void clear()
         {
-            kernel::memset(data, size, 0);
+            size = 0;
+            data[0] = '\0';
         }
 
         void resize(size_t requested)
         {
             this->max_capacity = requested;
 
-            char *newData = new char[requested];
+            char *newData = new char[requested+1];
             strcpy(newData, data);
 
             delete[] data;
@@ -128,7 +157,19 @@ namespace stdlib
             return data[ind];
         }
 
+        const char &at(size_t ind) const
+        {
+            assert(ind < size);
+            return data[ind];
+        }
+
         char &operator[](size_t ind)
+        {
+            assert(ind < size);
+            return data[ind];
+        }
+
+        const char &operator[](size_t ind) const
         {
             assert(ind < size);
             return data[ind];
@@ -142,25 +183,25 @@ namespace stdlib
 
         void push_back(char c)
         {
-            if (size >= max_capacity - 1)
+            if (size+1 >= max_capacity)
             {
-                resize(max_capacity * 2);
+                resize(max_capacity * 2 + 1);
             }
 
             data[size++] = c;
             data[size] = '\0';
         }
 
-        void append(stdlib::string &str)
+        void append(const string &str)
         {
-            if (max_capacity - 1 <= size + str.size)
+            if (max_capacity <= size + str.size)
             {
-                resize(str.size + size * 2);
+                resize((str.size + size) * 2 + 1);
             }
 
             for (int i = size; i < str.size + size; i++)
             {
-                data[i] = str.at(i - size);
+                data[i] = str[i - size];
             }
 
             size += str.size;
@@ -168,35 +209,33 @@ namespace stdlib
             data[size] = '\0';
         }
 
-        string **split(char c, int *count)
+        list<string> split(char c) const
         {
-            // get number of ocurrences
-            *count = 0;
-            for (int i = 0; i < size; i++)
-            {
-                if (data[i] == c)
-                    (*count)++;
-            }
-
-            (*count)++;
-
-            string **out = new string *[*count];
-            int outIndex = 0;
-            out[outIndex] = new string;
-
+            list<string> out;
+            out.push_back(string());
             for (int i = 0; i < size; i++)
             {
                 if (data[i] == c)
                 {
-                    i++;
-                    outIndex++;
-                    out[outIndex] = new string;
+                    out.push_back(string());
+                    continue;
                 }
 
-                out[outIndex]->push_back(data[i]);
+                out[out.size() - 1].push_back(data[i]);
             }
 
             return out;
+        }
+
+        string substr(int start, int len) const
+        {
+            assert(start + len <= size && start >= 0);
+            string ret(len);
+            for(int i = 0; i < len; i++)
+            {
+                ret[i] = data[i+start];
+            }
+            return ret;
         }
 
         bool operator==(const string &other) const

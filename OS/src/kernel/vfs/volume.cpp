@@ -69,7 +69,10 @@ namespace kernel
         switch(driver->filesys_type)
         {
             case disk_vol_t::FAT32:
-                return filesystem::get_f32_file_entry((filesystem::FAT_partition*)driver->driver, filepath);
+            {
+                filesystem::fat_dir_entry* file_entry = filesystem::get_f32_file_entry((filesystem::FAT_partition*)driver->driver, filepath);
+                return file_entry;
+            }
             default:
                 log.e("VOLUME MGR", "trying to read a RAW volume!");    
                 return NULL;

@@ -8,23 +8,24 @@ namespace kernel
 {
     static const char *vfs_tag = "VFS";
 
-    void mount_root(int disk, int part)
+    struct file_path
     {
-        register_vol(disk, part, disk_vol_t::FAT32);
-    }
+        int disk, vol;
+        stdlib::string path;
+    };
 
-    int open(file_handle *file, int drive, int vol, stdlib::string *filepath)
+    int open(file_handle *file, stdlib::string *filepath)
     {
         int count;
 
-        filesystem::fat_dir_entry *entry;
-        if (filepath->c_str()[0] == '/' && filepath->c_str()[1] == '\0') {
+        void *entry;
+        if (filepath->c_str()[0] == '/' && filepath->c_str()[1] == '\0') 
+        {
             file->is_root = true;
-            entry = (filesystem::fat_dir_entry *)entry;
         }
         else {
             file->is_root = false;
-            entry = filesystem::get_f32_file_entry(root_part, filepath);
+            entry = kernel::get_file_entry(disk, vol, filepath);
         }
 
         if (entry == NULL)
@@ -50,7 +51,7 @@ namespace kernel
             return file->data;
         }
 
-        return filesystem::read_file_entry(root_part, (filesystem::fat_dir_entry *)file->fat_entry);
+        return kernel::read_file_entry((filesystem::fat_dir_entry *)file->fat_entry);
     }
 
     void close(file_handle *file)
