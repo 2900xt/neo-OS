@@ -4,7 +4,7 @@
 #include <kernel/io/log.h>
 #include <kernel/mem/paging.h>
 #include <kernel/vfs/volume.h>
-#include <cstddef>
+#include "stdlib/math.h"
 
 namespace kernel
 {
@@ -23,7 +23,7 @@ namespace kernel
         return 0;
     }
 
-    int fclose(file_handle *file)
+    void fclose(file_handle *file)
     {
         // Free the data we've read
         if (file->data)
@@ -32,12 +32,18 @@ namespace kernel
         }
 
         kfree(file->file_entry);
-        return 0;
     }
 
     size_t fread(void *buffer, size_t num_bytes, file_handle *file)
     {
-        return num_bytes;
+        if (!file->data)
+        {
+            read_file_data(file);
+        }
+
+        size_t bytes_read = stdlib::min(num_bytes, file->filesize - file->offset);
+        memcpy(buffer, (uint8_t*)file->data + file->offset, bytes_read);
+        return bytes_read;
     }
 
     size_t fwrite(const void *buffer, size_t num_bytes, file_handle *file)

@@ -17,9 +17,10 @@ namespace vga
     void initialize_font()
     {
         stdlib::string path{font_path};
-        kernel::file_handle *font_file = new kernel::file_handle;
-        kernel::open(font_file, &path);
-        uint8_t *buffer = (uint8_t *)kernel::read(font_file);
+        kernel::file_handle font_file;
+        kernel::fopen(&font_file, path);
+        uint8_t* buffer = (uint8_t*)kernel::kcalloc(1, font_file.filesize);
+        kernel::fread(buffer, font_file.filesize, &font_file);
 
         font_hdr = (PSF_header_t *)buffer;
         bitmap = buffer + font_hdr->header_sz;

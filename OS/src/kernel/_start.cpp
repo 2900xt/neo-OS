@@ -35,7 +35,6 @@ namespace kernel
 
         pci::enumerate_pci();
         disk::ahci_init();
-        kernel::vfs_init();
         vga::initialize_font();
         network::rtl8139_init();
         kernel::smp_init();

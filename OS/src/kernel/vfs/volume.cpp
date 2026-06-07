@@ -7,6 +7,7 @@
 #include "stdlib/structures/string.h"
 
 #define MAX_VOL 10
+const char* VOL_MGR_TAG = "VOLUME MGR";
 
 namespace kernel 
 {
@@ -21,7 +22,7 @@ namespace kernel
             }
         }
 
-        log.e("VOLUME MGR", "Unable to find volume (0x%x, 0x%x)", drive, part);
+        log.e(VOL_MGR_TAG, "Unable to find volume (0x%x, 0x%x)", drive, part);
         return NULL;
     }
 
@@ -40,7 +41,7 @@ namespace kernel
 
         if(idx == -1)
         {
-            log.e("VOLUME MGR", "Too many volumes mounted.");
+            log.e(VOL_MGR_TAG, "Too many volumes mounted.");
             return;
         }
 
@@ -54,7 +55,7 @@ namespace kernel
             volumes[idx].driver = filesystem::mount_part(disk::get_disk(drive), part);
             break;
         case disk_vol_t::RAW:
-            log.v("VOLUME MGR", "Warning: trying to mount a RAW volume!");    
+            log.v(VOL_MGR_TAG, "Warning: trying to mount a RAW volume!");    
             break;
         }
     }
@@ -83,7 +84,32 @@ namespace kernel
                 return;
             }
             default:
-                log.e("VOLUME MGR", "trying to read a RAW volume!");    
+                log.e(VOL_MGR_TAG, "trying to open a RAW volume file!");    
+                return;
+        }
+    }
+
+    void read_file_data(file_handle *handle)
+    {
+        if(!handle->file_entry)
+        {
+            log.e(VOL_MGR_TAG, "File entry null but trying to read data!");
+        }
+
+        stdlib::string &filepath = handle->filepath;
+        int drive = filepath[0] - '0';
+        int part = filepath[2] - '0';
+        stdlib::string vol_path = filepath.substr(3);
+        disk_vol_t* driver = get_vol_driver(drive, part);
+        switch(driver->filesys_type)
+        {
+            case kernel::disk_vol_t::FAT32:
+            {
+                void* data = filesystem::fat_read_file_entry((filesystem::FAT_partition*)driver->driver, (filesystem::fat_dir_entry*)handle->file_entry);
+                handle->data = data;
+            }
+            default:
+                log.e(VOL_MGR_TAG, "trying to read a RAW volume file!");    
                 return;
         }
     }

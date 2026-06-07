@@ -22,10 +22,8 @@ namespace kernel
         logged_in = false;
         file_handle login_file;
         stdlib::string login_file_path = "/etc/login";
-        kernel::open(&login_file, &login_file_path);
 
-        password = (char*)kernel::read(&login_file);
-        kernel::close(&login_file);
+        password = "67";
 
         login_prompt();
     }

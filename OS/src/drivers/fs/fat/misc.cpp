@@ -53,7 +53,7 @@ fat_dir_entry* copy_dir_entry(fat_dir_entry* entry)
 }
 
 void print_directory_contents(FAT_partition* partition, fat_dir_entry* directory) {
-    void* buffer = read_file_entry(partition, directory);
+    void* buffer = fat_read_file_entry(partition, directory);
     fat_dir_entry* current_entry = (fat_dir_entry*)buffer;
     while (true) {
         if (current_entry->dir_name[0] == 0x00) break;

@@ -45,59 +45,11 @@ namespace kernel
 
     void list_files(const char *path)
     {
-        fat_dir_entry *current_entry;
-        file_handle file;
-        stdlib::string file_path = path;
-        int ret = kernel::open(&file, &file_path);
-        if (ret == -1)
-        {
-            printf("Directory not found: %s\n", path);    
-            return;
-        }
-
-        if (!(file.attrib & filesystem::F32_ATTRIB::DIRECTORY))
-        {
-            printf("Not a directory: %s\n", path);
-            return;
-        }
-
-        current_entry = (fat_dir_entry *)kernel::read(&file);
-        
-        void *buffer = current_entry;
-        while (true)
-        {
-            if (current_entry->dir_name[0] == 0x00)
-                break;
-
-            if (!((uint8_t)current_entry->dir_name[0] == 0xE5 || current_entry->dir_attrib == LONG_NAME))
-            {
-                print_file_name(current_entry);
-            }
-            current_entry++;
-        }
-        printf("\n");
-        
-        kernel::free_pages(buffer);
-        kernel::close(&file);
+        printf("Directory not found: %s\n", path);    
     }
 
     void print_file_contents(const char *path)
     {
-        file_handle file;
-        stdlib::string file_path = path;
-        int ret = kernel::open(&file, &file_path);
-
-        if (ret == -1)
-        {
-            printf("Directory not found: %s\n", path);    
-            return;
-        }
-
-        char* text = (char*)kernel::read(&file);
-
-        printf("%s\n", text);
-
-        kernel::free_pages(text);
-        kernel::close(&file);
+        printf("Directory not found: %s\n", path);    
     }
 }

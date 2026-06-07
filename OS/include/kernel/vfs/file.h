@@ -22,10 +22,7 @@ namespace kernel
         uint64_t offset;
     };
 
-    void vfs_init();
-    void mount_root(disk::rw_disk_t *disk, uint64_t partition);
-    file_handle *get_root();
-    filesystem::FAT_partition *get_root_partition();
-    int fopen(file_handle *file, stdlib::string *filepath);
-    void close(file_handle *file);
+    int fopen(file_handle *file, const stdlib::string& filepath);
+    void fclose(file_handle *file);
+    size_t fread(void *buffer, size_t num_bytes, file_handle *file);
 }

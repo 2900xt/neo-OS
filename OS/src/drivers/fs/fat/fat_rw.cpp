@@ -43,7 +43,7 @@ int read_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint
 }
 
 
-void* read_file_entry(filesystem::FAT_partition* partition, fat_dir_entry* file_entry)
+void* fat_read_file_entry(filesystem::FAT_partition* partition, fat_dir_entry* file_entry)
 {
     int page_count = file_entry->file_size / 0x1000 + 1;
     void* buffer = kernel::allocate_pages(page_count);
@@ -190,7 +190,7 @@ fat_dir_entry* get_f32_file_entry(FAT_partition* partition, const stdlib::string
         const char* fat_filename = filename_to_fat(path[i]);
 
         //Read the next directory
-        fat_dir_entry* cur_dir_data = (fat_dir_entry*)read_file_entry(partition, current_dir);
+        fat_dir_entry* cur_dir_data = (fat_dir_entry*)fat_read_file_entry(partition, current_dir);
 
         uint32_t cluster = ((uint32_t)current_dir->first_cluster_h << 16) | (current_dir->first_cluster_l);
         uint32_t current_dir_size = get_file_size(partition, cluster);
@@ -238,7 +238,7 @@ void update_file_entry(FAT_partition* partition, const stdlib::string& filepath,
 
     //find the directory that leads into the file
     fat_dir_entry* parent_entry = get_f32_file_entry(partition, dir);
-    fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_entry);
+    fat_dir_entry* parent_dir = (fat_dir_entry*)fat_read_file_entry(partition, parent_entry);
 
     uint32_t cluster = ((uint32_t)parent_entry->first_cluster_h << 16) | (parent_entry->first_cluster_l);
     uint32_t current_dir_size = get_file_size(partition, cluster);
@@ -281,7 +281,7 @@ int create_file(FAT_partition* partition, const stdlib::string& filepath, fat_di
 
     //find the directory that leads into the file
     fat_dir_entry* parent_entry = get_f32_file_entry(partition, dir);
-    fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_entry);
+    fat_dir_entry* parent_dir = (fat_dir_entry*)fat_read_file_entry(partition, parent_entry);
     fat_dir_entry* current_entry = parent_dir;
 
     //double-check for duplicate filenames
@@ -364,7 +364,7 @@ void delete_file(FAT_partition* partition, const stdlib::string& filepath)
     const char* fat_filename = filename_to_fat(file);
 
     fat_dir_entry* parent_dir_entry = get_f32_file_entry(partition, dir);
-    fat_dir_entry* parent_dir = (fat_dir_entry*)read_file_entry(partition, parent_dir_entry);
+    fat_dir_entry* parent_dir = (fat_dir_entry*)fat_read_file_entry(partition, parent_dir_entry);
 
     uint32_t parent_dir_cluster = ((uint32_t)parent_dir_entry->first_cluster_h << 16) | (parent_dir_entry->first_cluster_l);
     uint32_t current_dir_size = get_file_size(partition, parent_dir_cluster);

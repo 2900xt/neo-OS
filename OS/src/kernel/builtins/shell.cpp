@@ -5,6 +5,7 @@
 #include <drivers/vga/fonts.h>
 #include <drivers/fs/fat/fat.h>
 #include <kernel/proc/stream.h>
+#include "stdlib/structures/list.h"
 
 // External variable declarations for system info
 extern uint64_t millis_since_boot;
@@ -117,20 +118,20 @@ namespace kernel
         
         // Try to open the path to verify it exists and is a directory
         file_handle test_file;
-        int ret = kernel::open(&test_file, &abs_path);
+        int ret = kernel::fopen(&test_file, abs_path);
         
         if (ret == -1)
         {
             return false; // Path doesn't exist
         }
         
-        if (!test_file.is_dir)
+        if (!(test_file.attrib & filesystem::DIRECTORY))
         {
-            kernel::close(&test_file);
+            kernel::fclose(&test_file);
             return false; // Path is not a directory
         }
         
-        kernel::close(&test_file);
+        kernel::fclose(&test_file);
         
         // Update current working directory
         stdlib::strcpy(current_working_directory, abs_path.c_str());
@@ -228,10 +229,10 @@ namespace kernel
         }
 
         stdlib::string command_str(command);
-        int count;
-        stdlib::string** sp = command_str.split(' ', &count);
+        stdlib::list<stdlib::string> sp = command_str.split(' ');
+        int count = sp.size();
         //log.d(kernel_tag, "Command: %d", count);
-        if (stdlib::strcmp(sp[0]->c_str(), "help"))
+        if (stdlib::strcmp(sp[0].c_str(), "help"))
         {
             terminal_puts("Available commands:\n");
             terminal_puts("help - Show this help message\n");
@@ -243,23 +244,23 @@ namespace kernel
             terminal_puts("pwd - Print current working directory\n");
             terminal_puts("cd [path] - Change working directory\n");
         }
-        else if (stdlib::strcmp(sp[0]->c_str(), "clear"))
+        else if (stdlib::strcmp(sp[0].c_str(), "clear"))
         {
             terminal_clear();
         }
-        else if (stdlib::strcmp(sp[0]->c_str(), "exit"))
+        else if (stdlib::strcmp(sp[0].c_str(), "exit"))
         {
             kernel::login_init();
             return;
         }
-        else if (stdlib::strcmp(sp[0]->c_str(), "ls"))
+        else if (stdlib::strcmp(sp[0].c_str(), "ls"))
         {
             // Use current directory if no path specified, otherwise resolve the path
-            const char* path = (count > 1) ? sp[1]->c_str() : NULL;
+            const char* path = (count > 1) ? sp[1].c_str() : NULL;
             stdlib::string resolved_path = resolve_path(path);
             kernel::list_files(resolved_path.c_str());
         }
-        else if (stdlib::strcmp(sp[0]->c_str(), "cat"))
+        else if (stdlib::strcmp(sp[0].c_str(), "cat"))
         {
             if (count < 2)
             {
@@ -267,24 +268,24 @@ namespace kernel
             }
             else
             {
-                stdlib::string resolved_path = resolve_path(sp[1]->c_str());
+                stdlib::string resolved_path = resolve_path(sp[1].c_str());
                 kernel::print_file_contents(resolved_path.c_str());
             }
         }
-        else if (stdlib::strcmp(sp[0]->c_str(), "pwd"))
+        else if (stdlib::strcmp(sp[0].c_str(), "pwd"))
         {
             terminal_puts(current_working_directory);
             terminal_puts("\n");
         }
-        else if (stdlib::strcmp(sp[0]->c_str(), "cd"))
+        else if (stdlib::strcmp(sp[0].c_str(), "cd"))
         {
-            const char* path = (count > 1) ? sp[1]->c_str() : "/";
+            const char* path = (count > 1) ? sp[1].c_str() : "/";
             if (!change_directory(path))
             {
                 terminal_puts("cd: directory not found or not a directory\n");
             }
         }
-        else if (stdlib::strcmp(sp[0]->c_str(), "fetch"))
+        else if (stdlib::strcmp(sp[0].c_str(), "fetch"))
         {
             display_fetch();
         }

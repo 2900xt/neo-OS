@@ -186,7 +186,7 @@ void serial_logger::v(const char *source, const char *fmt, ...)
     kernel::puts(seconds);
     kernel::kfree(seconds);
 
-    kernel::puts("\t[Verbose]   ");
+    kernel::puts("\t[V]   ");
     kernel::puts(source);
     int len = stdlib::strlen(source);
     for (int i = len; i <= 15; i++)
@@ -210,7 +210,7 @@ void serial_logger::d(const char *source, const char *fmt, ...)
     kernel::puts(seconds);
     kernel::kfree(seconds);
 
-    kernel::puts("\t[Debug]     ");
+    kernel::puts("\t[D]     ");
     kernel::puts(source);
     int len = stdlib::strlen(source);
     for (int i = len; i <= 15; i++)
@@ -233,7 +233,7 @@ void serial_logger::w(const char *source, const char *fmt, ...)
     kernel::puts(seconds);
     kernel::kfree(seconds);
 
-    kernel::puts("\t[Warning]   ");
+    kernel::puts("\t[W]   ");
     kernel::puts(source);
     int len = stdlib::strlen(source);
     for (int i = len; i <= 15; i++)
@@ -256,7 +256,7 @@ void serial_logger::e(const char *source, const char *fmt, ...)
     kernel::puts(seconds);
     kernel::kfree(seconds);
 
-    kernel::puts("\t[Error]     ");
+    kernel::puts("\t[E]     ");
     kernel::puts(source);
 
     int len = stdlib::strlen(source);

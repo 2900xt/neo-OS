@@ -133,7 +133,7 @@ struct FAT_partition {
 };
 
 FAT_partition* mount_part(disk::rw_disk_t* device, int partition);
-fat_dir_entry* get_f32_file_entry(FAT_partition* partition, stdlib::string& filepath);
+fat_dir_entry* get_f32_file_entry(FAT_partition* partition, const stdlib::string& filepath);
 int read_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint32_t start_cluster);
 void print_directory_contents(filesystem::FAT_partition* partition, fat_dir_entry* directory);
 bios_param_block* read_bpb(disk::rw_disk_t* device, int partition);
@@ -149,5 +149,5 @@ void print_directory_contents(FAT_partition* partition, fat_dir_entry* directory
 
 uint32_t get_file_size(FAT_partition* partition, uint32_t starting_cluster);
 int write_cluster_chain(filesystem::FAT_partition* partition, void* _buffer, uint64_t size, uint64_t start_cluster = -1);
-void* read_file_entry(filesystem::FAT_partition* partition, fat_dir_entry* file_entry);
+void* fat_read_file_entry(filesystem::FAT_partition* partition, fat_dir_entry* file_entry);
 }  // namespace filesystem
